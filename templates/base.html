@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cofinance CI - Plateforme de Microfinance</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --bg-sidebar: #1a1f36;
+            --bg-sidebar-hover: #2d3250;
+            --bg-input: #ffffff;
+            --text-primary: #1a1f36;
+            --text-secondary: #6b7280;
+            --text-sidebar: #a0aec0;
+            --text-sidebar-active: #ffffff;
+            --border-color: #e2e8f0;
+            --accent: #1a73e8;
+            --accent-hover: #1557b0;
+            --accent-light: #e8f0fe;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+        [data-theme="dark"] {
+            --bg-primary: #0f1117;
+            --bg-secondary: #1a1d2e;
+            --bg-card: #1e2235;
+            --bg-sidebar: #0b0d14;
+            --bg-sidebar-hover: #1a1d2e;
+            --bg-input: #1e2235;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-sidebar: #64748b;
+            --text-sidebar-active: #ffffff;
+            --border-color: #2d3250;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --accent-light: #1e3a5f;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-secondary); color: var(--text-primary); }
+        .app { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--bg-sidebar); padding: 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform .3s; overflow-y: auto; }
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-brand h2 { color: #fff; font-size: 18px; }
+        .sidebar-brand span { color: var(--accent); }
+        .sidebar-brand small { color: var(--text-sidebar); font-size: 11px; }
+        .sidebar-nav { padding: 12px 0; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: var(--text-sidebar); text-decoration: none; font-size: 14px; transition: all .2s; cursor: pointer; border-left: 3px solid transparent; }
+        .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--bg-sidebar-hover); color: var(--text-sidebar-active); }
+        .sidebar-nav a.active { border-left-color: var(--accent); }
+        .sidebar-nav a .icon { width: 20px; text-align: center; font-size: 16px; }
+        .sidebar-nav .badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+        .main { flex: 1; margin-left: 260px; }
+        .header { background: var(--bg-card); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 50; }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .header-left .menu-toggle { display: none; background: none; border: none; color: var(--text-primary); font-size: 22px; cursor: pointer; padding: 4px; }
+        .header-left h3 { font-size: 16px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .header-right .theme-btn { background: none; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; color: var(--text-primary); font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .header-right .theme-btn:hover { background: var(--bg-secondary); }
+        .header-right .user-info { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .header-right .user-info .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+        .header-right .user-info .logout-btn { background: none; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 4px 10px; cursor: pointer; color: var(--text-primary); font-size: 12px; }
+        .header-right .user-info .logout-btn:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .content { padding: 24px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .stat-card .label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; margin: 4px 0; }
+        .stat-card .sub { font-size: 12px; color: var(--text-secondary); }
+        .stat-card .icon-box { width: 40px; height: 40px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 12px; }
+        .card { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); overflow: hidden; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h4 { font-size: 15px; font-weight: 600; }
+        .card-body { padding: 16px 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table th { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+        table td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
+        table tr:hover { background: var(--bg-secondary); }
+        .status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .status.active { background: #d1fae5; color: #065f46; }
+        .status.pending { background: #fef3c7; color: #92400e; }
+        .status.rejected { background: #fee2e2; color: #991b1b; }
+        .status.approved { background: #dbeafe; color: #1e40af; }
+        .status.closed { background: #e5e7eb; color: #374151; }
+        [data-theme="dark"] .status.active { background: #064e3b; color: #6ee7b7; }
+        [data-theme="dark"] .status.pending { background: #78350f; color: #fcd34d; }
+        [data-theme="dark"] .status.rejected { background: #7f1d1d; color: #fca5a5; }
+        [data-theme="dark"] .status.approved { background: #1e3a5f; color: #93c5fd; }
+        [data-theme="dark"] .status.closed { background: #374151; color: #d1d5db; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text-secondary); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 14px; background: var(--bg-input); color: var(--text-primary); outline: none; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border: none; border-radius: var(--radius); font-size: 14px; cursor: pointer; transition: all .2s; font-weight: 500; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-outline { background: none; border: 1px solid var(--border-color); color: var(--text-primary); }
+        .btn-outline:hover { background: var(--bg-secondary); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .modal { background: var(--bg-card); border-radius: var(--radius-lg); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h4 { font-size: 16px; }
+        .modal-header .close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-primary); }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 8px; }
+        .chat-messages { height: 300px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-message { max-width: 80%; padding: 8px 14px; border-radius: 12px; font-size: 13px; }
+        .chat-message.sent { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-message.received { background: var(--bg-secondary); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-message .time { font-size: 10px; opacity: .6; display: block; margin-top: 2px; }
+        .chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); }
+        .chat-input input { flex: 1; padding: 8px 14px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; background: var(--bg-input); color: var(--text-primary); }
+        .chat-input button { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: .4; }
+        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .loading .spinner { width: 32px; height: 32px; border: 3px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .login-page { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: var(--bg-secondary); padding: 20px; }
+        .login-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 40px; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); }
+        .login-card h1 { font-size: 24px; margin-bottom: 4px; }
+        .login-card h1 span { color: var(--accent); }
+        .login-card p { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+        .login-card .error { color: var(--danger); font-size: 13px; margin-bottom: 12px; }
+        .notification { position: fixed; top: 20px; right: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 12px 20px; box-shadow: var(--shadow-lg); z-index: 300; font-size: 14px; display: flex; align-items: center; gap: 8px; animation: slideIn .3s; }
+        .notification.success { border-left: 4px solid var(--success); }
+        .notification.error { border-left: 4px solid var(--danger); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .scroll-table { overflow-x: auto; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .header-left .menu-toggle { display: block; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .login-card { margin: 12px; padding: 24px; }
+        }
+        @media print { .sidebar, .header { display: none; } .main { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div id="app">
+        {% verbatim %}
+        <div v-if="!token" class="login-page">
+            <div class="login-card">
+                <h1>Cofinance <span>CI</span></h1>
+                <p>Plateforme de microfinance</p>
+                <div class="error" v-if="error">{{ error }}</div>
+                <div class="form-group">
+                    <label>Identifiant</label>
+                    <input type="text" v-model="username" @keyup.enter="login" placeholder="Nom d'utilisateur">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" v-model="password" @keyup.enter="login" placeholder="Mot de passe">
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center" @click="login" :disabled="loading">
+                    {{ loading ? 'Connexion...' : 'Se connecter' }}
+                </button>
+                <div style="margin-top:16px;font-size:12px;color:var(--text-secondary);text-align:center">
+                    <strong>Demo:</strong> admin / agent1 / client1 &mdash; mot de passe: 123
+                </div>
+            </div>
+        </div>
+
+        <template v-else>
+            <div class="app">
+                <aside :class="['sidebar', {open: sidebarOpen}]">
+                    <div class="sidebar-brand">
+                        <h2>Cofinance <span>CI</span></h2>
+                        <small>{{ user.role }}</small>
+                    </div>
+                    <nav class="sidebar-nav">
+                        <a v-for="item in menuItems" :key="item.id" :class="{active: currentView === item.id}" @click="navigate(item.id)">
+                            <span class="icon">{{ item.icon }}</span>
+                            {{ item.label }}
+                            <span class="badge" v-if="item.badge && item.badge() > 0">{{ item.badge() }}</span>
+                        </a>
+                    </nav>
+                </aside>
+                <div class="main">
+                    <header class="header">
+                        <div class="header-left">
+                            <button class="menu-toggle" @click="sidebarOpen = !sidebarOpen">☰</button>
+                            <h3>{{ currentViewTitle }}</h3>
+                        </div>
+                        <div class="header-right">
+                            <button class="theme-btn" @click="toggleTheme">
+                                {{ theme === 'light' ? '🌙' : '☀️' }} {{ theme === 'light' ? 'Sombre' : 'Clair' }}
+                            </button>
+                            <div class="user-info">
+                                <div class="avatar">{{ user.initials }}</div>
+                                {{ user.first_name }} {{ user.last_name }}
+                                <button class="logout-btn" @click="logout">Déconnexion</button>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="content">
+                        <div v-if="loading" class="loading"><div class="spinner"></div> Chargement...</div>
+                        <template v-else>
+                            <div v-if="currentView === 'dashboard'">
+                                <div class="stats-grid">
+                                    <div class="stat-card" v-for="s in dashboardStats" :key="s.label">
+                                        <div class="icon-box" :style="{background: s.color + '20', color: s.color}">{{ s.icon }}</div>
+                                        <div class="label">{{ s.label }}</div>
+                                        <div class="value">{{ s.value }}</div>
+                                        <div class="sub" v-if="s.sub">{{ s.sub }}</div>
+                                    </div>
+                                </div>
+                                <div class="grid-2">
+                                    <div class="card">
+                                        <div class="card-header"><h4>Crédits récents</h4></div>
+                                        <div class="card-body scroll-table">
+                                            <table v-if="recentLoans.length">
+                                                <thead><tr><th>ID</th><th>Client</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
+                                                <tbody>
+                                                    <tr v-for="l in recentLoans" :key="l.id">
+                                                        <td>#{{ l.id }}</td>
+                                                        <td>{{ l.client_details?.user?.first_name || 'N/A' }}</td>
+                                                        <td>{{ formatMoney(l.montant_demande) }}</td>
+                                                        <td><span :class="'status ' + statusClass(l.statut)">{{ l.statut }}</span></td>
+                                                        <td>{{ formatDate(l.date_creation) }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div v-else class="empty-state"><div class="icon">📋</div><p>Aucun crédit</p></div>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header"><h4>Activité récente</h4></div>
+                                        <div class="card-body" style="max-height:300px;overflow-y:auto">
+                                            <div v-for="n in notifications" :key="n.id" style="padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px">
+                                                <strong>{{ n.titre }}</strong>
+                                                <p style="color:var(--text-secondary);margin-top:2px">{{ n.message }}</p>
+                                                <small style="color:var(--text-secondary)">{{ formatDate(n.date_creation) }}</small>
+                                            </div>
+                                            <div v-if="!notifications.length" class="empty-state"><p>Aucune activité</p></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'loans'">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                                    <h4 style="font-size:16px">Demandes de crédit</h4>
+                                    <button class="btn btn-primary" @click="showLoanForm = true">+ Nouvelle demande</button>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body scroll-table">
+                                        <table>
+                                            <thead><tr><th>ID</th><th>Montant</th><th>Durée</th><th>Score</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="l in loans" :key="l.id">
+                                                    <td>#{{ l.id }}</td>
+                                                    <td>{{ formatMoney(l.montant_demande) }}</td>
+                                                    <td>{{ l.duree_mois }} mois</td>
+                                                    <td>{{ l.score_eligibilite }}/100</td>
+                                                    <td><span :class="'status ' + statusClass(l.statut)">{{ l.statut }}</span></td>
+                                                    <td>{{ formatDate(l.date_creation) }}</td>
+                                                    <td><button class="btn btn-sm btn-outline" @click="viewLoan(l)">Détails</button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!loans.length" class="empty-state"><div class="icon">📋</div><p>Aucune demande de crédit</p></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'repayments'">
+                                <h4 style="font-size:16px;margin-bottom:16px">Remboursements</h4>
+                                <div class="card">
+                                    <div class="card-body scroll-table">
+                                        <table>
+                                            <thead><tr><th>Référence</th><th>Prêt</th><th>Montant</th><th>Pénalité</th><th>Mode</th><th>Date</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="r in repayments" :key="r.id">
+                                                    <td>{{ r.reference }}</td>
+                                                    <td>#{{ r.loan }}</td>
+                                                    <td>{{ formatMoney(r.montant) }}</td>
+                                                    <td>{{ formatMoney(r.penalite) }}</td>
+                                                    <td>{{ r.mode_paiement }}</td>
+                                                    <td>{{ formatDate(r.date_paiement) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!repayments.length" class="empty-state"><div class="icon">💰</div><p>Aucun remboursement</p></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'insurance'">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                                    <h4 style="font-size:16px">Assurance</h4>
+                                    <button class="btn btn-primary" @click="showInsuranceForm = true">+ Souscrire</button>
+                                </div>
+                                <div class="grid-3">
+                                    <div class="card" v-for="p in insuranceProducts" :key="p.id">
+                                        <div class="card-body">
+                                            <h5 style="margin-bottom:4px">{{ p.nom }}</h5>
+                                            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">{{ p.description }}</p>
+                                            <div style="font-size:20px;font-weight:700;color:var(--accent)">{{ formatMoney(p.prix) }}</div>
+                                            <div style="font-size:12px;color:var(--text-secondary)">{{ p.duree_jours }} jours</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card" style="margin-top:16px">
+                                    <div class="card-header"><h4>Mes polices</h4></div>
+                                    <div class="card-body scroll-table">
+                                        <table>
+                                            <thead><tr><th>Produit</th><th>Début</th><th>Fin</th><th>Statut</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="p in myPolicies" :key="p.id">
+                                                    <td>{{ p.produit_details?.nom || 'N/A' }}</td>
+                                                    <td>{{ formatDate(p.date_debut) }}</td>
+                                                    <td>{{ formatDate(p.date_fin) }}</td>
+                                                    <td><span :class="'status ' + (p.statut === 'ACTIVE' ? 'active' : 'closed')">{{ p.statut }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'chat'">
+                                <div style="display:flex;gap:16px;flex-wrap:wrap">
+                                    <div class="card" style="flex:1;min-width:280px">
+                                        <div class="card-header"><h4>Conversations</h4></div>
+                                        <div class="card-body" style="padding:0">
+                                            <div v-for="c in conversations" :key="c.id" @click="selectChat(c)" :style="{padding:'12px 16px',borderBottom:'1px solid var(--border-color)',cursor:'pointer',background: selectedChat?.id === c.id ? 'var(--accent-light)' : ''}">
+                                                <strong style="font-size:13px">{{ c.client_name || 'Client #'+c.id }}</strong>
+                                                <span class="badge" v-if="c.unread_count > 0" style="float:right">{{ c.unread_count }}</span>
+                                                <div style="font-size:12px;color:var(--text-secondary)" v-if="c.last_message">{{ c.last_message.message }}</div>
+                                            </div>
+                                            <div v-if="!conversations.length" class="empty-state"><p>Nouvelle conversation</p></div>
+                                        </div>
+                                        <div style="padding:12px;border-top:1px solid var(--border-color)">
+                                            <button class="btn btn-sm btn-primary" @click="newChat">Nouveau chat</button>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="flex:2;min-width:300px">
+                                        <div class="card-header"><h4>{{ selectedChat ? (selectedChat.client_name || 'Chat #'+selectedChat.id) : 'Chat' }}</h4></div>
+                                        <div class="chat-messages" ref="chatBox">
+                                            <div v-for="m in chatMessages" :key="m.id" :class="['chat-message', m.sender === user.username ? 'sent' : 'received']">
+                                                {{ m.message }}
+                                                <span class="time">{{ m.sender_name || m.sender }} - {{ formatTime(m.timestamp) }}</span>
+                                            </div>
+                                            <div v-if="!chatMessages.length" class="empty-state"><p>Sélectionnez une conversation</p></div>
+                                        </div>
+                                        <div class="chat-input">
+                                            <input v-model="chatInput" @keyup.enter="sendChat" placeholder="Votre message..." :disabled="!selectedChat">
+                                            <button @click="sendChat" :disabled="!chatInput.trim() || !selectedChat">➤</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'notifications'">
+                                <h4 style="font-size:16px;margin-bottom:16px">
+                                    Notifications
+                                    <button class="btn btn-sm btn-outline" style="margin-left:8px" @click="markAllRead">Tout marquer lu</button>
+                                </h4>
+                                <div class="card">
+                                    <div class="card-body" style="padding:0">
+                                        <div v-for="n in notificationsList" :key="n.id" :style="{padding:'14px 20px',borderBottom:'1px solid var(--border-color)',background: n.lu ? '' : 'var(--accent-light)'}">
+                                            <div style="display:flex;justify-content:space-between;align-items:start">
+                                                <div><strong>{{ n.titre }}</strong><p style="font-size:13px;color:var(--text-secondary);margin-top:2px">{{ n.message }}</p></div>
+                                                <span v-if="!n.lu" class="status active" style="cursor:pointer" @click="markRead(n)">Nouveau</span>
+                                            </div>
+                                            <small style="color:var(--text-secondary)">{{ formatDate(n.date_creation) }}</small>
+                                        </div>
+                                        <div v-if="!notificationsList.length" class="empty-state"><p>Aucune notification</p></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'users' && user.role === 'ADMIN'">
+                                <h4 style="font-size:16px;margin-bottom:16px">Gestion des utilisateurs</h4>
+                                <div class="card">
+                                    <div class="card-body scroll-table">
+                                        <table>
+                                            <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Rôle</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="u in users" :key="u.id">
+                                                    <td>#{{ u.id }}</td>
+                                                    <td>{{ u.first_name }} {{ u.last_name }}</td>
+                                                    <td>{{ u.email }}</td>
+                                                    <td>{{ u.telephone }}</td>
+                                                    <td><span :class="'status ' + (u.role === 'ADMIN' ? 'approved' : u.role === 'AGENT' ? 'active' : 'pending')">{{ u.role }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showLoanForm" @click.self="showLoanForm = false">
+                <div class="modal">
+                    <div class="modal-header"><h4>Nouvelle demande de crédit</h4><button class="close" @click="showLoanForm = false">&times;</button></div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Montant (FCFA)</label><input type="number" v-model="loanForm.montant_demande" placeholder="Ex: 500000"></div>
+                        <div class="form-group"><label>Durée (mois)</label><select v-model="loanForm.duree_mois"><option v-for="m in [3,6,9,12,18,24]" :value="m">{{ m }} mois</option></select></div>
+                        <div class="form-group"><label>Motif</label><textarea v-model="loanForm.motif" rows="3" placeholder="Raison de la demande"></textarea></div>
+                        <div class="form-group"><label>Revenu mensuel</label><input type="number" v-model="loanForm.revenu_mensuel" placeholder="Ex: 300000"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showLoanForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitLoan">Soumettre</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showInsuranceForm" @click.self="showInsuranceForm = false">
+                <div class="modal">
+                    <div class="modal-header"><h4>Souscrire une assurance</h4><button class="close" @click="showInsuranceForm = false">&times;</button></div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Produit</label>
+                            <select v-model="insuranceForm.produit_id">
+                                <option v-for="p in insuranceProducts" :key="p.id" :value="p.id">{{ p.nom }} - {{ formatMoney(p.prix) }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showInsuranceForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitInsurance">Souscrire</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="selectedLoan" @click.self="selectedLoan = null">
+                <div class="modal">
+                    <div class="modal-header"><h4>Crédit #{{ selectedLoan.id }}</h4><button class="close" @click="selectedLoan = null">&times;</button></div>
+                    <div class="modal-body">
+                        <div class="grid-2" style="gap:12px;font-size:14px">
+                            <div><strong>Montant:</strong> {{ formatMoney(selectedLoan.montant_demande) }}</div>
+                            <div><strong>Durée:</strong> {{ selectedLoan.duree_mois }} mois</div>
+                            <div><strong>Score:</strong> {{ selectedLoan.score_eligibilite }}/100</div>
+                            <div><strong>Statut:</strong> <span :class="'status ' + statusClass(selectedLoan.statut)">{{ selectedLoan.statut }}</span></div>
+                            <div><strong>Motif:</strong> {{ selectedLoan.motif }}</div>
+                            <div><strong>Date:</strong> {{ formatDate(selectedLoan.date_creation) }}</div>
+                        </div>
+                        <div style="margin-top:16px" v-if="selectedLoan.amortization_schedule?.length">
+                            <h5 style="margin-bottom:8px">Échéancier</h5>
+                            <div class="scroll-table">
+                                <table>
+                                    <thead><tr><th>#</th><th>Échéance</th><th>Mensualité</th><th>Capital</th><th>Intérêt</th><th>Statut</th></tr></thead>
+                                    <tbody>
+                                        <tr v-for="e in selectedLoan.amortization_schedule" :key="e.id">
+                                            <td>{{ e.numero_mensualite }}</td>
+                                            <td>{{ formatDate(e.date_echeance) }}</td>
+                                            <td>{{ formatMoney(e.mensualite) }}</td>
+                                            <td>{{ formatMoney(e.part_capital) }}</td>
+                                            <td>{{ formatMoney(e.part_interet) }}</td>
+                                            <td><span :class="'status ' + (e.est_paye ? 'active' : 'pending')">{{ e.est_paye ? 'Payée' : 'En attente' }}</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer"><button class="btn btn-outline" @click="selectedLoan = null">Fermer</button></div>
+                </div>
+            </div>
+
+            <div class="notification" v-if="notif.show" :class="notif.type" @click="notif.show = false">
+                {{ notif.type === 'success' ? '✅' : '❌' }} {{ notif.message }}
+            </div>
+        </template>
+        {% endverbatim %}
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                theme: localStorage.getItem('theme') || 'light',
+                token: localStorage.getItem('token') || '',
+                refresh: '',
+                user: {},
+                username: '',
+                password: '',
+                error: '',
+                loading: false,
+                sidebarOpen: false,
+                currentView: 'dashboard',
+                dashboardStats: [],
+                recentLoans: [],
+                loans: [],
+                repayments: [],
+                insuranceProducts: [],
+                myPolicies: [],
+                conversations: [],
+                selectedChat: null,
+                chatMessages: [],
+                chatInput: '',
+                chatSocket: null,
+                notifications: [],
+                notificationsList: [],
+                users: [],
+                showLoanForm: false,
+                showInsuranceForm: false,
+                selectedLoan: null,
+                loanForm: { montant_demande: '', duree_mois: 12, motif: '', revenu_mensuel: '' },
+                insuranceForm: { produit_id: '' },
+                notif: { show: false, message: '', type: 'success' },
+            },
+            computed: {
+                menuItems() {
+                    const items = [
+                        { id: 'dashboard', icon: '📊', label: 'Tableau de bord', badge: null },
+                        { id: 'loans', icon: '💰', label: 'Crédits', badge: null },
+                        { id: 'repayments', icon: '💳', label: 'Remboursements', badge: null },
+                        { id: 'insurance', icon: '🛡️', label: 'Assurance', badge: null },
+                        { id: 'chat', icon: '💬', label: 'Chat', badge: () => this.unreadChatCount },
+                        { id: 'notifications', icon: '🔔', label: 'Notifications', badge: () => this.unreadNotifCount },
+                    ];
+                    if (this.user.role === 'ADMIN') items.push({ id: 'users', icon: '👥', label: 'Utilisateurs', badge: null });
+                    return items;
+                },
+                currentViewTitle() {
+                    const map = { dashboard:'Tableau de bord', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs' };
+                    return map[this.currentView] || 'Cofinance CI';
+                },
+                unreadChatCount() { return this.conversations.reduce((s, c) => s + (c.unread_count || 0), 0); },
+                unreadNotifCount() { return this.notificationsList.filter(n => !n.lu).length; },
+            },
+            methods: {
+                async login() {
+                    if (!this.username || !this.password) return;
+                    this.loading = true; this.error = '';
+                    try {
+                        const r = await fetch('/api/auth/login/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:this.username, password:this.password}) });
+                        const d = await r.json();
+                        if (!r.ok) { this.error = d.error || 'Erreur de connexion'; return; }
+                        this.token = d.access; this.refresh = d.refresh; this.user = d.user;
+                        this.user.initials = (d.user.first_name?.[0]||'') + (d.user.last_name?.[0]||'');
+                        localStorage.setItem('token', this.token);
+                        localStorage.setItem('refresh', this.refresh);
+                        this.loadAll();
+                    } catch(e) { this.error = 'Erreur de connexion au serveur'; }
+                    finally { this.loading = false; }
+                },
+                logout() { this.token = ''; this.user = {}; localStorage.removeItem('token'); localStorage.removeItem('refresh'); },
+                toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', this.theme); localStorage.setItem('theme', this.theme); },
+                navigate(view) { this.currentView = view; this.sidebarOpen = false; this.loadView(view); },
+                async loadAll() { this.loading = true; await Promise.all([this.loadDashboard(), this.loadLoans(), this.loadRepayments(), this.loadInsurance(), this.loadChat(), this.loadNotifications()]); if (this.user.role === 'ADMIN') await this.loadUsers(); this.loading = false; },
+                async loadView(view) {
+                    this.loading = true;
+                    if (view === 'dashboard') await this.loadDashboard();
+                    if (view === 'loans') await this.loadLoans();
+                    if (view === 'repayments') await this.loadRepayments();
+                    if (view === 'insurance') await this.loadInsurance();
+                    if (view === 'chat') await this.loadChat();
+                    if (view === 'notifications') await this.loadNotifications();
+                    if (view === 'users' && this.user.role === 'ADMIN') await this.loadUsers();
+                    this.loading = false;
+                },
+                api(path) { return fetch(path, {headers:{'Authorization':`Bearer ${this.token}`}}).then(r => r.json()); },
+                async loadDashboard() {
+                    try {
+                        const role = this.user.role.toLowerCase();
+                        const data = await this.api(`/api/dashboard/${role}/`);
+                        if (this.user.role === 'ADMIN') {
+                            this.dashboardStats = [
+                                { icon:'💰', label:'Total crédits', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.approuvees||0} approuvés` },
+                                { icon:'✅', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669', sub:`${data.credits?.decaisses||0} décaissés` },
+                                { icon:'📈', label:'Montant prêté', value:this.formatMoney(data.financier?.montant_prete||0), color:'#d97706' },
+                                { icon:'🔄', label:'Remboursé', value:this.formatMoney(data.financier?.montant_rembourse||0), color:'#7c3aed' },
+                                { icon:'🛡️', label:'Assurances actives', value:data.assurance?.souscriptions_actives||0, color:'#0891b2' },
+                                { icon:'💬', label:'Conversations', value:data.support?.total_conversations||0, color:'#dc2626', sub:`${data.support?.ouvertes||0} ouvertes` },
+                            ];
+                        } else if (this.user.role === 'CLIENT') {
+                            this.dashboardStats = [
+                                { icon:'💰', label:'Mes crédits', value:data.credits?.total||0, color:'#1a73e8' },
+                                { icon:'✅', label:'Crédits actifs', value:data.credits?.actifs||0, color:'#059669' },
+                                { icon:'📊', label:'Score', value:data.score_credit||0, color:'#d97706', sub:'/100' },
+                                { icon:'🔔', label:'Notifications', value:data.notifications_non_lues||0, color:'#dc2626', sub:'non lues' },
+                            ];
+                        } else {
+                            this.dashboardStats = [
+                                { icon:'📋', label:'Dossiers', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.en_attente||0} en attente` },
+                                { icon:'✅', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669' },
+                                { icon:'💳', label:'Collecte', value:this.formatMoney(data.collecte?.total_rembourse||0), color:'#7c3aed' },
+                                { icon:'💬', label:'Chats ouverts', value:data.support?.conversations_ouvertes||0, color:'#0891b2' },
+                            ];
+                        }
+                        const allLoans = await this.api('/api/loans/');
+                        this.recentLoans = (Array.isArray(allLoans) ? allLoans : allLoans.results || []).slice(0, 10);
+                    } catch(e) { console.error(e); }
+                },
+                async loadLoans() {
+                    try {
+                        const d = await this.api('/api/loans/mine/');
+                        this.loans = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadRepayments() {
+                    try {
+                        const d = await this.api('/api/repayments/');
+                        this.repayments = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadInsurance() {
+                    try {
+                        this.insuranceProducts = await this.api('/api/insurance/products/');
+                        const d = await this.api('/api/insurance/policies/mine/');
+                        this.myPolicies = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadChat() {
+                    try {
+                        const d = await this.api('/api/chat/conversations/');
+                        this.conversations = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async selectChat(c) {
+                    this.selectedChat = c;
+                    if (this.chatSocket) this.chatSocket.close();
+                    this.chatSocket = new WebSocket(`ws://localhost:8000/ws/chat/${c.id}/`);
+                    this.chatSocket.onmessage = (e) => {
+                        const d = JSON.parse(e.data);
+                        this.chatMessages.push({ id: Date.now(), message: d.message, sender: d.sender, sender_name: d.sender_name, timestamp: d.timestamp });
+                        this.$nextTick(() => { const box = this.$refs.chatBox; if (box) box.scrollTop = box.scrollHeight; });
+                    };
+                    const msgs = await this.api(`/api/chat/conversations/${c.id}/messages/`);
+                    this.chatMessages = Array.isArray(msgs) ? msgs : msgs.results || [];
+                    this.$nextTick(() => { const box = this.$refs.chatBox; if (box) box.scrollTop = box.scrollHeight; });
+                },
+                sendChat() {
+                    if (!this.chatInput.trim() || !this.selectedChat) return;
+                    if (this.chatSocket && this.chatSocket.readyState === WebSocket.OPEN) {
+                        this.chatSocket.send(JSON.stringify({message: this.chatInput}));
+                        this.chatInput = '';
+                    } else {
+                        fetch(`/api/chat/conversations/${this.selectedChat.id}/send/`, {
+                            method:'POST', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify({message: this.chatInput})
+                        }).then(() => this.loadChat());
+                        this.chatInput = '';
+                    }
+                },
+                async newChat() {
+                    const r = await fetch('/api/chat/conversations/', { method:'POST', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'}, body:'{}' });
+                    if (r.ok) { const c = await r.json(); this.conversations.unshift(c); this.selectChat(c); }
+                },
+                async loadNotifications() {
+                    try {
+                        const d = await this.api('/api/notifications/');
+                        this.notificationsList = Array.isArray(d) ? d : d.results || [];
+                        this.notifications = this.notificationsList.slice(0, 10);
+                    } catch(e) { console.error(e); }
+                },
+                async markRead(n) {
+                    await fetch(`/api/notifications/${n.id}/read/`, { method:'PATCH', headers:{'Authorization':`Bearer ${this.token}`} });
+                    n.lu = true;
+                },
+                async markAllRead() {
+                    await fetch('/api/notifications/mark-all-read/', { method:'POST', headers:{'Authorization':`Bearer ${this.token}`} });
+                    this.notificationsList.forEach(n => n.lu = true);
+                    this.notif = { show: true, message: 'Toutes marquées comme lues', type: 'success' };
+                    setTimeout(() => this.notif.show = false, 3000);
+                },
+                async loadUsers() {
+                    try {
+                        const d = await this.api('/api/auth/users/');
+                        this.users = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async submitLoan() {
+                    try {
+                        const r = await fetch('/api/loans/', { method:'POST', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'}, body:JSON.stringify(this.loanForm) });
+                        if (r.ok) {
+                            this.showLoanForm = false;
+                            this.loanForm = { montant_demande: '', duree_mois: 12, motif: '', revenu_mensuel: '' };
+                            this.loadLoans();
+                            this.notif = { show: true, message: 'Demande de crédit soumise avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur lors de la soumission', type: 'error' }; }
+                },
+                async submitInsurance() {
+                    try {
+                        const r = await fetch('/api/insurance/policies/', { method:'POST', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'}, body:JSON.stringify(this.insuranceForm) });
+                        if (r.ok) {
+                            this.showInsuranceForm = false;
+                            this.insuranceForm = { produit_id: '' };
+                            this.loadInsurance();
+                            this.notif = { show: true, message: 'Assurance souscrite avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur lors de la souscription', type: 'error' }; }
+                },
+                async viewLoan(l) {
+                    try {
+                        const d = await this.api(`/api/loans/${l.id}/`);
+                        const sched = await this.api(`/api/loans/${l.id}/schedule/`);
+                        this.selectedLoan = {...d, amortization_schedule: Array.isArray(sched) ? sched : sched.results || []};
+                    } catch(e) { }
+                },
+                statusClass(s) {
+                    const map = { 'SOUMISE':'pending','EN_ANALYSE':'pending','APPROUVEE':'approved','REJETEE':'rejected','DECAISSEE':'active','ACTIVE':'active','EXPIREE':'closed','OUVERTE':'active','FERMEE':'closed' };
+                    return map[s] || 'pending';
+                },
+                formatMoney(v) { return new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'; },
+                formatDate(d) { if (!d) return ''; return new Date(d).toLocaleDateString('fr-FR'); },
+                formatTime(d) { if (!d) return ''; return new Date(d).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}); },
+            },
+            mounted() {
+                document.documentElement.setAttribute('data-theme', this.theme);
+                if (this.token) { this.loadAll(); }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -28,6 +28,11 @@ class Conversation(models.Model):
         verbose_name = 'Conversation'
         verbose_name_plural = 'Conversations'
         ordering = ['-date_mise_a_jour']
+        indexes = [
+            models.Index(fields=['client', 'status']),
+            models.Index(fields=['agent', 'status']),
+            models.Index(fields=['date_mise_a_jour']),
+        ]
 
     def __str__(self):
         return f"Conversation {self.id} - {self.client.username}"
@@ -52,6 +57,10 @@ class Message(models.Model):
         verbose_name = 'Message'
         verbose_name_plural = 'Messages'
         ordering = ['timestamp']
+        indexes = [
+            models.Index(fields=['conversation', 'timestamp']),
+            models.Index(fields=['conversation', 'is_read']),
+        ]
 
     def __str__(self):
         return f"Message de {self.sender.username} dans {self.conversation.id}"

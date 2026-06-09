@@ -17,8 +17,12 @@ class NotificationListView(generics.ListAPIView):
 
 @extend_schema(tags=['Notifications'])
 class NotificationMarkReadView(generics.UpdateAPIView):
-    queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Notification.objects.none()
+        return Notification.objects.filter(user=self.request.user)
 
     def perform_update(self, serializer):
         notification = self.get_object()

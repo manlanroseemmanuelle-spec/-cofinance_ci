@@ -45,6 +45,10 @@ class Policy(models.Model):
     class Meta:
         verbose_name = 'Police d\'assurance'
         verbose_name_plural = 'Polices d\'assurance'
+        indexes = [
+            models.Index(fields=['client', 'statut']),
+            models.Index(fields=['date_fin', 'statut']),
+        ]
 
     def __str__(self):
         return f"{self.client} - {self.produit.nom}"

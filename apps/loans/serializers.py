@@ -17,6 +17,11 @@ class LoanCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = LoanApplication
         fields = ['montant_demande', 'duree_mois', 'motif', 'revenu_mensuel']
+        extra_kwargs = {
+            'montant_demande': {'min_value': 1},
+            'duree_mois': {'min_value': 1, 'max_value': 60},
+            'revenu_mensuel': {'min_value': 1},
+        }
 
 
 class LoanStatusUpdateSerializer(serializers.Serializer):
@@ -47,6 +52,19 @@ class DocumentSerializer(serializers.ModelSerializer):
 class DocumentUploadSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=Document.TypeDocument.choices)
     fichier = serializers.FileField()
+
+    def validate_fichier(self, value):
+        allowed_extensions = {'.pdf', '.jpg', '.jpeg', '.png'}
+        max_size = 5 * 1024 * 1024
+        name = value.name.lower()
+        if not any(name.endswith(extension) for extension in allowed_extensions):
+            raise serializers.ValidationError('Formats autorisés: PDF, JPG, JPEG, PNG.')
+        if value.size > max_size:
+            raise serializers.ValidationError('La taille maximale autorisée est de 5 Mo.')
+        return value
+
+    def create(self, validated_data):
+        return Document.objects.create(**validated_data)
 
 
 class LoanStatusHistorySerializer(serializers.ModelSerializer):

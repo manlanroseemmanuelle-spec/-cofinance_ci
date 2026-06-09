@@ -4,14 +4,23 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from .models import Repayment
 from .serializers import RepaymentSerializer, RepaymentCreateSerializer
-from apps.loans.models import AmortizationSchedule
-from apps.accounts.permissions import IsAdminOrAgent
+from apps.accounts.permissions import IsOwnerAdminOrAssignedAgent
 
 
 @extend_schema(tags=['Remboursements'])
 class RepaymentListCreateView(generics.ListCreateAPIView):
-    queryset = Repayment.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Repayment.objects.none()
+        user = self.request.user
+        queryset = Repayment.objects.select_related('loan__client__user', 'loan__agent__user', 'agent__user')
+        if user.role == 'CLIENT':
+            return queryset.filter(loan__client=user.client_profile)
+        if user.role == 'AGENT':
+            return queryset.filter(loan__agent=user.agent_profile)
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -19,6 +28,14 @@ class RepaymentListCreateView(generics.ListCreateAPIView):
         return RepaymentSerializer
 
     def perform_create(self, serializer):
+        loan = serializer.validated_data['loan']
+        user = self.request.user
+        if user.role == 'CLIENT' and loan.client.user_id != user.id:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Vous ne pouvez payer que vos propres prêts.")
+        if user.role == 'AGENT' and loan.agent and loan.agent.user_id != user.id:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Ce prêt n'est pas assigné à cet agent.")
         repayment = serializer.save(
             reference=f"REP-{uuid.uuid4().hex[:8].upper()}",
             agent=self.request.user.agent_profile if hasattr(self.request.user, 'agent_profile') else None
@@ -34,9 +51,19 @@ class RepaymentListCreateView(generics.ListCreateAPIView):
 
 @extend_schema(tags=['Remboursements'])
 class RepaymentDetailView(generics.RetrieveAPIView):
-    queryset = Repayment.objects.all()
     serializer_class = RepaymentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsOwnerAdminOrAssignedAgent]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Repayment.objects.none()
+        user = self.request.user
+        queryset = Repayment.objects.select_related('loan__client__user', 'loan__agent__user', 'agent__user')
+        if user.role == 'CLIENT':
+            return queryset.filter(loan__client=user.client_profile)
+        if user.role == 'AGENT':
+            return queryset.filter(loan__agent=user.agent_profile)
+        return queryset
 
 
 @extend_schema(tags=['Remboursements'])
@@ -47,4 +74,10 @@ class LoanRepaymentsView(generics.ListAPIView):
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return Repayment.objects.none()
-        return Repayment.objects.filter(loan_id=self.kwargs['loan_id'])
+        queryset = Repayment.objects.select_related('loan__client__user', 'loan__agent__user').filter(loan_id=self.kwargs['loan_id'])
+        user = self.request.user
+        if user.role == 'CLIENT':
+            return queryset.filter(loan__client=user.client_profile)
+        if user.role == 'AGENT':
+            return queryset.filter(loan__agent=user.agent_profile)
+        return queryset

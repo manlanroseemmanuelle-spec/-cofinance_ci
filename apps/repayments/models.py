@@ -38,6 +38,11 @@ class Repayment(models.Model):
         verbose_name = 'Remboursement'
         verbose_name_plural = 'Remboursements'
         ordering = ['-date_paiement']
+        indexes = [
+            models.Index(fields=['loan', 'date_paiement']),
+            models.Index(fields=['agent', 'date_paiement']),
+            models.Index(fields=['reference']),
+        ]
 
     def __str__(self):
         return f"Remboursement {self.id} - Prêt {self.loan.id} - {self.montant} FCFA"

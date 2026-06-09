@@ -141,7 +141,7 @@
                 },
                 connectWebSocket() {
                     if (this.socket) this.socket.close();
-                    this.socket = new WebSocket(`ws://localhost:8000/ws/chat/${this.currentConversationId}/`);
+                    this.socket = new WebSocket(`ws://localhost:8000/ws/chat/${this.currentConversationId}/?token=${encodeURIComponent(this.token)}`);
                     this.socket.onmessage = (e) => {
                         const data = JSON.parse(e.data);
                         this.messages.push({

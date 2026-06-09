@@ -37,6 +37,7 @@ class RegisterView(generics.CreateAPIView):
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
+    throttle_scope = 'login'
 
     @extend_schema(request=LoginSerializer)
     def post(self, request):

@@ -16,3 +16,10 @@ class RepaymentCreateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'montant': {'min_value': 1},
         }
+
+    def validate(self, attrs):
+        amortization = attrs.get('amortization')
+        loan = attrs.get('loan')
+        if amortization and amortization.loan_id != loan.id:
+            raise serializers.ValidationError({'amortization': "Cette échéance n'appartient pas au prêt indiqué."})
+        return attrs

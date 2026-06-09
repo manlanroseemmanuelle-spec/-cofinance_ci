@@ -13,6 +13,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f'chat_{self.conversation_id}'
         self.user = self.scope['user']
 
+        if not self.user.is_authenticated:
+            await self.close(code=4401)
+            return
+
+        if not await self.user_can_access_conversation(self.user, self.conversation_id):
+            await self.close(code=4403)
+            return
+
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -116,4 +124,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             conversation=conversation,
             sender=user,
             message=message
+        )
+
+    @database_sync_to_async
+    def user_can_access_conversation(self, user, conversation_id):
+        try:
+            conversation = Conversation.objects.get(id=conversation_id)
+        except Conversation.DoesNotExist:
+            return False
+        return (
+            user.role == 'ADMIN'
+            or conversation.client_id == user.id
+            or conversation.agent_id == user.id
         )

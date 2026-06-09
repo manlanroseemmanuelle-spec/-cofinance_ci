@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from .models import InsuranceProduct, Policy
 from .serializers import InsuranceProductSerializer, PolicySerializer, PolicyCreateSerializer
+from apps.accounts.permissions import IsOwnerAdminOrAssignedAgent
 
 
 @extend_schema(tags=['Assurance'])
@@ -14,7 +15,16 @@ class InsuranceProductListView(generics.ListAPIView):
 
 @extend_schema(tags=['Assurance'])
 class PolicyListCreateView(generics.ListCreateAPIView):
-    queryset = Policy.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Policy.objects.none()
+        user = self.request.user
+        queryset = Policy.objects.select_related('client__user', 'produit')
+        if user.role == 'CLIENT':
+            return queryset.filter(client=user.client_profile)
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -36,13 +46,23 @@ class PolicyListCreateView(generics.ListCreateAPIView):
 
 @extend_schema(tags=['Assurance'])
 class PolicyDetailView(generics.RetrieveDestroyAPIView):
-    queryset = Policy.objects.all()
     serializer_class = PolicySerializer
+    permission_classes = [IsOwnerAdminOrAssignedAgent]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Policy.objects.none()
+        user = self.request.user
+        queryset = Policy.objects.select_related('client__user', 'produit')
+        if user.role == 'CLIENT':
+            return queryset.filter(client=user.client_profile)
+        return queryset
 
 
 @extend_schema(tags=['Assurance'])
 class MyPoliciesView(generics.ListAPIView):
     serializer_class = PolicySerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):

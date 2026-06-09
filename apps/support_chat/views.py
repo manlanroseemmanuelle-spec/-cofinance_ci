@@ -6,7 +6,7 @@ from .serializers import (
     ConversationSerializer, ConversationCreateSerializer,
     MessageSerializer, MessageCreateSerializer
 )
-from apps.accounts.permissions import IsAdmin, IsAdminOrAgent
+from apps.accounts.permissions import IsAdminOrAgent, IsConversationParticipant
 
 
 @extend_schema(tags=['Chat'])
@@ -33,7 +33,8 @@ class ConversationListCreateView(generics.ListCreateAPIView):
         if user.role == 'CLIENT':
             conv = Conversation.objects.create(client=user)
         else:
-            conv = Conversation.objects.create(client=user, agent=user)
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Seuls les clients peuvent ouvrir une conversation.")
         # Return full conversation data in response
         from rest_framework.renderers import JSONRenderer
         self.created_conv = conv
@@ -50,15 +51,32 @@ class ConversationListCreateView(generics.ListCreateAPIView):
 
 @extend_schema(tags=['Chat'])
 class ConversationDetailView(generics.RetrieveAPIView):
-    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    permission_classes = [IsConversationParticipant]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Conversation.objects.none()
+        user = self.request.user
+        queryset = Conversation.objects.select_related('client', 'agent')
+        if user.role == 'CLIENT':
+            return queryset.filter(client=user)
+        if user.role == 'AGENT':
+            return queryset.filter(agent=user)
+        return queryset
 
 
 @extend_schema(tags=['Chat'])
 class ConversationCloseView(generics.UpdateAPIView):
-    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
     permission_classes = [IsAdminOrAgent]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Conversation.objects.none()
+        if self.request.user.role == 'AGENT':
+            return Conversation.objects.filter(agent=self.request.user)
+        return Conversation.objects.all()
 
     def perform_update(self, serializer):
         conversation = self.get_object()
@@ -69,11 +87,18 @@ class ConversationCloseView(generics.UpdateAPIView):
 @extend_schema(tags=['Chat'])
 class MessageListView(generics.ListAPIView):
     serializer_class = MessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return Message.objects.none()
-        return Message.objects.filter(conversation_id=self.kwargs['conversation_id'])
+        user = self.request.user
+        conversations = Conversation.objects.filter(id=self.kwargs['conversation_id'])
+        if user.role == 'CLIENT':
+            conversations = conversations.filter(client=user)
+        elif user.role == 'AGENT':
+            conversations = conversations.filter(agent=user)
+        return Message.objects.select_related('sender', 'conversation').filter(conversation__in=conversations)
 
     def list(self, request, *args, **kwargs):
         messages = self.get_queryset()
@@ -86,10 +111,17 @@ class MessageListView(generics.ListAPIView):
 class MessageCreateView(generics.CreateAPIView):
     queryset = Message.objects.all()
     serializer_class = MessageCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         from django.shortcuts import get_object_or_404
-        conversation = get_object_or_404(Conversation, id=self.kwargs['conversation_id'])
+        user = self.request.user
+        conversations = Conversation.objects.filter(id=self.kwargs['conversation_id'])
+        if user.role == 'CLIENT':
+            conversations = conversations.filter(client=user)
+        elif user.role == 'AGENT':
+            conversations = conversations.filter(agent=user)
+        conversation = get_object_or_404(conversations)
         Message.objects.create(
             conversation=conversation,
             sender=self.request.user,

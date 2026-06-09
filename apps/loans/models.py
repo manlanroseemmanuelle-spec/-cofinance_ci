@@ -37,6 +37,11 @@ class LoanApplication(models.Model):
         verbose_name = 'Demande de crédit'
         verbose_name_plural = 'Demandes de crédit'
         ordering = ['-date_creation']
+        indexes = [
+            models.Index(fields=['client', 'statut']),
+            models.Index(fields=['agent', 'statut']),
+            models.Index(fields=['date_creation']),
+        ]
 
     def __str__(self):
         return f"Crédit {self.id} - {self.client} - {self.montant_demande} FCFA"
@@ -63,6 +68,13 @@ class AmortizationSchedule(models.Model):
         verbose_name = 'Échéance'
         verbose_name_plural = 'Échéances'
         ordering = ['date_echeance']
+        constraints = [
+            models.UniqueConstraint(fields=['loan', 'numero_mensualite'], name='unique_loan_numero_mensualite'),
+        ]
+        indexes = [
+            models.Index(fields=['loan', 'est_paye']),
+            models.Index(fields=['date_echeance', 'est_paye']),
+        ]
 
     def __str__(self):
         return f"Échéance {self.numero_mensualite} - Prêt {self.loan.id}"
@@ -85,6 +97,9 @@ class Document(models.Model):
     class Meta:
         verbose_name = 'Document'
         verbose_name_plural = 'Documents'
+        indexes = [
+            models.Index(fields=['loan', 'type']),
+        ]
 
     def __str__(self):
         return f"{self.get_type_display()} - Prêt {self.loan.id}"
@@ -102,6 +117,9 @@ class LoanStatusHistory(models.Model):
         verbose_name = "Historique de statut"
         verbose_name_plural = "Historiques de statut"
         ordering = ['-date']
+        indexes = [
+            models.Index(fields=['loan', 'date']),
+        ]
 
     def __str__(self):
         return f"#{self.loan.id}: {self.ancien_statut} -> {self.nouveau_statut}"

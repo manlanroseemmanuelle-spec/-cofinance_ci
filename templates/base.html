@@ -608,7 +608,8 @@
                                 { icon:'💬', label:'Chats ouverts', value:data.support?.conversations_ouvertes||0, color:'#0891b2' },
                             ];
                         }
-                        const allLoans = await this.api('/api/loans/');
+                        const loanUrl = this.user.role === 'ADMIN' ? '/api/loans/' : '/api/loans/mine/';
+                        const allLoans = await this.api(loanUrl);
                         this.recentLoans = (Array.isArray(allLoans) ? allLoans : allLoans.results || []).slice(0, 10);
                     } catch(e) { console.error(e); }
                 },
@@ -640,7 +641,8 @@
                 async selectChat(c) {
                     this.selectedChat = c;
                     if (this.chatSocket) this.chatSocket.close();
-                    this.chatSocket = new WebSocket(`ws://localhost:8000/ws/chat/${c.id}/`);
+                    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    this.chatSocket = new WebSocket(`${wsProto}//${window.location.host}/ws/chat/${c.id}/`);
                     this.chatSocket.onmessage = (e) => {
                         const d = JSON.parse(e.data);
                         this.chatMessages.push({ id: Date.now(), message: d.message, sender: d.sender, sender_name: d.sender_name, timestamp: d.timestamp });

@@ -29,9 +29,21 @@ class ConversationListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         if user.role == 'CLIENT':
-            Conversation.objects.create(client=user)
+            conv = Conversation.objects.create(client=user)
         else:
-            Conversation.objects.create(client=user, agent=user)
+            conv = Conversation.objects.create(client=user, agent=user)
+        # Return full conversation data in response
+        from rest_framework.renderers import JSONRenderer
+        self.created_conv = conv
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        if hasattr(self, 'created_conv'):
+            resp_serializer = ConversationSerializer(self.created_conv, context={'request': request})
+            return Response(resp_serializer.data, status=status.HTTP_201_CREATED)
+        return Response({}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(tags=['Chat'])

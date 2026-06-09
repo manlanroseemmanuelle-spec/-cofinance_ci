@@ -8,4 +8,5 @@ urlpatterns = [
     path('<int:pk>/status/', views.LoanStatusUpdateView.as_view(), name='loan-status'),
     path('<int:loan_id>/schedule/', views.AmortizationScheduleListView.as_view(), name='loan-schedule'),
     path('<int:loan_id>/documents/', views.DocumentListCreateView.as_view(), name='loan-documents'),
+    path('<int:loan_id>/history/', views.LoanStatusHistoryListView.as_view(), name='loan-history'),
 ]

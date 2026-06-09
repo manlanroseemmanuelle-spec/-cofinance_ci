@@ -229,6 +229,16 @@
                                         <div class="sub" v-if="s.sub">{{ s.sub }}</div>
                                     </div>
                                 </div>
+                                <div class="card" style="margin-bottom:20px" v-if="user.role === 'ADMIN' && chartData.months.length">
+                                    <div class="card-header"><h4>Graphiques</h4></div>
+                                    <div class="card-body">
+                                        <div class="grid-3" style="gap:16px">
+                                            <div><canvas id="chartLoans" height="150"></canvas></div>
+                                            <div><canvas id="chartRepayments" height="150"></canvas></div>
+                                            <div><canvas id="chartStatus" height="150"></canvas></div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="grid-2">
                                     <div class="card">
                                         <div class="card-header"><h4>Crédits récents</h4></div>
@@ -350,6 +360,7 @@
                                         <div class="card-body" style="padding:0">
                                             <div v-for="c in conversations" :key="c.id" @click="selectChat(c)" :style="{padding:'12px 16px',borderBottom:'1px solid var(--border-color)',cursor:'pointer',background: selectedChat?.id === c.id ? 'var(--accent-light)' : ''}">
                                                 <strong style="font-size:13px">{{ c.client_name || 'Client #'+c.id }}</strong>
+                                                <span :style="{display:'inline-block',width:8,height:8,borderRadius:'50%',background: chatOnline[(user.id === c.client ? c.agent : c.client)] === 'en_ligne' ? '#22c55e' : '#aaa',marginLeft:8}" :title="chatOnline[(user.id === c.client ? c.agent : c.client)] || 'hors ligne'"></span>
                                                 <span class="badge" v-if="c.unread_count > 0" style="float:right">{{ c.unread_count }}</span>
                                                 <div style="font-size:12px;color:var(--text-secondary)" v-if="c.last_message">{{ c.last_message.message }}</div>
                                             </div>
@@ -367,9 +378,10 @@
                                                 <span class="time">{{ m.sender_name || m.sender }} - {{ formatTime(m.timestamp) }}</span>
                                             </div>
                                             <div v-if="!chatMessages.length" class="empty-state"><p>Sélectionnez une conversation</p></div>
+                                            <div v-if="chatTyping.length" style="font-size:12px;color:var(--text-secondary);padding:4px 12px;font-style:italic">{{ chatTyping.map(x=>x.sender_name).join(', ') }} {{ chatTyping.length > 1 ? 'écrivent...' : 'écrit...' }}</div>
                                         </div>
                                         <div class="chat-input">
-                                            <input v-model="chatInput" @keyup.enter="sendChat" placeholder="Votre message..." :disabled="!selectedChat">
+                                            <input v-model="chatInput" @keyup.enter="sendChat" @input="chatSocket && chatSocket.readyState===WebSocket.OPEN && chatSocket.send(JSON.stringify({typing: chatInput.length>0}))" placeholder="Votre message..." :disabled="!selectedChat">
                                             <button @click="sendChat" :disabled="!chatInput.trim() || !selectedChat">➤</button>
                                         </div>
                                     </div>
@@ -395,6 +407,26 @@
                                 </div>
                             </div>
 
+                            <div v-if="currentView === 'audit' && user.role === 'ADMIN'">
+                                <h4 style="font-size:16px;margin-bottom:16px">Journal d'audit</h4>
+                                <div class="card">
+                                    <div class="card-body scroll-table">
+                                        <table>
+                                            <thead><tr><th>Date</th><th>Action</th><th>Modèle</th><th>Détails</th><th>Utilisateur</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="a in auditLogs" :key="a.id">
+                                                    <td>{{ formatDate(a.timestamp) }} {{ formatTime(a.timestamp) }}</td>
+                                                    <td><span :class="'status ' + (a.action === 'CREATE' ? 'active' : a.action === 'DELETE' ? 'rejected' : 'pending')">{{ a.action }}</span></td>
+                                                    <td>{{ a.model_name }} #{{ a.object_id }}</td>
+                                                    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.object_repr || a.details }}</td>
+                                                    <td>{{ a.user_details?.username || 'Système' }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!auditLogs.length" class="empty-state"><div class="icon">📋</div><p>Aucune entrée d'audit</p></div>
+                                    </div>
+                                </div>
+                            </div>
                             <div v-if="currentView === 'users' && user.role === 'ADMIN'">
                                 <h4 style="font-size:16px;margin-bottom:16px">Gestion des utilisateurs</h4>
                                 <div class="card">
@@ -464,6 +496,15 @@
                             <div><strong>Motif:</strong> {{ selectedLoan.motif }}</div>
                             <div><strong>Date:</strong> {{ formatDate(selectedLoan.date_creation) }}</div>
                         </div>
+                        <div style="margin-top:16px" v-if="selectedLoan.status_history?.length">
+                            <h5 style="margin-bottom:8px">Historique des statuts</h5>
+                            <div style="font-size:13px">
+                                <div v-for="h in selectedLoan.status_history" :key="h.id" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-color)">
+                                    <span><span :class="'status ' + statusClass(h.ancien_statut)">{{ h.ancien_statut || '—' }}</span> → <span :class="'status ' + statusClass(h.nouveau_statut)">{{ h.nouveau_statut }}</span></span>
+                                    <span style="color:var(--text-secondary)">{{ h.changed_by_name }} · {{ formatDate(h.date) }}</span>
+                                </div>
+                            </div>
+                        </div>
                         <div style="margin-top:16px" v-if="selectedLoan.amortization_schedule?.length">
                             <h5 style="margin-bottom:8px">Échéancier</h5>
                             <div class="scroll-table">
@@ -517,14 +558,18 @@
                 selectedChat: null,
                 chatMessages: [],
                 chatInput: '',
+                chatTyping: [],
+                chatOnline: {},
                 chatSocket: null,
                 notifications: [],
                 notificationsList: [],
                 users: [],
+                auditLogs: [],
                 showLoanForm: false,
                 showInsuranceForm: false,
                 selectedLoan: null,
                 loanForm: { montant_demande: '', duree_mois: 12, motif: '', revenu_mensuel: '' },
+                chartData: { months: [], credits_par_mois: [], remboursements_par_mois: [], repartition_statuts: [], top_agents: [] },
                 insuranceForm: { produit_id: '' },
                 notif: { show: false, message: '', type: 'success' },
             },
@@ -538,11 +583,11 @@
                         { id: 'chat', icon: '💬', label: 'Chat', badge: () => this.unreadChatCount },
                         { id: 'notifications', icon: '🔔', label: 'Notifications', badge: () => this.unreadNotifCount },
                     ];
-                    if (this.user.role === 'ADMIN') items.push({ id: 'users', icon: '👥', label: 'Utilisateurs', badge: null });
+                    if (this.user.role === 'ADMIN') { items.push({ id: 'users', icon: '👥', label: 'Utilisateurs', badge: null }); items.push({ id: 'audit', icon: '📋', label: 'Audit', badge: null }); }
                     return items;
                 },
                 currentViewTitle() {
-                    const map = { dashboard:'Tableau de bord', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs' };
+                    const map = { dashboard:'Tableau de bord', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs', audit:'Journal d\'audit' };
                     return map[this.currentView] || 'Cofinance CI';
                 },
                 unreadChatCount() { return this.conversations.reduce((s, c) => s + (c.unread_count || 0), 0); },
@@ -567,7 +612,7 @@
                 logout() { this.token = ''; this.user = {}; localStorage.removeItem('token'); localStorage.removeItem('refresh'); },
                 toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', this.theme); localStorage.setItem('theme', this.theme); },
                 navigate(view) { this.currentView = view; this.sidebarOpen = false; this.loadView(view); },
-                async loadAll() { this.loading = true; await Promise.all([this.loadDashboard(), this.loadLoans(), this.loadRepayments(), this.loadInsurance(), this.loadChat(), this.loadNotifications()]); if (this.user.role === 'ADMIN') await this.loadUsers(); this.loading = false; },
+                async loadAll() { this.loading = true; await Promise.all([this.loadDashboard(), this.loadLoans(), this.loadRepayments(), this.loadInsurance(), this.loadChat(), this.loadNotifications()]); if (this.user.role === 'ADMIN') { await this.loadUsers(); await this.loadAudit(); } this.loading = false; },
                 async loadView(view) {
                     this.loading = true;
                     if (view === 'dashboard') await this.loadDashboard();
@@ -577,13 +622,19 @@
                     if (view === 'chat') await this.loadChat();
                     if (view === 'notifications') await this.loadNotifications();
                     if (view === 'users' && this.user.role === 'ADMIN') await this.loadUsers();
+                    if (view === 'audit' && this.user.role === 'ADMIN') await this.loadAudit();
                     this.loading = false;
                 },
                 api(path) { return fetch(path, {headers:{'Authorization':`Bearer ${this.token}`}}).then(r => r.json()); },
                 async loadDashboard() {
-                    try {
-                        const role = this.user.role.toLowerCase();
-                        const data = await this.api(`/api/dashboard/${role}/`);
+                try {
+                    const role = this.user.role.toLowerCase();
+                    const data = await this.api(`/api/dashboard/${role}/`);
+                    if (role === 'admin') {
+                        const chartResp = await this.api('/api/dashboard/charts/');
+                        this.chartData = chartResp;
+                        this.$nextTick(() => this.renderCharts());
+                    }
                         if (this.user.role === 'ADMIN') {
                             this.dashboardStats = [
                                 { icon:'💰', label:'Total crédits', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.approuvees||0} approuvés` },
@@ -627,7 +678,8 @@
                 },
                 async loadInsurance() {
                     try {
-                        this.insuranceProducts = await this.api('/api/insurance/products/');
+                        const prod = await this.api('/api/insurance/products/');
+                        this.insuranceProducts = Array.isArray(prod) ? prod : prod.results || [];
                         const d = await this.api('/api/insurance/policies/mine/');
                         this.myPolicies = Array.isArray(d) ? d : d.results || [];
                     } catch(e) { console.error(e); }
@@ -645,9 +697,18 @@
                     this.chatSocket = new WebSocket(`${wsProto}//${window.location.host}/ws/chat/${c.id}/`);
                     this.chatSocket.onmessage = (e) => {
                         const d = JSON.parse(e.data);
-                        this.chatMessages.push({ id: Date.now(), message: d.message, sender: d.sender, sender_name: d.sender_name, timestamp: d.timestamp });
-                        this.$nextTick(() => { const box = this.$refs.chatBox; if (box) box.scrollTop = box.scrollHeight; });
+                        if (d.type === 'new_message') {
+                            this.chatMessages.push({ id: Date.now(), message: d.message, sender: d.sender, sender_name: d.sender_name, timestamp: d.timestamp });
+                            this.$nextTick(() => { const box = this.$refs.chatBox; if (box) box.scrollTop = box.scrollHeight; });
+                        } else if (d.type === 'user_status') {
+                            this.$set(this.chatOnline, d.user_id, d.status);
+                        } else if (d.type === 'typing') {
+                            const arr = this.chatTyping.filter(x => x.user_id !== d.user_id);
+                            if (d.typing) arr.push({ user_id: d.user_id, sender_name: d.sender_name });
+                            this.chatTyping = arr;
+                        }
                     };
+                    this.chatSocket.onopen = () => { this.chatTyping = []; };
                     const msgs = await this.api(`/api/chat/conversations/${c.id}/messages/`);
                     this.chatMessages = Array.isArray(msgs) ? msgs : msgs.results || [];
                     this.$nextTick(() => { const box = this.$refs.chatBox; if (box) box.scrollTop = box.scrollHeight; });
@@ -657,6 +718,7 @@
                     if (this.chatSocket && this.chatSocket.readyState === WebSocket.OPEN) {
                         this.chatSocket.send(JSON.stringify({message: this.chatInput}));
                         this.chatInput = '';
+                        this.chatSocket.send(JSON.stringify({typing: false}));
                     } else {
                         fetch(`/api/chat/conversations/${this.selectedChat.id}/send/`, {
                             method:'POST', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
@@ -692,6 +754,12 @@
                         this.users = Array.isArray(d) ? d : d.results || [];
                     } catch(e) { console.error(e); }
                 },
+                async loadAudit() {
+                    try {
+                        const d = await this.api('/api/common/audit/');
+                        this.auditLogs = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
                 async submitLoan() {
                     try {
                         const r = await fetch('/api/loans/', { method:'POST', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'}, body:JSON.stringify(this.loanForm) });
@@ -716,11 +784,31 @@
                         }
                     } catch(e) { this.notif = { show: true, message: 'Erreur lors de la souscription', type: 'error' }; }
                 },
-                async viewLoan(l) {
+                async                 renderCharts() {
+                    if (!window.Chart) return;
+                    const baseOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#666' } } }, scales: { x: { ticks: { color: '#999' } }, y: { ticks: { color: '#999' } } } };
+                    const colors = ['#1a73e8','#059669','#d97706','#dc2626','#7c3aed','#0891b2'];
+                    if (document.getElementById('chartLoans')) {
+                        new Chart(document.getElementById('chartLoans'), { type:'bar', data:{ labels:this.chartData.months, datasets:[{ label:'Crédits', data:this.chartData.credits_par_mois, backgroundColor:colors[0], borderRadius:4 }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Crédits par mois', color:'var(--text-primary)'}}} });
+                    }
+                    if (document.getElementById('chartRepayments')) {
+                        new Chart(document.getElementById('chartRepayments'), { type:'line', data:{ labels:this.chartData.months, datasets:[{ label:'Remboursements (FCFA)', data:this.chartData.remboursements_par_mois, borderColor:colors[1], backgroundColor:colors[1]+'33', fill:true, tension:.3 }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Remboursements par mois', color:'var(--text-primary)'}}} });
+                    }
+                    if (document.getElementById('chartStatus')) {
+                        const st = this.chartData.repartition_statuts || [];
+                        new Chart(document.getElementById('chartStatus'), { type:'doughnut', data:{ labels:st.map(s=>s.label), datasets:[{ data:st.map(s=>s.value), backgroundColor:colors.slice(0,st.length) }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Statuts des crédits', color:'var(--text-primary)'}}} });
+                    }
+                },
+                viewLoan(l) {
                     try {
                         const d = await this.api(`/api/loans/${l.id}/`);
                         const sched = await this.api(`/api/loans/${l.id}/schedule/`);
-                        this.selectedLoan = {...d, amortization_schedule: Array.isArray(sched) ? sched : sched.results || []};
+                        const hist = await this.api(`/api/loans/${l.id}/history/`);
+                        this.selectedLoan = {
+                            ...d,
+                            amortization_schedule: Array.isArray(sched) ? sched : sched.results || [],
+                            status_history: Array.isArray(hist) ? hist : hist.results || []
+                        };
                     } catch(e) { }
                 },
                 statusClass(s) {

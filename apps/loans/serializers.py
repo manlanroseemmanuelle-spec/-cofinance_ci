@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LoanApplication, AmortizationSchedule, Document
+from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory
 from apps.accounts.serializers import ClientSerializer
 
 
@@ -21,6 +21,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
 class LoanStatusUpdateSerializer(serializers.Serializer):
     statut = serializers.ChoiceField(choices=LoanApplication.Statut.choices)
     agent = serializers.IntegerField(required=False, min_value=1)
+    commentaire = serializers.CharField(required=False, allow_blank=True)
 
     def validate_agent(self, value):
         from apps.accounts.models import Agent
@@ -45,3 +46,16 @@ class DocumentSerializer(serializers.ModelSerializer):
 class DocumentUploadSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=Document.TypeDocument.choices)
     fichier = serializers.FileField()
+
+
+class LoanStatusHistorySerializer(serializers.ModelSerializer):
+    changed_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LoanStatusHistory
+        fields = '__all__'
+
+    def get_changed_by_name(self, obj):
+        if obj.changed_by:
+            return obj.changed_by.get_full_name() or obj.changed_by.username
+        return 'Système'

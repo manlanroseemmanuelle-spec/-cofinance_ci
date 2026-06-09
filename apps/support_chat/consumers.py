@@ -11,6 +11,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
         self.room_group_name = f'chat_{self.conversation_id}'
+        self.user = self.scope['user']
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -19,7 +20,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'user_status',
+                'user_id': self.user.id,
+                'username': self.user.username,
+                'status': 'en_ligne',
+            }
+        )
+
     async def disconnect(self, close_code):
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'user_status',
+                'user_id': self.user.id,
+                'username': self.user.username,
+                'status': 'hors_ligne',
+            }
+        )
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
@@ -28,9 +48,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data.get('message')
-        user = self.scope['user']
+        typing = data.get('typing')
+        user = self.user
 
         if not user.is_authenticated:
+            return
+
+        if typing is not None:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'typing_indicator',
+                    'user_id': user.id,
+                    'username': user.username,
+                    'sender_name': user.get_full_name(),
+                    'typing': typing,
+                }
+            )
             return
 
         if message:
@@ -50,11 +84,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
+            'type': 'new_message',
             'message': event['message'],
             'sender': event['sender'],
             'sender_name': event['sender_name'],
             'timestamp': event['timestamp'],
             'sender_id': event['sender_id'],
+        }))
+
+    async def user_status(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'user_status',
+            'user_id': event['user_id'],
+            'username': event['username'],
+            'status': event['status'],
+        }))
+
+    async def typing_indicator(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'typing',
+            'user_id': event['user_id'],
+            'username': event['username'],
+            'sender_name': event['sender_name'],
+            'typing': event['typing'],
         }))
 
     @database_sync_to_async

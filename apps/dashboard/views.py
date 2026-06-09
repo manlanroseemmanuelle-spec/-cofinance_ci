@@ -3,11 +3,14 @@ from rest_framework.response import Response
 from rest_framework import permissions, status
 from drf_spectacular.utils import extend_schema
 from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
+from datetime import timedelta
 from apps.loans.models import LoanApplication
 from apps.repayments.models import Repayment
 from apps.insurance.models import Policy
 from apps.support_chat.models import Conversation
+from apps.accounts.models import Agent
 from apps.accounts.permissions import IsAdmin
 
 
@@ -140,4 +143,61 @@ class ClientDashboardView(APIView):
             },
             'notifications_non_lues': unread_notifications,
             'score_credit': client.score_credit,
+        })
+
+
+@extend_schema(tags=['Dashboard'])
+class ChartsDataView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        today = timezone.now().date()
+        twelve_months_ago = today - timedelta(days=365)
+
+        monthly_loans = []
+        monthly_repayments = []
+        months = []
+
+        for i in range(11, -1, -1):
+            first_of_month = today.replace(day=1) - timedelta(days=30 * i)
+            month_start = first_of_month.replace(day=1)
+            if month_start.month == 12:
+                month_end = month_start.replace(year=month_start.year + 1, month=1)
+            else:
+                month_end = month_start.replace(month=month_start.month + 1)
+
+            loan_count = LoanApplication.objects.filter(
+                date_creation__gte=month_start, date_creation__lt=month_end
+            ).count()
+
+            repay_total = Repayment.objects.filter(
+                date_paiement__gte=month_start, date_paiement__lt=month_end
+            ).aggregate(Sum('montant'))['montant__sum'] or 0
+
+            months.append(month_start.strftime('%b'))
+            monthly_loans.append(loan_count)
+            monthly_repayments.append(float(repay_total))
+
+        status_dist = []
+        for s, label in LoanApplication.Statut.choices:
+            status_dist.append({'label': label, 'value': LoanApplication.objects.filter(statut=s).count()})
+
+        top_agents = []
+        agents = Agent.objects.annotate(
+            loan_count=Count('analysed_loans'),
+            repay_count=Count('enregistre_repayments')
+        ).order_by('-loan_count')[:5]
+        for a in agents:
+            top_agents.append({
+                'name': a.user.get_full_name() or a.user.username,
+                'loans': a.loan_count,
+                'repayments': a.repay_count,
+            })
+
+        return Response({
+            'months': months,
+            'credits_par_mois': monthly_loans,
+            'remboursements_par_mois': monthly_repayments,
+            'repartition_statuts': status_dist,
+            'top_agents': top_agents,
         })

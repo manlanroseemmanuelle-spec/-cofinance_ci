@@ -88,3 +88,20 @@ class Document(models.Model):
 
     def __str__(self):
         return f"{self.get_type_display()} - Prêt {self.loan.id}"
+
+
+class LoanStatusHistory(models.Model):
+    loan = models.ForeignKey(LoanApplication, on_delete=models.CASCADE, related_name='status_history', verbose_name='Prêt')
+    ancien_statut = models.CharField(max_length=20, blank=True, verbose_name='Ancien statut')
+    nouveau_statut = models.CharField(max_length=20, verbose_name='Nouveau statut')
+    changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, verbose_name='Modifié par')
+    commentaire = models.TextField(blank=True, verbose_name='Commentaire')
+    date = models.DateTimeField(auto_now_add=True, verbose_name='Date')
+
+    class Meta:
+        verbose_name = "Historique de statut"
+        verbose_name_plural = "Historiques de statut"
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"#{self.loan.id}: {self.ancien_statut} -> {self.nouveau_statut}"

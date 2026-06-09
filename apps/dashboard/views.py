@@ -14,7 +14,7 @@ from apps.accounts.models import Agent
 from apps.accounts.permissions import IsAdmin
 
 
-@extend_schema(tags=['Dashboard'])
+@extend_schema(tags=['Dashboard'], responses={200: dict})
 class AdminDashboardView(APIView):
     permission_classes = [IsAdmin]
 
@@ -66,7 +66,7 @@ class AdminDashboardView(APIView):
         })
 
 
-@extend_schema(tags=['Dashboard'])
+@extend_schema(tags=['Dashboard'], responses={200: dict})
 class AgentDashboardView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -103,7 +103,7 @@ class AgentDashboardView(APIView):
         })
 
 
-@extend_schema(tags=['Dashboard'])
+@extend_schema(tags=['Dashboard'], responses={200: dict})
 class ClientDashboardView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -146,7 +146,7 @@ class ClientDashboardView(APIView):
         })
 
 
-@extend_schema(tags=['Dashboard'])
+@extend_schema(tags=['Dashboard'], responses={200: dict})
 class ChartsDataView(APIView):
     permission_classes = [IsAdmin]
 

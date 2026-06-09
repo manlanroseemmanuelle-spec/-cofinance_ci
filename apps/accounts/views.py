@@ -66,7 +66,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
 @extend_schema(tags=['Authentification'])
 class ChangePasswordView(APIView):
-    @extend_schema(request=ChangePasswordSerializer)
+    @extend_schema(request=ChangePasswordSerializer, responses={200: dict, 400: dict})
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

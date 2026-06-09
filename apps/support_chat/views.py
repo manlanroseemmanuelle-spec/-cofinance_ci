@@ -19,6 +19,8 @@ class ConversationListCreateView(generics.ListCreateAPIView):
         return ConversationSerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Conversation.objects.none()
         user = self.request.user
         if user.role == 'CLIENT':
             return Conversation.objects.filter(client=user)
@@ -69,6 +71,8 @@ class MessageListView(generics.ListAPIView):
     serializer_class = MessageSerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Message.objects.none()
         return Message.objects.filter(conversation_id=self.kwargs['conversation_id'])
 
     def list(self, request, *args, **kwargs):

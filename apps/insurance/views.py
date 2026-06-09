@@ -45,6 +45,8 @@ class MyPoliciesView(generics.ListAPIView):
     serializer_class = PolicySerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Policy.objects.none()
         if self.request.user.role != 'CLIENT':
             return Policy.objects.none()
         return Policy.objects.filter(client=self.request.user.client_profile)

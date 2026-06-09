@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory
 from apps.accounts.serializers import ClientSerializer
 
@@ -55,6 +56,7 @@ class LoanStatusHistorySerializer(serializers.ModelSerializer):
         model = LoanStatusHistory
         fields = '__all__'
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_changed_by_name(self, obj):
         if obj.changed_by:
             return obj.changed_by.get_full_name() or obj.changed_by.username

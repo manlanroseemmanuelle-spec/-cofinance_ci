@@ -91,6 +91,8 @@ class AmortizationScheduleListView(generics.ListAPIView):
     serializer_class = AmortizationScheduleSerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return AmortizationSchedule.objects.none()
         return AmortizationSchedule.objects.filter(loan_id=self.kwargs['loan_id'])
 
 
@@ -104,6 +106,8 @@ class DocumentListCreateView(generics.ListCreateAPIView):
         return DocumentSerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Document.objects.none()
         return Document.objects.filter(loan_id=self.kwargs['loan_id'])
 
     def perform_create(self, serializer):
@@ -118,6 +122,8 @@ class MyLoansView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return LoanApplication.objects.none()
         user = self.request.user
         if user.role == 'CLIENT':
             return LoanApplication.objects.filter(client=user.client_profile)
@@ -132,4 +138,6 @@ class LoanStatusHistoryListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return LoanStatusHistory.objects.none()
         return LoanStatusHistory.objects.filter(loan_id=self.kwargs['loan_id'])

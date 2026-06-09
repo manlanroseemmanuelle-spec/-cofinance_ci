@@ -133,3 +133,13 @@ SPECTACULAR_SETTINGS = {
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Cofinance CI API',
+    'DESCRIPTION': 'API de gestion de microfinance',
+    'VERSION': '1.0.0',
+    'ENUM_NAME_OVERRIDES': {
+        'TypeEnum': ['PIECE_IDENTITE', 'JUSTIFICATIF_REVENU', 'CONTRAT_TRAVAIL', 'FACTURE', 'AUTRE'],
+        'StatutEnum': ['SOUMISE', 'EN_ANALYSE', 'APPROUVEE', 'REJETEE', 'DECAISSEE', 'REMBOURSEE'],
+    },
+}

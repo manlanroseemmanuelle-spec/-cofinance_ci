@@ -45,4 +45,6 @@ class LoanRepaymentsView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Repayment.objects.none()
         return Repayment.objects.filter(loan_id=self.kwargs['loan_id'])

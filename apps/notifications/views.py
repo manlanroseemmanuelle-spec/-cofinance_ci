@@ -10,6 +10,8 @@ class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Notification.objects.none()
         return Notification.objects.filter(user=self.request.user)
 
 
@@ -24,14 +26,14 @@ class NotificationMarkReadView(generics.UpdateAPIView):
         notification.save()
 
 
-@extend_schema(tags=['Notifications'])
+@extend_schema(tags=['Notifications'], request=None, responses={200: dict})
 class NotificationMarkAllReadView(generics.GenericAPIView):
     def post(self, request):
         Notification.objects.filter(user=request.user, lu=False).update(lu=True)
         return Response({'message': 'Toutes les notifications marquées comme lues'})
 
 
-@extend_schema(tags=['Notifications'])
+@extend_schema(tags=['Notifications'], request=None, responses={200: dict})
 class UnreadCountView(generics.GenericAPIView):
     def get(self, request):
         count = Notification.objects.filter(user=request.user, lu=False).count()

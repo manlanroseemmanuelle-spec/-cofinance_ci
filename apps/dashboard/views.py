@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions
+from rest_framework import permissions, status
 from drf_spectacular.utils import extend_schema
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count
 from django.utils import timezone
 from apps.loans.models import LoanApplication
 from apps.repayments.models import Repayment
@@ -68,6 +68,8 @@ class AgentDashboardView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        if request.user.role != 'AGENT':
+            return Response({'error': 'Acces reserve aux agents'}, status=status.HTTP_403_FORBIDDEN)
         agent = request.user.agent_profile
 
         my_loans = LoanApplication.objects.filter(agent=agent)
@@ -103,6 +105,8 @@ class ClientDashboardView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        if request.user.role != 'CLIENT':
+            return Response({'error': 'Acces reserve aux clients'}, status=status.HTTP_403_FORBIDDEN)
         client = request.user.client_profile
 
         my_loans = LoanApplication.objects.filter(client=client)

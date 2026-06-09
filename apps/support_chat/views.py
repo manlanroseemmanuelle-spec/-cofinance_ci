@@ -27,7 +27,11 @@ class ConversationListCreateView(generics.ListCreateAPIView):
         return Conversation.objects.all()
 
     def perform_create(self, serializer):
-        Conversation.objects.create(client=self.request.user)
+        user = self.request.user
+        if user.role == 'CLIENT':
+            Conversation.objects.create(client=user)
+        else:
+            Conversation.objects.create(client=user, agent=user)
 
 
 @extend_schema(tags=['Chat'])
@@ -68,7 +72,8 @@ class MessageCreateView(generics.CreateAPIView):
     serializer_class = MessageCreateSerializer
 
     def perform_create(self, serializer):
-        conversation = Conversation.objects.get(id=self.kwargs['conversation_id'])
+        from django.shortcuts import get_object_or_404
+        conversation = get_object_or_404(Conversation, id=self.kwargs['conversation_id'])
         Message.objects.create(
             conversation=conversation,
             sender=self.request.user,

@@ -10,7 +10,7 @@ def calculer_score_eligibilite(client):
     if client.revenu_mensuel > 300000:
         score += 40
 
-    bons_remboursements = client.user.loan_applications.filter(
+    bons_remboursements = client.loan_applications.filter(
         statut=LoanApplication.Statut.DECAISSEE
     ).count()
     if bons_remboursements > 0:
@@ -19,11 +19,11 @@ def calculer_score_eligibilite(client):
     from django.utils import timezone
     if client.date_naissance:
         age = timezone.now().year - client.date_naissance.year
-        if age > 2:
+        if age >= 18:
             score += 20
 
-    if hasattr(client.user, 'insurance_policies'):
-        policies_actives = client.user.insurance_policies.filter(
+    if hasattr(client, 'insurance_policies'):
+        policies_actives = client.insurance_policies.filter(
             statut='ACTIVE'
         ).count()
         if policies_actives > 0:

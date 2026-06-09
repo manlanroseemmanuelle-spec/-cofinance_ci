@@ -20,7 +20,13 @@ class LoanCreateSerializer(serializers.ModelSerializer):
 
 class LoanStatusUpdateSerializer(serializers.Serializer):
     statut = serializers.ChoiceField(choices=LoanApplication.Statut.choices)
-    agent = serializers.IntegerField(required=False)
+    agent = serializers.IntegerField(required=False, min_value=1)
+
+    def validate_agent(self, value):
+        from apps.accounts.models import Agent
+        if not Agent.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Cet agent n'existe pas.")
+        return value
 
 
 class AmortizationScheduleSerializer(serializers.ModelSerializer):

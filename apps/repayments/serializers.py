@@ -13,3 +13,6 @@ class RepaymentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Repayment
         fields = ['loan', 'amortization', 'montant', 'mode_paiement', 'notes']
+        extra_kwargs = {
+            'montant': {'min_value': 1},
+        }

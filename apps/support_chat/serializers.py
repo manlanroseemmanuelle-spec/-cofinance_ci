@@ -37,7 +37,10 @@ class ConversationSerializer(serializers.ModelSerializer):
         return None
 
     def get_unread_count(self, obj):
-        return obj.messages.filter(is_read=False).exclude(sender=self.context['request'].user).count()
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            return obj.messages.filter(is_read=False).exclude(sender=request.user).count()
+        return 0
 
 
 class ConversationCreateSerializer(serializers.Serializer):

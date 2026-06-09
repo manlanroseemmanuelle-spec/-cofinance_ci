@@ -22,8 +22,11 @@ class PolicyListCreateView(generics.ListCreateAPIView):
         return PolicySerializer
 
     def perform_create(self, serializer):
-        produit = InsuranceProduct.objects.get(id=serializer.validated_data['produit_id'])
+        if self.request.user.role != 'CLIENT':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Seuls les clients peuvent souscrire une assurance.")
         from django.utils import timezone
+        produit = InsuranceProduct.objects.get(id=serializer.validated_data['produit_id'])
         Policy.objects.create(
             client=self.request.user.client_profile,
             produit=produit,
@@ -42,4 +45,6 @@ class MyPoliciesView(generics.ListAPIView):
     serializer_class = PolicySerializer
 
     def get_queryset(self):
+        if self.request.user.role != 'CLIENT':
+            return Policy.objects.none()
         return Policy.objects.filter(client=self.request.user.client_profile)

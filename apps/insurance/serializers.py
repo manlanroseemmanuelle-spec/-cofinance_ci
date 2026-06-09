@@ -20,3 +20,9 @@ class PolicySerializer(serializers.ModelSerializer):
 
 class PolicyCreateSerializer(serializers.Serializer):
     produit_id = serializers.IntegerField()
+
+    def validate_produit_id(self, value):
+        from .models import InsuranceProduct
+        if not InsuranceProduct.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Ce produit d'assurance n'existe pas.")
+        return value

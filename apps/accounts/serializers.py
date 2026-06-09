@@ -43,9 +43,16 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class ClientCreateSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Client
-        fields = ['profession', 'revenu_mensuel', 'date_naissance', 'numero_piece']
+        fields = ['user_id', 'profession', 'revenu_mensuel', 'date_naissance', 'numero_piece']
+
+    def create(self, validated_data):
+        from django.contrib.auth import get_user_model
+        user = get_user_model().objects.get(id=validated_data.pop('user_id'))
+        return Client.objects.create(user=user, **validated_data)
 
 
 class AgentSerializer(serializers.ModelSerializer):
@@ -57,9 +64,16 @@ class AgentSerializer(serializers.ModelSerializer):
 
 
 class AgentCreateSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Agent
-        fields = ['matricule', 'region']
+        fields = ['user_id', 'matricule', 'region']
+
+    def create(self, validated_data):
+        from django.contrib.auth import get_user_model
+        user = get_user_model().objects.get(id=validated_data.pop('user_id'))
+        return Agent.objects.create(user=user, **validated_data)
 
 
 class ChangePasswordSerializer(serializers.Serializer):

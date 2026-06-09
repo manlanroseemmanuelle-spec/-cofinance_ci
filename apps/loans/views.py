@@ -22,6 +22,9 @@ class LoanListCreateView(generics.ListCreateAPIView):
         return LoanApplicationSerializer
 
     def perform_create(self, serializer):
+        if self.request.user.role != 'CLIENT':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Seuls les clients peuvent soumettre une demande de credit.")
         client = self.request.user.client_profile
         loan = serializer.save(client=client, revenu_mensuel=client.revenu_mensuel)
         score = calculer_score_eligibilite(client)
@@ -52,13 +55,15 @@ class LoanStatusUpdateView(generics.UpdateAPIView):
 
         if 'agent' in serializer.validated_data:
             from apps.accounts.models import Agent
-            loan.agent = Agent.objects.get(id=serializer.validated_data['agent'])
+            from django.shortcuts import get_object_or_404
+            loan.agent = get_object_or_404(Agent, id=serializer.validated_data['agent'])
 
         if new_status == LoanApplication.Statut.APPROUVEE:
             generer_echeancier(loan)
 
         if new_status == LoanApplication.Statut.EN_ANALYSE and not loan.agent:
-            loan.agent = self.request.user.agent_profile
+            if self.request.user.role == 'AGENT':
+                loan.agent = self.request.user.agent_profile
 
         loan.save()
 
@@ -84,13 +89,9 @@ class DocumentListCreateView(generics.ListCreateAPIView):
         return Document.objects.filter(loan_id=self.kwargs['loan_id'])
 
     def perform_create(self, serializer):
-        from apps.loans.models import LoanApplication
-        loan = LoanApplication.objects.get(id=self.kwargs['loan_id'])
-        Document.objects.create(
-            loan=loan,
-            type=serializer.validated_data['type'],
-            fichier=serializer.validated_data['fichier']
-        )
+        from django.shortcuts import get_object_or_404
+        loan = get_object_or_404(LoanApplication, id=self.kwargs['loan_id'])
+        serializer.save(loan=loan)
 
 
 @extend_schema(tags=['Crédits'])

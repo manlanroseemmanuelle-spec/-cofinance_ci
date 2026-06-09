@@ -34,8 +34,8 @@
     <div class="chat-container" id="app">
         <div v-if="!token" class="login-form">
             <h2>Cofinance CI Chat</h2>
-            <input type="text" v-model="username" placeholder="Nom d'utilisateur" @keyup.enter="login">
-            <input type="password" v-model="password" placeholder="Mot de passe" @keyup.enter="login">
+            <input type="text" v-model="username" placeholder="admin, agent1, client1..." @keyup.enter="login">
+            <input type="password" v-model="password" placeholder="••••••••" @keyup.enter="login">
             <button @click="login">Connexion</button>
             <p style="color:red;font-size:13px">{{ error }}</p>
         </div>

@@ -166,12 +166,12 @@
                 <p>Plateforme de microfinance</p>
                 <div class="error" v-if="error">{{ error }}</div>
                 <div class="form-group">
-                    <label>Identifiant</label>
-                    <input type="text" v-model="username" @keyup.enter="login" placeholder="Nom d'utilisateur">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" v-model="username" @keyup.enter="login" placeholder="admin, agent1, client1...">
                 </div>
                 <div class="form-group">
                     <label>Mot de passe</label>
-                    <input type="password" v-model="password" @keyup.enter="login" placeholder="Mot de passe">
+                    <input type="password" v-model="password" @keyup.enter="login" placeholder="••••••••">
                 </div>
                 <button class="btn btn-primary" style="width:100%;justify-content:center" @click="login" :disabled="loading">
                     {{ loading ? 'Connexion...' : 'Se connecter' }}
@@ -784,7 +784,7 @@
                         }
                     } catch(e) { this.notif = { show: true, message: 'Erreur lors de la souscription', type: 'error' }; }
                 },
-                async                 renderCharts() {
+                async renderCharts() {
                     if (!window.Chart) return;
                     const baseOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#666' } } }, scales: { x: { ticks: { color: '#999' } }, y: { ticks: { color: '#999' } } } };
                     const colors = ['#1a73e8','#059669','#d97706','#dc2626','#7c3aed','#0891b2'];
@@ -799,7 +799,7 @@
                         new Chart(document.getElementById('chartStatus'), { type:'doughnut', data:{ labels:st.map(s=>s.label), datasets:[{ data:st.map(s=>s.value), backgroundColor:colors.slice(0,st.length) }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Statuts des crédits', color:'var(--text-primary)'}}} });
                     }
                 },
-                viewLoan(l) {
+                async viewLoan(l) {
                     try {
                         const d = await this.api(`/api/loans/${l.id}/`);
                         const sched = await this.api(`/api/loans/${l.id}/schedule/`);

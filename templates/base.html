@@ -495,7 +495,7 @@
                                     <h4>Demandes de crédit <span class="tag blue" v-if="loans.length">{{ loans.length }}</span></h4>
                                     <div class="page-actions">
                                         <div class="filter-bar">
-                                            <button v-for="f in loanFilters" :key="f.value" :class="['filter-btn', {active: loanFilter === f.value}]" @click="loanFilter=f.value">{{ f.label }}</button>
+                                            <button v-for="f in loanFilters" :key="f.value" :class="['filter-btn', {active: loanFilter === f.value}]" @click="loanFilter=f.value;loanPage=1;loadLoans()">{{ f.label }}</button>
                                         </div>
                                         <button class="btn btn-outline btn-sm" @click="exportCSV">
                                             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -533,9 +533,9 @@
                                             <div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
                                             <h5>Aucune demande de crédit</h5><p>Les nouvelles demandes apparaîtront ici</p>
                                         </div>
-                                        <div class="pagination" v-if="loans.length > pageSize">
-                                            <button :disabled="loanPage <= 1" @click="loanPage--"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
-                                            <button v-for="p in loanPages" :key="p" :class="{active: p === loanPage}" @click="loanPage=p" v-if="Math.abs(p - loanPage) <= 2 || p === 1 || p === loanPages.length">{{ p }}</button>
+                                        <div class="pagination" v-if="loanCount > pageSize">
+                                            <button :disabled="loanPage <= 1" @click="loanPage--;loadLoans()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+                                            <button v-for="p in loanPages" :key="p" :class="{active: p === loanPage}" @click="loanPage=p;loadLoans()" v-if="Math.abs(p - loanPage) <= 2 || p === 1 || p === loanPages.length">{{ p }}</button>
                                             <span class="info">Page {{ loanPage }} / {{ loanPages.length }}</span>
                                             <button :disabled="loanPage >= loanPages.length" @click="loanPage++"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
                                         </div>
@@ -986,6 +986,7 @@
                 showLoanForm: false,
                 showInsuranceForm: false,
                 selectedLoan: null,
+                loanCount: 0,
                 showDocUpload: null,
                 docForm: { type: 'PIECE_IDENTITE', file: null },
                 loanForm: { montant_demande: '', duree_mois: 12, motif: '', revenu_mensuel: '' },
@@ -1034,9 +1035,8 @@
                     if (this.loanFilter === 'all') return this.loans;
                     return this.loans.filter(l => l.statut === this.loanFilter);
                 },
-                paginatedLoans() { const s=this.pageSize; return this.filteredLoans.slice((this.loanPage-1)*s, this.loanPage*s); },
-                paginatedUsers() { const s=this.pageSize; return this.users.slice((this.userPage-1)*s, this.userPage*s); },
-                loanPages() { return Array.from({length:Math.ceil(this.filteredLoans.length/this.pageSize)},(_,i)=>i+1); },
+                paginatedLoans() { return this.filteredLoans; },
+                loanPages() { return Array.from({length:Math.ceil(this.loanCount/this.pageSize)},(_,i)=>i+1); },
                 auditPages() { return Array.from({length:Math.ceil(this.auditLogs.length/this.pageSize)},(_,i)=>i+1); },
                 repayPages() { return Math.max(1, Math.ceil(this.repayments.length/this.pageSize)); },
                 userPages() { return Math.max(1, Math.ceil(this.users.length/this.pageSize)); },
@@ -1118,10 +1118,11 @@
                 },
                 async loadLoans() {
                     try {
-                        const url = this.user.role === 'CLIENT' ? '/api/loans/mine/' : '/api/loans/';
-                        const d = await this.api(url);
+                        const url = this.user.role === 'ADMIN' ? '/api/loans/' : '/api/loans/mine/';
+                        const d = await this.api(`${url}?page=${this.loanPage}&statut=${this.loanFilter === 'all' ? '' : this.loanFilter}`);
                         this.loans = Array.isArray(d) ? d : d.results || [];
-                    } catch(e) { console.error(e); }
+                        this.loanCount = d.count || this.loans.length;
+                    } catch(e) { }
                 },
                 async loadRepayments() {
                     try {

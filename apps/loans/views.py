@@ -16,6 +16,7 @@ from apps.accounts.permissions import IsAdminOrAgent, IsOwnerAdminOrAssignedAgen
 @extend_schema(tags=['Crédits'])
 class LoanListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['statut']
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):

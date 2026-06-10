@@ -497,6 +497,10 @@
                                         <div class="filter-bar">
                                             <button v-for="f in loanFilters" :key="f.value" :class="['filter-btn', {active: loanFilter === f.value}]" @click="loanFilter=f.value;loanPage=1;loadLoans()">{{ f.label }}</button>
                                         </div>
+                                        <button class="btn btn-outline btn-sm" @click="exportPDF">
+                                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                            Export PDF
+                                        </button>
                                         <button class="btn btn-outline btn-sm" @click="exportCSV">
                                             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                             Export CSV
@@ -1321,6 +1325,20 @@
                         this.navigate('chat');
                     }
                     this.searchQuery = ''; this.searchResults = [];
+                },
+                async exportPDF() {
+                    try {
+                        const r = await fetch('/api/loans/export/pdf/', { headers:{'Authorization':`Bearer ${this.token}`} });
+                        if (!r.ok) throw new Error();
+                        const blob = await r.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = 'credits.pdf'; a.click();
+                        URL.revokeObjectURL(url);
+                        this.notif = { show: true, message: 'PDF exporté avec succès', type: 'success' };
+                    } catch(e) {
+                        this.notif = { show: true, message: 'Erreur export PDF', type: 'error' };
+                    }
+                    setTimeout(() => this.notif.show = false, 3000);
                 },
                 async exportCSV() {
                     try {

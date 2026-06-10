@@ -5,6 +5,7 @@ urlpatterns = [
     path('', views.LoanListCreateView.as_view(), name='loan-list'),
     path('mine/', views.MyLoansView.as_view(), name='my-loans'),
     path('export/csv/', views.LoanExportCsvView.as_view(), name='loan-export-csv'),
+    path('export/pdf/', views.LoanExportPdfView.as_view(), name='loan-export-pdf'),
     path('<int:pk>/', views.LoanDetailView.as_view(), name='loan-detail'),
     path('<int:pk>/status/', views.LoanStatusUpdateView.as_view(), name='loan-status'),
     path('<int:loan_id>/schedule/', views.AmortizationScheduleListView.as_view(), name='loan-schedule'),

@@ -2,7 +2,14 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import HttpResponse
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from io import BytesIO
 from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory
 from .serializers import (
     LoanApplicationSerializer, LoanCreateSerializer,
@@ -224,4 +231,64 @@ class LoanExportCsvView(generics.GenericAPIView):
                 f'{loan.id},{client_name},{loan.montant_demande},{loan.duree_mois},'
                 f'{loan.statut},{loan.score_eligibilite},{loan.date_creation.isoformat()}\\n'
             )
+        return response
+
+
+@extend_schema(tags=['Exports'], responses={200: bytes})
+class LoanExportPdfView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        queryset = LoanApplication.objects.select_related('client__user', 'agent__user')
+        if user.role == 'CLIENT':
+            queryset = queryset.filter(client=user.client_profile)
+        elif user.role == 'AGENT':
+            queryset = queryset.filter(agent=user.agent_profile)
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=20*mm, bottomMargin=20*mm)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph('Liste des crédits', styles['Title']))
+        elements.append(Spacer(1, 6*mm))
+        elements.append(Paragraph(f'Généré le {timezone.now().strftime("%d/%m/%Y %H:%M")}', styles['Normal']))
+        elements.append(Spacer(1, 4*mm))
+
+        data = [['ID', 'Client', 'Montant', 'Durée', 'Statut', 'Score', 'Date']]
+        for loan in queryset:
+            client_name = loan.client.user.get_full_name() or loan.client.user.username
+            data.append([
+                str(loan.id),
+                client_name,
+                f'{loan.montant_demande:,.0f}',
+                f'{loan.duree_mois}m',
+                loan.statut,
+                str(loan.score_eligibilite),
+                loan.date_creation.strftime('%d/%m/%Y'),
+            ])
+
+        col_widths = [30, 90, 80, 40, 70, 40, 70]
+        table = Table(data, colWidths=col_widths)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a73e8')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('ALIGN', (2, 0), (5, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(table)
+
+        doc.build(elements)
+        pdf = buffer.getvalue()
+        buffer.close()
+
+        response = HttpResponse(pdf, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="credits.pdf"'
         return response

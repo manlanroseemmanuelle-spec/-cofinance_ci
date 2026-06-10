@@ -866,6 +866,45 @@
                                 </table>
                             </div>
                         </div>
+                        <div style="margin-top:20px" v-if="selectedLoan.documents?.length">
+                            <h5 style="margin-bottom:12px;font-size:13px;font-weight:600">Documents <span class="tag blue">{{ selectedLoan.documents.length }}</span></h5>
+                            <div class="scroll-table">
+                                <table>
+                                    <thead><tr><th>Type</th><th>Date</th><th></th></tr></thead>
+                                    <tbody>
+                                        <tr v-for="doc in selectedLoan.documents" :key="doc.id">
+                                            <td><span class="tag blue">{{ doc.type }}</span></td>
+                                            <td>{{ formatDate(doc.date_upload) }}</td>
+                                            <td><a :href="doc.fichier" target="_blank" class="btn btn-sm btn-outline"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Voir</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div style="margin-top:16px">
+                            <button class="btn btn-sm btn-outline" @click="showDocUpload=selectedLoan.id">
+                                <svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                Ajouter un document
+                            </button>
+                            <div v-if="showDocUpload===selectedLoan.id" style="margin-top:12px;padding:16px;background:var(--bg-secondary);border-radius:var(--radius);display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+                                <div class="form-group" style="margin-bottom:0;min-width:160px">
+                                    <label style="font-size:12px">Type</label>
+                                    <select v-model="docForm.type" style="padding:8px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;background:var(--bg-input);color:var(--text-primary)">
+                                        <option value="PIECE_IDENTITE">Pièce d'identité</option>
+                                        <option value="JUSTIFICATIF_REVENU">Justificatif de revenu</option>
+                                        <option value="PHOTO_CLIENT">Photo du client</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;flex:1">
+                                    <label style="font-size:12px">Fichier (PDF, JPG, PNG max 5 Mo)</label>
+                                    <input ref="docInput" type="file" accept=".pdf,.jpg,.jpeg,.png" @change="onDocFileChange" style="font-size:13px">
+                                </div>
+                                <button class="btn btn-sm btn-primary" @click="uploadDoc(selectedLoan.id)" :disabled="!docForm.file || !docForm.type">
+                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    Upload
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer" style="flex-wrap:wrap">
                         <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
@@ -947,6 +986,8 @@
                 showLoanForm: false,
                 showInsuranceForm: false,
                 selectedLoan: null,
+                showDocUpload: null,
+                docForm: { type: 'PIECE_IDENTITE', file: null },
                 loanForm: { montant_demande: '', duree_mois: 12, motif: '', revenu_mensuel: '' },
                 chartData: { months: [], credits_par_mois: [], remboursements_par_mois: [], repartition_statuts: [], top_agents: [] },
                 insuranceForm: { produit_id: '' },
@@ -1216,12 +1257,38 @@
                         const d = await this.api(`/api/loans/${l.id}/`);
                         const sched = await this.api(`/api/loans/${l.id}/schedule/`);
                         const hist = await this.api(`/api/loans/${l.id}/history/`);
+                        const docs = await this.api(`/api/loans/${l.id}/documents/`);
                         this.selectedLoan = {
                             ...d,
                             amortization_schedule: Array.isArray(sched) ? sched : sched.results || [],
-                            status_history: Array.isArray(hist) ? hist : hist.results || []
+                            status_history: Array.isArray(hist) ? hist : hist.results || [],
+                            documents: Array.isArray(docs) ? docs : docs.results || []
                         };
                     } catch(e) { }
+                },
+                onDocFileChange(e) {
+                    this.docForm.file = e.target.files[0] || null;
+                },
+                async uploadDoc(loanId) {
+                    if (!this.docForm.file || !this.docForm.type) return;
+                    try {
+                        const fd = new FormData();
+                        fd.append('type', this.docForm.type);
+                        fd.append('fichier', this.docForm.file);
+                        const r = await fetch(`/api/loans/${loanId}/documents/`, {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`},
+                            body: fd
+                        });
+                        if (r.ok) {
+                            this.showDocUpload = null;
+                            this.docForm = { type: 'PIECE_IDENTITE', file: null };
+                            if (this.$refs.docInput) this.$refs.docInput.value = '';
+                            await this.viewLoan(this.selectedLoan);
+                            this.notif = { show: true, message: 'Document ajouté', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur upload', type: 'error' }; }
                 },
                 debouncedSearch() {
                     clearTimeout(this.searchTimeout);

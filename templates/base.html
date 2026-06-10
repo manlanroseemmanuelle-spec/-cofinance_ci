@@ -145,6 +145,18 @@
         .notification.error { border-left: 4px solid var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .scroll-table { overflow-x: auto; }
+        .search-bar { display:flex; align-items:center; background:var(--bg-input); border:1px solid var(--border-color); border-radius:20px; padding:2px 12px; width:240px; transition:all .3s; }
+        .search-bar:focus-within { width:320px; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-light); }
+        .search-bar input { border:none; background:none; padding:6px 8px; font-size:13px; color:var(--text-primary); outline:none; width:100%; }
+        .search-bar .clear { cursor:pointer; color:var(--text-secondary); font-size:16px; }
+        .search-results { position:absolute; top:100%; right:0; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:400px; max-height:400px; overflow-y:auto; z-index:300; margin-top:4px; }
+        .search-results .result-item { padding:10px 14px; border-bottom:1px solid var(--border-color); cursor:pointer; font-size:13px; }
+        .search-results .result-item:hover { background:var(--accent-light); }
+        .search-results .result-item .tag { font-size:10px; padding:1px 6px; border-radius:8px; margin-left:6px; background:var(--bg-secondary); color:var(--text-secondary); }
+        .fade-enter-active, .fade-leave-active { transition:opacity .3s; }
+        .fade-enter, .fade-leave-to { opacity:0; }
+        .slide-enter-active, .slide-leave-active { transition:all .3s ease; }
+        .slide-enter, .slide-leave-to { transform:translateY(10px); opacity:0; }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -206,7 +218,19 @@
                             <button class="menu-toggle" @click="sidebarOpen = !sidebarOpen">☰</button>
                             <h3>{{ currentViewTitle }}</h3>
                         </div>
-                        <div class="header-right">
+                        <div class="header-right" style="position:relative">
+                            <div class="search-bar" v-if="user.role === 'ADMIN'">
+                                <span>🔍</span>
+                                <input v-model="searchQuery" @input="debouncedSearch" placeholder="Rechercher crédits, clients..." @keyup.escape="searchQuery='';searchResults=[]">
+                                <span class="clear" v-if="searchQuery" @click="searchQuery='';searchResults=[]">&times;</span>
+                            </div>
+                            <div class="search-results" v-if="searchResults.length">
+                                <div v-for="r in searchResults" :key="r.id" class="result-item" @click="navigateToSearchResult(r)">
+                                    <strong>{{ r.label }}</strong>
+                                    <span class="tag">{{ r.type }}</span>
+                                    <div style="font-size:11px;color:var(--text-secondary)">{{ r.detail }}</div>
+                                </div>
+                            </div>
                             <button class="theme-btn" @click="toggleTheme">
                                 {{ theme === 'light' ? '🌙' : '☀️' }} {{ theme === 'light' ? 'Sombre' : 'Clair' }}
                             </button>
@@ -275,7 +299,10 @@
                             <div v-if="currentView === 'loans'">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
                                     <h4 style="font-size:16px">Demandes de crédit</h4>
-                                    <button class="btn btn-primary" @click="showLoanForm = true">+ Nouvelle demande</button>
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                                        <button class="btn btn-primary" @click="showLoanForm = true">+ Nouvelle demande</button>
+                                        <button class="btn btn-sm btn-outline" @click="exportCSV">📥 Export CSV</button>
+                                    </div>
                                 </div>
                                 <div class="card">
                                     <div class="card-body scroll-table">
@@ -371,7 +398,13 @@
                                         </div>
                                     </div>
                                     <div class="card" style="flex:2;min-width:300px">
-                                        <div class="card-header"><h4>{{ selectedChat ? (selectedChat.client_name || 'Chat #'+selectedChat.id) : 'Chat' }}</h4></div>
+                                        <div class="card-header">
+                                            <h4>{{ selectedChat ? (selectedChat.client_name || 'Chat #'+selectedChat.id) : 'Chat' }}</h4>
+                                            <div style="display:flex;gap:6px">
+                                                <button v-if="selectedChat && !selectedChat.agent && (user.role==='ADMIN'||user.role==='AGENT')" class="btn btn-sm btn-primary" @click="assignAgent(selectedChat)">👤 M'assigner</button>
+                                                <button v-if="selectedChat && selectedChat.status==='OUVERTE' && (user.role==='ADMIN'||user.role==='AGENT')" class="btn btn-sm btn-outline" @click="closeConversation(selectedChat)">🔒 Fermer</button>
+                                            </div>
+                                        </div>
                                         <div class="chat-messages" ref="chatBox">
                                             <div v-for="m in chatMessages" :key="m.id" :class="['chat-message', m.sender === user.username ? 'sent' : 'received']">
                                                 {{ m.message }}
@@ -524,7 +557,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer"><button class="btn btn-outline" @click="selectedLoan = null">Fermer</button></div>
+                    <div class="modal-footer" style="flex-wrap:wrap">
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
+                            <button v-if="canTransition(selectedLoan, 'agent')" class="btn btn-sm btn-success" @click="updateLoanStatus(selectedLoan, 'EN_ANALYSE')">📋 Prendre en analyse</button>
+                            <button v-if="canTransition(selectedLoan, 'approve')" class="btn btn-sm btn-success" @click="updateLoanStatus(selectedLoan, 'APPROUVEE')">✅ Approuver</button>
+                            <button v-if="canTransition(selectedLoan, 'reject')" class="btn btn-sm btn-danger" @click="updateLoanStatus(selectedLoan, 'REJETEE')">❌ Rejeter</button>
+                            <button v-if="canTransition(selectedLoan, 'disburse')" class="btn btn-sm btn-primary" @click="updateLoanStatus(selectedLoan, 'DECAISSEE')">💸 Décaisser</button>
+                        </div>
+                        <button class="btn btn-sm btn-outline" @click="selectedLoan = null">Fermer</button>
+                    </div>
                 </div>
             </div>
 
@@ -572,6 +613,9 @@
                 chartData: { months: [], credits_par_mois: [], remboursements_par_mois: [], repartition_statuts: [], top_agents: [] },
                 insuranceForm: { produit_id: '' },
                 notif: { show: false, message: '', type: 'success' },
+                searchQuery: '',
+                searchResults: [],
+                searchTimeout: null,
             },
             computed: {
                 menuItems() {
@@ -810,6 +854,115 @@
                             status_history: Array.isArray(hist) ? hist : hist.results || []
                         };
                     } catch(e) { }
+                },
+                debouncedSearch() {
+                    clearTimeout(this.searchTimeout);
+                    if (!this.searchQuery || this.searchQuery.length < 2) { this.searchResults = []; return; }
+                    this.searchTimeout = setTimeout(async () => {
+                        try {
+                            const d = await this.api(`/api/common/search/?q=${encodeURIComponent(this.searchQuery)}`);
+                            const arr = Array.isArray(d) ? d : d.results || [];
+                            this.searchResults = arr.map(r => ({
+                                ...r,
+                                label: r.object_repr || `#${r.object_id} ${r.model_name}`,
+                                type: r.model_name,
+                                detail: `${r.action} - ${r.user_details?.username || ''}`
+                            })).slice(0, 10);
+                        } catch(e) { this.searchResults = []; }
+                    }, 300);
+                },
+                navigateToSearchResult(r) {
+                    if (r.model_name === 'LoanApplication' || r.model_name === 'credit') {
+                        this.navigate('loans');
+                    } else if (r.model_name === 'Policy' || r.model_name === 'assurance') {
+                        this.navigate('insurance');
+                    } else if (r.model_name === 'Conversation' || r.model_name === 'chat') {
+                        this.navigate('chat');
+                    }
+                    this.searchQuery = ''; this.searchResults = [];
+                },
+                async exportCSV() {
+                    try {
+                        const r = await fetch('/api/loans/export/csv/', { headers:{'Authorization':`Bearer ${this.token}`} });
+                        if (!r.ok) throw new Error();
+                        const blob = await r.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = 'credits.csv'; a.click();
+                        URL.revokeObjectURL(url);
+                        this.notif = { show: true, message: 'CSV exporté avec succès', type: 'success' };
+                    } catch(e) {
+                        this.notif = { show: true, message: 'Erreur export CSV', type: 'error' };
+                    }
+                    setTimeout(() => this.notif.show = false, 3000);
+                },
+                canTransition(loan, action) {
+                    if (!loan) return false;
+                    const s = loan.statut;
+                    if (this.user.role === 'ADMIN') {
+                        if (action === 'agent') return s === 'SOUMISE';
+                        if (action === 'approve') return s === 'EN_ANALYSE';
+                        if (action === 'reject') return s === 'SOUMISE' || s === 'EN_ANALYSE';
+                        if (action === 'disburse') return s === 'APPROUVEE';
+                    }
+                    if (this.user.role === 'AGENT') {
+                        if (action === 'agent') return s === 'SOUMISE';
+                        if (action === 'approve') return s === 'EN_ANALYSE';
+                        if (action === 'reject') return s === 'SOUMISE' || s === 'EN_ANALYSE';
+                    }
+                    return false;
+                },
+                async updateLoanStatus(loan, newStatus, commentaire) {
+                    const comment = commentaire || prompt(`Commentaire pour le passage à ${newStatus} :`);
+                    if (comment === null) return;
+                    try {
+                        const r = await fetch(`/api/loans/${loan.id}/status/`, {
+                            method:'PATCH',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify({ statut: newStatus, commentaire: comment || '' })
+                        });
+                        if (r.ok) {
+                            this.notif = { show: true, message: `Statut mis à jour : ${newStatus}`, type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                            this.selectedLoan = null;
+                            this.loadLoans();
+                        } else {
+                            const d = await r.json();
+                            this.notif = { show: true, message: d.error || d.statut?.[0] || 'Erreur de mise à jour', type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) {
+                        this.notif = { show: true, message: 'Erreur réseau', type: 'error' };
+                        setTimeout(() => this.notif.show = false, 3000);
+                    }
+                },
+                async assignAgent(conv) {
+                    try {
+                        const r = await fetch(`/api/chat/conversations/${conv.id}/assign/`, {
+                            method:'PATCH',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify({})
+                        });
+                        if (r.ok) {
+                            this.notif = { show: true, message: 'Conversation assignée', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                            this.loadChat();
+                        }
+                    } catch(e) {}
+                },
+                async closeConversation(conv) {
+                    try {
+                        const r = await fetch(`/api/chat/conversations/${conv.id}/close/`, {
+                            method:'PATCH',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify({})
+                        });
+                        if (r.ok) {
+                            this.notif = { show: true, message: 'Conversation fermée', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                            conv.status = 'FERMEE';
+                            this.loadChat();
+                        }
+                    } catch(e) {}
                 },
                 statusClass(s) {
                     const map = { 'SOUMISE':'pending','EN_ANALYSE':'pending','APPROUVEE':'approved','REJETEE':'rejected','DECAISSEE':'active','ACTIVE':'active','EXPIREE':'closed','OUVERTE':'active','FERMEE':'closed' };

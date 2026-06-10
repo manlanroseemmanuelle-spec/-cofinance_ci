@@ -1022,6 +1022,7 @@
                 menuItems() {
                     const items = [
                         { id: 'dashboard', iconSvg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>', label: 'Tableau de bord', badge: null },
+                        { id: 'profile', iconSvg: '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', label: 'Mon Profil', badge: null },
                         { id: 'loans', iconSvg: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label: 'Crédits', badge: null },
                         { id: 'repayments', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg>', label: 'Remboursements', badge: null },
                         { id: 'insurance', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label: 'Assurance', badge: null },
@@ -1035,7 +1036,7 @@
                     return items;
                 },
                 currentViewTitle() {
-                    const map = { dashboard:'Tableau de bord', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs', audit:'Journal d\'audit' };
+                    const map = { dashboard:'Tableau de bord', profile:'Mon Profil', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs', audit:"Journal d'audit" };
                     return map[this.currentView] || 'Cofinance CI';
                 },
                 unreadChatCount() { return this.conversations.reduce((s, c) => s + (c.unread_count || 0), 0); },

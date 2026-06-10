@@ -9,154 +9,277 @@
     <style>
         :root {
             --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
+            --bg-secondary: #f5f7fa;
             --bg-card: #ffffff;
-            --bg-sidebar: #1a1f36;
-            --bg-sidebar-hover: #2d3250;
+            --bg-sidebar: #0f172a;
+            --bg-sidebar-hover: #1e293b;
             --bg-input: #ffffff;
-            --text-primary: #1a1f36;
-            --text-secondary: #6b7280;
-            --text-sidebar: #a0aec0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-sidebar: #94a3b8;
             --text-sidebar-active: #ffffff;
             --border-color: #e2e8f0;
-            --accent: #1a73e8;
-            --accent-hover: #1557b0;
-            --accent-light: #e8f0fe;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #eff6ff;
             --success: #059669;
+            --success-light: #ecfdf5;
             --warning: #d97706;
+            --warning-light: #fffbeb;
             --danger: #dc2626;
-            --shadow: 0 1px 3px rgba(0,0,0,0.1);
-            --shadow-lg: 0 4px 12px rgba(0,0,0,0.1);
+            --danger-light: #fef2f2;
+            --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 4px 6px rgba(0,0,0,0.05), 0 10px 15px rgba(0,0,0,0.1);
+            --shadow-xl: 0 10px 25px rgba(0,0,0,0.1);
             --radius: 8px;
             --radius-lg: 12px;
+            --radius-xl: 16px;
+            --sidebar-width: 260px;
+            --header-height: 60px;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         [data-theme="dark"] {
-            --bg-primary: #0f1117;
-            --bg-secondary: #1a1d2e;
-            --bg-card: #1e2235;
-            --bg-sidebar: #0b0d14;
-            --bg-sidebar-hover: #1a1d2e;
-            --bg-input: #1e2235;
+            --bg-primary: #0b1120;
+            --bg-secondary: #111827;
+            --bg-card: #1a2332;
+            --bg-sidebar: #060b17;
+            --bg-sidebar-hover: #111827;
+            --bg-input: #1a2332;
             --text-primary: #e2e8f0;
             --text-secondary: #94a3b8;
             --text-sidebar: #64748b;
             --text-sidebar-active: #ffffff;
-            --border-color: #2d3250;
+            --border-color: #1e293b;
             --accent: #3b82f6;
             --accent-hover: #60a5fa;
             --accent-light: #1e3a5f;
-            --shadow: 0 1px 3px rgba(0,0,0,0.3);
-            --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+            --success-light: #064e3b;
+            --warning-light: #78350f;
+            --danger-light: #7f1d1d;
+            --shadow: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-lg: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-xl: 0 10px 25px rgba(0,0,0,0.4);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-secondary); color: var(--text-primary); }
+        body { font-family: var(--font); background: var(--bg-secondary); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
         .app { display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: var(--bg-sidebar); padding: 0; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform .3s; overflow-y: auto; }
+        .sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform .3s ease, box-shadow .3s; overflow-y: auto; }
         .sidebar-brand { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar-brand h2 { color: #fff; font-size: 18px; }
-        .sidebar-brand span { color: var(--accent); }
-        .sidebar-brand small { color: var(--text-sidebar); font-size: 11px; }
-        .sidebar-nav { padding: 12px 0; }
-        .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 20px; color: var(--text-sidebar); text-decoration: none; font-size: 14px; transition: all .2s; cursor: pointer; border-left: 3px solid transparent; }
-        .sidebar-nav a:hover, .sidebar-nav a.active { background: var(--bg-sidebar-hover); color: var(--text-sidebar-active); }
-        .sidebar-nav a.active { border-left-color: var(--accent); }
-        .sidebar-nav a .icon { width: 20px; text-align: center; font-size: 16px; }
-        .sidebar-nav .badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
-        .main { flex: 1; margin-left: 260px; }
-        .header { background: var(--bg-card); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 50; }
+        .sidebar-brand h2 { color: #fff; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-brand h2 span { color: var(--accent); }
+        .sidebar-brand small { color: var(--text-sidebar); font-size: 11px; display: block; margin-top: 2px; }
+        .sidebar-nav { padding: 8px 0; }
+        .sidebar-nav .nav-section { padding: 8px 20px 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.3); }
+        .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 10px 20px; color: var(--text-sidebar); text-decoration: none; font-size: 13px; font-weight: 500; transition: all .15s; cursor: pointer; border-left: 3px solid transparent; margin: 1px 8px; border-radius: 6px; }
+        .sidebar-nav a:hover { background: var(--bg-sidebar-hover); color: var(--text-sidebar-active); }
+        .sidebar-nav a.active { background: var(--bg-sidebar-hover); color: var(--text-sidebar-active); border-left-color: var(--accent); }
+        .sidebar-nav a .nav-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .sidebar-nav a .nav-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .sidebar-nav .nav-badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; min-width: 18px; text-align: center; }
+        .main { flex: 1; margin-left: var(--sidebar-width); min-height: 100vh; }
+        .header { background: var(--bg-card); padding: 0 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 50; height: var(--header-height); backdrop-filter: blur(8px); }
         .header-left { display: flex; align-items: center; gap: 16px; }
-        .header-left .menu-toggle { display: none; background: none; border: none; color: var(--text-primary); font-size: 22px; cursor: pointer; padding: 4px; }
-        .header-left h3 { font-size: 16px; font-weight: 600; }
-        .header-right { display: flex; align-items: center; gap: 16px; }
-        .header-right .theme-btn { background: none; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; color: var(--text-primary); font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        .header-right .theme-btn:hover { background: var(--bg-secondary); }
-        .header-right .user-info { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-        .header-right .user-info .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
-        .header-right .user-info .logout-btn { background: none; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 4px 10px; cursor: pointer; color: var(--text-primary); font-size: 12px; }
-        .header-right .user-info .logout-btn:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-        .content { padding: 24px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
-        .stat-card .label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
-        .stat-card .value { font-size: 28px; font-weight: 700; margin: 4px 0; }
-        .stat-card .sub { font-size: 12px; color: var(--text-secondary); }
-        .stat-card .icon-box { width: 40px; height: 40px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 12px; }
+        .header-left .menu-toggle { display: none; background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 4px; }
+        .header-left h3 { font-size: 16px; font-weight: 600; letter-spacing: -.2px; }
+        .header-right { display: flex; align-items: center; gap: 12px; position: relative; }
+        .header-right .btn-icon { width: 36px; height: 36px; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+        .header-right .btn-icon:hover { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--text-secondary); }
+        .header-right .btn-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .header-right .user-info { display: flex; align-items: center; gap: 10px; padding: 4px 8px; border-radius: var(--radius); cursor: pointer; transition: background .15s; }
+        .header-right .user-info:hover { background: var(--bg-secondary); }
+        .header-right .user-info .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #7c3aed); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+        .header-right .user-info .user-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+        .header-right .user-info .user-role { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .3px; }
+        .content { padding: 24px; max-width: 1400px; margin: 0 auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+        .page-header h4 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+        .page-header .page-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color); transition: all .2s; }
+        .stat-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+        .stat-card .stat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .stat-card .stat-icon { width: 42px; height: 42px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
+        .stat-card .stat-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .stat-card .stat-change { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+        .stat-card .stat-change.up { background: var(--success-light); color: var(--success); }
+        .stat-card .stat-change.down { background: var(--danger-light); color: var(--danger); }
+        .stat-card .label { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 2px; }
+        .stat-card .value { font-size: 26px; font-weight: 800; letter-spacing: -.5px; line-height: 1.2; }
+        .stat-card .sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
         .card { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow); border: 1px solid var(--border-color); overflow: hidden; }
         .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .card-header h4 { font-size: 15px; font-weight: 600; }
+        .card-header h4 { font-size: 14px; font-weight: 600; }
         .card-body { padding: 16px 20px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        table th { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
-        table td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
-        table tr:hover { background: var(--bg-secondary); }
-        .status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-        .status.active { background: #d1fae5; color: #065f46; }
-        .status.pending { background: #fef3c7; color: #92400e; }
-        .status.rejected { background: #fee2e2; color: #991b1b; }
-        .status.approved { background: #dbeafe; color: #1e40af; }
-        .status.closed { background: #e5e7eb; color: #374151; }
-        [data-theme="dark"] .status.active { background: #064e3b; color: #6ee7b7; }
-        [data-theme="dark"] .status.pending { background: #78350f; color: #fcd34d; }
-        [data-theme="dark"] .status.rejected { background: #7f1d1d; color: #fca5a5; }
-        [data-theme="dark"] .status.approved { background: #1e3a5f; color: #93c5fd; }
-        [data-theme="dark"] .status.closed { background: #374151; color: #d1d5db; }
+        table th { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+        table td { padding: 10px 12px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        table tbody tr { transition: background .1s; }
+        table tbody tr:hover { background: var(--bg-secondary); }
+        table tbody tr:last-child td { border-bottom: none; }
+        .status { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .status .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .status.active { background: var(--success-light); color: var(--success); }
+        .status.active .dot { background: var(--success); }
+        .status.pending { background: var(--warning-light); color: var(--warning); }
+        .status.pending .dot { background: var(--warning); }
+        .status.rejected { background: var(--danger-light); color: var(--danger); }
+        .status.rejected .dot { background: var(--danger); }
+        .status.approved { background: var(--accent-light); color: var(--accent); }
+        .status.approved .dot { background: var(--accent); }
+        .status.closed { background: var(--bg-secondary); color: var(--text-secondary); }
+        .status.closed .dot { background: var(--text-secondary); }
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text-secondary); }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 14px; background: var(--bg-input); color: var(--text-primary); outline: none; }
-        .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border: none; border-radius: var(--radius); font-size: 14px; cursor: pointer; transition: all .2s; font-weight: 500; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: var(--text-primary); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius); font-size: 13px; background: var(--bg-input); color: var(--text-primary); outline: none; transition: border-color .15s, box-shadow .15s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+        .form-group .field-error { font-size: 11px; color: var(--danger); margin-top: 2px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
         .btn-primary { background: var(--accent); color: #fff; }
-        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
         .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover:not(:disabled) { background: #047857; }
         .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover:not(:disabled) { background: #b91c1c; }
         .btn-outline { background: none; border: 1px solid var(--border-color); color: var(--text-primary); }
-        .btn-outline:hover { background: var(--bg-secondary); }
+        .btn-outline:hover:not(:disabled) { background: var(--bg-secondary); }
         .btn-sm { padding: 6px 12px; font-size: 12px; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
-        .modal { background: var(--bg-card); border-radius: var(--radius-lg); width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
-        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h4 { font-size: 16px; }
-        .modal-header .close { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-primary); }
-        .modal-body { padding: 20px; }
-        .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 8px; }
-        .chat-messages { height: 300px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .chat-message { max-width: 80%; padding: 8px 14px; border-radius: 12px; font-size: 13px; }
+        .btn-lg { padding: 12px 24px; font-size: 15px; }
+        .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .btn-sm svg { width: 14px; height: 14px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn .15s; }
+        .modal { background: var(--bg-card); border-radius: var(--radius-xl); width: 90%; max-width: 560px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-xl); animation: slideUp .2s ease-out; }
+        .modal.wide { max-width: 720px; }
+        .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--bg-card); z-index: 1; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+        .modal-header h4 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .modal-header .close { width: 32px; height: 32px; border-radius: var(--radius); border: none; background: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+        .modal-header .close:hover { background: var(--bg-secondary); color: var(--text-primary); }
+        .modal-header .close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+        .modal-body { padding: 20px 24px; }
+        .modal-footer { padding: 14px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; position: sticky; bottom: 0; background: var(--bg-card); border-radius: 0 0 var(--radius-xl) var(--radius-xl); }
+        .timeline { position: relative; padding-left: 28px; }
+        .timeline::before { content: ''; position: absolute; left: 9px; top: 4px; bottom: 4px; width: 2px; background: var(--border-color); border-radius: 1px; }
+        .timeline-item { position: relative; padding-bottom: 16px; }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-item .tl-dot { position: absolute; left: -23px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--border-color); z-index: 1; display: flex; align-items: center; justify-content: center; }
+        .timeline-item .tl-dot.active { border-color: var(--success); background: var(--success-light); }
+        .timeline-item .tl-dot.pending { border-color: var(--warning); background: var(--warning-light); }
+        .timeline-item .tl-dot.rejected { border-color: var(--danger); background: var(--danger-light); }
+        .timeline-item .tl-content { font-size: 13px; }
+        .timeline-item .tl-content .tl-title { font-weight: 600; }
+        .timeline-item .tl-content .tl-desc { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+        .chat-messages { height: 320px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-secondary); }
+        .chat-message { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; position: relative; }
         .chat-message.sent { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .chat-message.received { background: var(--bg-secondary); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .chat-message .time { font-size: 10px; opacity: .6; display: block; margin-top: 2px; }
-        .chat-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border-color); }
-        .chat-input input { flex: 1; padding: 8px 14px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; background: var(--bg-input); color: var(--text-primary); }
-        .chat-input button { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
-        .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: .4; }
-        .loading { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .loading .spinner { width: 32px; height: 32px; border: 3px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+        .chat-message.received { background: var(--bg-card); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border-color); }
+        .chat-message .time { font-size: 10px; opacity: .6; display: block; margin-top: 4px; }
+        .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--bg-card); }
+        .chat-input input { flex: 1; padding: 8px 14px; border: 1px solid var(--border-color); border-radius: 20px; outline: none; font-size: 13px; background: var(--bg-input); color: var(--text-primary); transition: border-color .15s; }
+        .chat-input input:focus { border-color: var(--accent); }
+        .chat-input button { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; flex-shrink: 0; }
+        .chat-input button:hover { background: var(--accent-hover); }
+        .chat-input button svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+        .empty-state { text-align: center; padding: 48px 20px; color: var(--text-secondary); }
+        .empty-state .empty-icon { width: 64px; height: 64px; margin: 0 auto 16px; opacity: .3; }
+        .empty-state .empty-icon svg { width: 64px; height: 64px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+        .empty-state h5 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        .empty-state p { font-size: 13px; }
+        .loading { text-align: center; padding: 60px 20px; }
+        .spinner { width: 36px; height: 36px; border: 3px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .login-page { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: var(--bg-secondary); padding: 20px; }
-        .login-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 40px; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); }
-        .login-card h1 { font-size: 24px; margin-bottom: 4px; }
+        .skeleton { background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-secondary) 50%, var(--border-color) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .login-page { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px; position: relative; overflow: hidden; }
+        .login-page::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(37,99,235,0.08) 0%, transparent 60%); }
+        .login-card { background: var(--bg-card); border-radius: var(--radius-xl); padding: 40px; width: 100%; max-width: 400px; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); position: relative; }
+        .login-card .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+        .login-card h1 { font-size: 24px; }
+        .login-card h1 { font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
         .login-card h1 span { color: var(--accent); }
-        .login-card p { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
-        .login-card .error { color: var(--danger); font-size: 13px; margin-bottom: 12px; }
-        .notification { position: fixed; top: 20px; right: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 12px 20px; box-shadow: var(--shadow-lg); z-index: 300; font-size: 14px; display: flex; align-items: center; gap: 8px; animation: slideIn .3s; }
+        .login-card .login-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 28px; }
+        .login-card .error { background: var(--danger-light); color: var(--danger); font-size: 13px; padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .login-card .demo-info { margin-top: 20px; padding: 12px 16px; background: var(--bg-secondary); border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); line-height: 1.6; border: 1px solid var(--border-color); }
+        .login-card .demo-info strong { color: var(--text-primary); }
+        .notification-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+        .notification { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 14px 20px; box-shadow: var(--shadow-lg); font-size: 13px; display: flex; align-items: center; gap: 10px; animation: slideIn .3s ease-out; min-width: 300px; }
         .notification.success { border-left: 4px solid var(--success); }
         .notification.error { border-left: 4px solid var(--danger); }
+        .notification svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; }
+        .notification.success svg { color: var(--success); }
+        .notification.error svg { color: var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .scroll-table { overflow-x: auto; }
-        .search-bar { display:flex; align-items:center; background:var(--bg-input); border:1px solid var(--border-color); border-radius:20px; padding:2px 12px; width:240px; transition:all .3s; }
-        .search-bar:focus-within { width:320px; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-light); }
-        .search-bar input { border:none; background:none; padding:6px 8px; font-size:13px; color:var(--text-primary); outline:none; width:100%; }
-        .search-bar .clear { cursor:pointer; color:var(--text-secondary); font-size:16px; }
-        .search-results { position:absolute; top:100%; right:0; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:400px; max-height:400px; overflow-y:auto; z-index:300; margin-top:4px; }
-        .search-results .result-item { padding:10px 14px; border-bottom:1px solid var(--border-color); cursor:pointer; font-size:13px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .scroll-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .search-bar { display:flex; align-items:center; background:var(--bg-input); border:1px solid var(--border-color); border-radius:20px; padding:2px 12px; width:200px; transition:all .3s; }
+        .search-bar:focus-within { width:280px; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-light); }
+        .search-bar input { border:none; background:none; padding:6px 8px; font-size:13px; color:var(--text-primary); outline:none; width:100%; font-family:var(--font); }
+        .search-bar .search-icon { color:var(--text-secondary); display:flex; align-items:center; }
+        .search-bar .search-icon svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+        .search-bar .clear { cursor:pointer; color:var(--text-secondary); display:flex; align-items:center; }
+        .search-bar .clear svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+        .search-results { position:absolute; top:100%; right:0; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); box-shadow:var(--shadow-xl); width:420px; max-height:400px; overflow-y:auto; z-index:300; margin-top:6px; }
+        .search-results .result-item { padding:10px 14px; border-bottom:1px solid var(--border-color); cursor:pointer; font-size:13px; transition:background .1s; }
+        .search-results .result-item:last-child { border-bottom:none; }
         .search-results .result-item:hover { background:var(--accent-light); }
-        .search-results .result-item .tag { font-size:10px; padding:1px 6px; border-radius:8px; margin-left:6px; background:var(--bg-secondary); color:var(--text-secondary); }
-        .fade-enter-active, .fade-leave-active { transition:opacity .3s; }
-        .fade-enter, .fade-leave-to { opacity:0; }
-        .slide-enter-active, .slide-leave-active { transition:all .3s ease; }
-        .slide-enter, .slide-leave-to { transform:translateY(10px); opacity:0; }
+        .search-results .result-item.highlighted { background:var(--accent-light); }
+        .search-results .result-item .tag { font-size:10px; padding:1px 6px; border-radius:6px; margin-left:6px; background:var(--bg-secondary); color:var(--text-secondary); font-weight:500; }
+        .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+        .filter-bar .filter-btn { padding:5px 14px; border-radius:16px; border:1px solid var(--border-color); background:none; color:var(--text-secondary); font-size:12px; font-weight:500; cursor:pointer; transition:all .15s; }
+        .filter-bar .filter-btn:hover, .filter-bar .filter-btn.active { background:var(--accent-light); color:var(--accent); border-color:var(--accent); }
+        .summary-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:16px; }
+        .summary-item { background:var(--bg-secondary); border-radius:var(--radius); padding:12px 16px; }
+        .summary-item .s-label { font-size:11px; color:var(--text-secondary); }
+        .summary-item .s-value { font-size:18px; font-weight:700; margin-top:2px; }
+        .tab-bar { display:flex; gap:0; border-bottom:1px solid var(--border-color); margin-bottom:16px; }
+        .tab-bar .tab { padding:8px 16px; font-size:13px; font-weight:500; color:var(--text-secondary); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; }
+        .tab-bar .tab:hover { color:var(--text-primary); }
+        .tab-bar .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+        .tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:500; }
+        .tag.blue { background:var(--accent-light); color:var(--accent); }
+        .tag.green { background:var(--success-light); color:var(--success); }
+        .tag.orange { background:var(--warning-light); color:var(--warning); }
+        .tag.red { background:var(--danger-light); color:var(--danger); }
+        .progress-bar { height:6px; background:var(--bg-secondary); border-radius:3px; overflow:hidden; }
+        .progress-bar .progress-fill { height:100%; border-radius:3px; background:var(--accent); transition:width .5s ease; }
+        .notif-item { display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--border-color); transition:background .1s; }
+        .notif-item.unread { background:var(--accent-light); }
+        .notif-item:hover { background:var(--bg-secondary); }
+        .notif-item:last-child { border-bottom:none; }
+        .notif-item .notif-left { display:flex; align-items:flex-start; gap:12px; flex:1; }
+        .notif-item .notif-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); margin-top:5px; flex-shrink:0; }
+        .conv-item { padding:12px 16px; border-bottom:1px solid var(--border-color); cursor:pointer; transition:background .1s; }
+        .breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); }
+        .breadcrumb span { color:var(--text-primary); font-weight:500; }
+        .breadcrumb svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; }
+        .pagination { display:flex; align-items:center; justify-content:center; gap:4px; padding:12px; border-top:1px solid var(--border-color); }
+        .pagination button { width:32px; height:32px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:500; transition:all .15s; }
+        .pagination button:hover:not(:disabled) { background:var(--accent-light); color:var(--accent); border-color:var(--accent); }
+        .pagination button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .pagination button:disabled { opacity:0.3; cursor:not-allowed; }
+        .pagination button svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
+        .pagination .info { font-size:12px; color:var(--text-secondary); margin:0 8px; }
+        .confirm-modal { text-align:center; padding:24px; }
+        .confirm-modal .confirm-icon { width:56px; height:56px; border-radius:50%; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; }
+        .confirm-modal .confirm-icon.warning { background:var(--warning-light); color:var(--warning); }
+        .confirm-modal .confirm-icon.danger { background:var(--danger-light); color:var(--danger); }
+        .confirm-modal .confirm-icon svg { width:28px; height:28px; stroke:currentColor; fill:none; stroke-width:2; }
+        .confirm-modal h4 { font-size:16px; font-weight:700; margin-bottom:8px; }
+        .confirm-modal p { font-size:13px; color:var(--text-secondary); margin-bottom:20px; }
+        .confirm-modal .confirm-actions { display:flex; gap:8px; justify-content:center; }
+        .view-fade { animation:viewFade .2s ease-out; }
+        @keyframes viewFade { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .skeleton-table { padding:0; }
+        .skeleton-table .s-row { display:flex; padding:12px 16px; border-bottom:1px solid var(--border-color); gap:16px; }
+        .skeleton-table .s-cell { height:14px; border-radius:4px; flex:1; }
+        .conv-item:hover { background:var(--bg-secondary); }
+        .conv-item.active { background:var(--accent-light); }
+        .detail-row { display:flex; gap:8px; margin-bottom:6px; font-size:13px; }
+        .detail-row .label { color:var(--text-secondary); min-width:80px; flex-shrink:0; }
+        .detail-row .value { font-weight:500; }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -174,8 +297,10 @@
         {% verbatim %}
         <div v-if="!token" class="login-page">
             <div class="login-card">
-                <h1>Cofinance <span>CI</span></h1>
-                <p>Plateforme de microfinance</p>
+                <div class="login-logo">
+                    <h1>Cofinance <span>CI</span></h1>
+                </div>
+                <p class="login-subtitle">Plateforme de microfinance sécurisée</p>
                 <div class="error" v-if="error">{{ error }}</div>
                 <div class="form-group">
                     <label>Nom d'utilisateur</label>
@@ -185,10 +310,12 @@
                     <label>Mot de passe</label>
                     <input type="password" v-model="password" @keyup.enter="login" placeholder="••••••••">
                 </div>
-                <button class="btn btn-primary" style="width:100%;justify-content:center" @click="login" :disabled="loading">
+                <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" @click="login" :disabled="loading">
+                    <svg v-if="loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                    <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
                     {{ loading ? 'Connexion...' : 'Se connecter' }}
                 </button>
-                <div style="margin-top:16px;font-size:12px;color:var(--text-secondary);text-align:center">
+                <div class="demo-info">
                     <strong>Identifiants de démonstration :</strong><br>
                     Admin: <strong>admin</strong> / <strong>admin123</strong><br>
                     Agents: <strong>agent1</strong> à <strong>agent5</strong> / <strong>agent123</strong><br>
@@ -205,51 +332,112 @@
                         <small>{{ user.role }}</small>
                     </div>
                     <nav class="sidebar-nav">
+                        <div class="nav-section">Navigation</div>
                         <a v-for="item in menuItems" :key="item.id" :class="{active: currentView === item.id}" @click="navigate(item.id)">
-                            <span class="icon">{{ item.icon }}</span>
+                            <span class="nav-icon" v-html="item.iconSvg"></span>
                             {{ item.label }}
-                            <span class="badge" v-if="item.badge && item.badge() > 0">{{ item.badge() }}</span>
+                            <span class="nav-badge" v-if="item.badge && item.badge() > 0">{{ item.badge() }}</span>
                         </a>
                     </nav>
                 </aside>
                 <div class="main">
                     <header class="header">
                         <div class="header-left">
-                            <button class="menu-toggle" @click="sidebarOpen = !sidebarOpen">☰</button>
+                            <button class="menu-toggle" @click="sidebarOpen = !sidebarOpen">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                            </button>
                             <h3>{{ currentViewTitle }}</h3>
+                            <div class="breadcrumb">
+                                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                                <span>Tableau de bord</span>
+                            </div>
                         </div>
                         <div class="header-right" style="position:relative">
                             <div class="search-bar" v-if="user.role === 'ADMIN'">
-                                <span>🔍</span>
-                                <input v-model="searchQuery" @input="debouncedSearch" placeholder="Rechercher crédits, clients..." @keyup.escape="searchQuery='';searchResults=[]">
-                                <span class="clear" v-if="searchQuery" @click="searchQuery='';searchResults=[]">&times;</span>
+                                <span class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                                <input v-model="searchQuery" @input="debouncedSearch" placeholder="Rechercher..." @keyup.escape="searchQuery='';searchResults=[];searchIndex=-1" @keydown.down.prevent="searchIndex < searchResults.length-1 && searchIndex++" @keydown.up.prevent="searchIndex > 0 && searchIndex--" @keydown.enter="searchIndex >= 0 && searchResults[searchIndex] && navigateToSearchResult(searchResults[searchIndex])">
+                                <span class="clear" v-if="searchQuery" @click="searchQuery='';searchResults=[]"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                             </div>
                             <div class="search-results" v-if="searchResults.length">
-                                <div v-for="r in searchResults" :key="r.id" class="result-item" @click="navigateToSearchResult(r)">
+                                <div v-for="(r, idx) in searchResults" :key="r.id" :class="['result-item', {highlighted: idx === searchIndex}]" @click="navigateToSearchResult(r)" @mouseenter="searchIndex=idx">
                                     <strong>{{ r.label }}</strong>
-                                    <span class="tag">{{ r.type }}</span>
+                                    <span class="tag blue">{{ r.type }}</span>
                                     <div style="font-size:11px;color:var(--text-secondary)">{{ r.detail }}</div>
                                 </div>
                             </div>
-                            <button class="theme-btn" @click="toggleTheme">
-                                {{ theme === 'light' ? '🌙' : '☀️' }} {{ theme === 'light' ? 'Sombre' : 'Clair' }}
+                            <button class="btn-icon" @click="toggleTheme" :title="theme === 'light' ? 'Mode sombre' : 'Mode clair'">
+                                <svg v-if="theme === 'light'" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                                <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                             </button>
-                            <div class="user-info">
+                            <div class="user-info" @click="navigate('profile')">
                                 <div class="avatar">{{ user.initials }}</div>
-                                {{ user.first_name }} {{ user.last_name }}
-                                <button class="logout-btn" @click="logout">Déconnexion</button>
+                                <div>
+                                    <div class="user-name">{{ user.first_name }} {{ user.last_name }}</div>
+                                    <div class="user-role">{{ user.role }}</div>
+                                </div>
                             </div>
                         </div>
                     </header>
                     <div class="content">
-                        <div v-if="loading" class="loading"><div class="spinner"></div> Chargement...</div>
-                        <template v-else>
+                        <template v-for="v in ['dashboard','loans','repayments','insurance','chat','notifications','users','audit']">
+                            <div :key="'skeleton-'+v" v-if="loadingViews[v] && currentView === v" class="view-fade">
+                                <div class="page-header" v-if="v==='dashboard'"><h4>Chargement...</h4></div>
+                                <div class="stats-grid" v-if="v==='dashboard'">
+                                    <div class="stat-card" v-for="i in 6" :key="i"><div class="skeleton" style="width:40px;height:40px;border-radius:8px;margin-bottom:12px"></div><div class="skeleton" style="width:60%;height:14px;margin-bottom:6px"></div><div class="skeleton" style="width:80%;height:24px"></div></div>
+                                </div>
+                                <div class="card" v-if="v!=='dashboard'&&v!=='insurance'&&v!=='chat'">
+                                    <div class="skeleton-table"><div v-for="i in 5" :key="i" class="s-row"><div class="s-cell skeleton"></div><div class="s-cell skeleton"></div><div class="s-cell skeleton"></div><div class="s-cell skeleton" style="flex:0.5"></div></div></div>
+                                </div>
+                                <div class="grid-3" v-if="v==='insurance'"><div class="card" v-for="i in 3" :key="i"><div class="card-body"><div class="skeleton" style="width:40px;height:40px;border-radius:8px;margin-bottom:12px"></div><div class="skeleton" style="width:70%;height:14px;margin-bottom:6px"></div><div class="skeleton" style="width:50%;height:14px;margin-bottom:12px"></div><div class="skeleton" style="width:40%;height:20px"></div></div></div></div>
+                            </div>
+                        </template>
+                        <div v-if="currentView === 'profile'" class="view-fade">
+                            <div class="page-header"><h4>Mon Profil</h4></div>
+                            <div class="grid-2">
+                                <div class="card">
+                                    <div class="card-header"><h4>Informations personnelles</h4></div>
+                                    <div class="card-body">
+                                        <div class="form-group"><label>Nom d'utilisateur</label><input :value="user.username" disabled></div>
+                                        <div class="form-group"><label>Email</label><input :value="user.email" disabled></div>
+                                        <div class="form-group"><label>Prénom</label><input v-model="profileForm.first_name"></div>
+                                        <div class="form-group"><label>Nom</label><input v-model="profileForm.last_name"></div>
+                                        <button class="btn btn-primary" @click="updateProfile">
+                                            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                            Enregistrer
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h4>Changer le mot de passe</h4></div>
+                                    <div class="card-body">
+                                        <div class="form-group"><label>Ancien mot de passe</label><input type="password" v-model="passwordForm.old_password" placeholder="••••••••"></div>
+                                        <div class="form-group"><label>Nouveau mot de passe</label><input type="password" v-model="passwordForm.new_password" placeholder="••••••••"></div>
+                                        <div class="form-group"><label>Confirmer</label><input type="password" v-model="passwordForm.confirm_password" placeholder="••••••••"></div>
+                                        <div class="field-error" v-if="passwordError" style="margin-bottom:8px;font-size:12px;color:var(--danger)">{{ passwordError }}</div>
+                                        <button class="btn btn-primary" @click="changePassword">
+                                            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                                            Modifier le mot de passe
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <template v-if="!loadingViews[currentView]">
                             <div v-if="currentView === 'dashboard'">
+                                <div class="page-header">
+                                    <h4>Tableau de bord</h4>
+                                    <div class="page-actions">
+                                        <button v-for="p in filterPeriods" :key="p.value" :class="['filter-btn', {active: dashboardPeriod === p.value}]" @click="dashboardPeriod=p.value;loadDashboard()">{{ p.label }}</button>
+                                    </div>
+                                </div>
                                 <div class="stats-grid">
                                     <div class="stat-card" v-for="s in dashboardStats" :key="s.label">
-                                        <div class="icon-box" :style="{background: s.color + '20', color: s.color}">{{ s.icon }}</div>
+                                        <div class="stat-top">
+                                            <div class="stat-icon" :style="{background: s.color + '20', color: s.color}" v-html="s.iconSvg"></div>
+                                            <span v-if="s.change" :class="['stat-change', s.change > 0 ? 'up' : 'down']">{{ s.change > 0 ? '+' : '' }}{{ s.change }}%</span>
+                                        </div>
                                         <div class="label">{{ s.label }}</div>
-                                        <div class="value">{{ s.value }}</div>
+                                        <div class="value" :style="{color: s.color}">{{ s.value }}</div>
                                         <div class="sub" v-if="s.sub">{{ s.sub }}</div>
                                     </div>
                                 </div>
@@ -274,97 +462,145 @@
                                                         <td>#{{ l.id }}</td>
                                                         <td>{{ l.client_details?.user?.first_name || 'N/A' }}</td>
                                                         <td>{{ formatMoney(l.montant_demande) }}</td>
-                                                        <td><span :class="'status ' + statusClass(l.statut)">{{ l.statut }}</span></td>
+                                                        <td><span :class="'status ' + statusClass(l.statut)"><span class="dot"></span>{{ l.statut }}</span></td>
                                                         <td>{{ formatDate(l.date_creation) }}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                            <div v-else class="empty-state"><div class="icon">📋</div><p>Aucun crédit</p></div>
+                                            <div v-else class="empty-state">
+                                                <div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                                                <h5>Aucun crédit</h5><p>Les demandes de crédit apparaîtront ici</p>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="card">
                                         <div class="card-header"><h4>Activité récente</h4></div>
-                                        <div class="card-body" style="max-height:300px;overflow-y:auto">
-                                            <div v-for="n in notifications" :key="n.id" style="padding:8px 0;border-bottom:1px solid var(--border-color);font-size:13px">
-                                                <strong>{{ n.titre }}</strong>
-                                                <p style="color:var(--text-secondary);margin-top:2px">{{ n.message }}</p>
-                                                <small style="color:var(--text-secondary)">{{ formatDate(n.date_creation) }}</small>
+                                        <div class="card-body" style="max-height:320px;overflow-y:auto">
+                                            <div v-for="n in notifications" :key="n.id" style="padding:10px 0;border-bottom:1px solid var(--border-color)">
+                                                <div style="font-size:13px;font-weight:500">{{ n.titre }}</div>
+                                                <p style="font-size:12px;color:var(--text-secondary);margin-top:2px">{{ n.message }}</p>
+                                                <small style="font-size:11px;color:var(--text-secondary)">{{ formatDate(n.date_creation) }}</small>
                                             </div>
-                                            <div v-if="!notifications.length" class="empty-state"><p>Aucune activité</p></div>
+                                            <div v-if="!notifications.length" class="empty-state">
+                                                <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+                                                <h5>Aucune activité</h5><p>Les notifications récentes apparaîtront ici</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div v-if="currentView === 'loans'">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-                                    <h4 style="font-size:16px">Demandes de crédit</h4>
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap">
-                                        <button class="btn btn-primary" @click="showLoanForm = true">+ Nouvelle demande</button>
-                                        <button class="btn btn-sm btn-outline" @click="exportCSV">📥 Export CSV</button>
+                                <div class="page-header">
+                                    <h4>Demandes de crédit <span class="tag blue" v-if="loans.length">{{ loans.length }}</span></h4>
+                                    <div class="page-actions">
+                                        <div class="filter-bar">
+                                            <button v-for="f in loanFilters" :key="f.value" :class="['filter-btn', {active: loanFilter === f.value}]" @click="loanFilter=f.value">{{ f.label }}</button>
+                                        </div>
+                                        <button class="btn btn-outline btn-sm" @click="exportCSV">
+                                            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                            Export CSV
+                                        </button>
+                                        <button class="btn btn-primary" @click="showLoanForm = true">
+                                            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Nouvelle demande
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card">
-                                    <div class="card-body scroll-table">
+                                    <div class="card-body scroll-table" style="padding:0">
                                         <table>
-                                            <thead><tr><th>ID</th><th>Montant</th><th>Durée</th><th>Score</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>
+                                            <thead><tr><th>ID</th><th>Client</th><th>Montant</th><th>Durée</th><th>Score</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="l in loans" :key="l.id">
-                                                    <td>#{{ l.id }}</td>
-                                                    <td>{{ formatMoney(l.montant_demande) }}</td>
+                                                <tr v-for="l in paginatedLoans" :key="l.id">
+                                                    <td style="font-weight:600">#{{ l.id }}</td>
+                                                    <td>{{ l.client_details?.user?.first_name || 'N/A' }}</td>
+                                                    <td style="font-weight:600">{{ formatMoney(l.montant_demande) }}</td>
                                                     <td>{{ l.duree_mois }} mois</td>
-                                                    <td>{{ l.score_eligibilite }}/100</td>
-                                                    <td><span :class="'status ' + statusClass(l.statut)">{{ l.statut }}</span></td>
+                                                    <td>
+                                                        <div style="display:flex;align-items:center;gap:6px">
+                                                            <div class="progress-bar" style="width:50px"><div class="progress-fill" :style="{width: l.score_eligibilite+'%', background: l.score_eligibilite >= 70 ? 'var(--success)' : l.score_eligibilite >= 40 ? 'var(--warning)' : 'var(--danger)'}"></div></div>
+                                                            <span>{{ l.score_eligibilite }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td><span :class="'status ' + statusClass(l.statut)"><span class="dot"></span>{{ l.statut }}</span></td>
                                                     <td>{{ formatDate(l.date_creation) }}</td>
                                                     <td><button class="btn btn-sm btn-outline" @click="viewLoan(l)">Détails</button></td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <div v-if="!loans.length" class="empty-state"><div class="icon">📋</div><p>Aucune demande de crédit</p></div>
+                                        <div v-if="!loans.length" class="empty-state">
+                                            <div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+                                            <h5>Aucune demande de crédit</h5><p>Les nouvelles demandes apparaîtront ici</p>
+                                        </div>
+                                        <div class="pagination" v-if="loans.length > pageSize">
+                                            <button :disabled="loanPage <= 1" @click="loanPage--"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+                                            <button v-for="p in loanPages" :key="p" :class="{active: p === loanPage}" @click="loanPage=p" v-if="Math.abs(p - loanPage) <= 2 || p === 1 || p === loanPages.length">{{ p }}</button>
+                                            <span class="info">Page {{ loanPage }} / {{ loanPages.length }}</span>
+                                            <button :disabled="loanPage >= loanPages.length" @click="loanPage++"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div v-if="currentView === 'repayments'">
-                                <h4 style="font-size:16px;margin-bottom:16px">Remboursements</h4>
+                                <div class="page-header">
+                                    <h4>Remboursements <span class="tag blue" v-if="repayments.length">{{ repayments.length }}</span></h4>
+                                </div>
                                 <div class="card">
-                                    <div class="card-body scroll-table">
+                                    <div class="card-body scroll-table" style="padding:0">
                                         <table>
                                             <thead><tr><th>Référence</th><th>Prêt</th><th>Montant</th><th>Pénalité</th><th>Mode</th><th>Date</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="r in repayments" :key="r.id">
-                                                    <td>{{ r.reference }}</td>
+                                                <tr v-for="r in paginatedRepayments" :key="r.id">
+                                                    <td style="font-weight:500">{{ r.reference }}</td>
                                                     <td>#{{ r.loan }}</td>
-                                                    <td>{{ formatMoney(r.montant) }}</td>
-                                                    <td>{{ formatMoney(r.penalite) }}</td>
-                                                    <td>{{ r.mode_paiement }}</td>
+                                                    <td style="font-weight:600">{{ formatMoney(r.montant) }}</td>
+                                                    <td><span v-if="r.penalite > 0" style="color:var(--danger)">{{ formatMoney(r.penalite) }}</span><span v-else>—</span></td>
+                                                    <td><span class="tag blue">{{ r.mode_paiement }}</span></td>
                                                     <td>{{ formatDate(r.date_paiement) }}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <div v-if="!repayments.length" class="empty-state"><div class="icon">💰</div><p>Aucun remboursement</p></div>
+                                        <div v-if="!repayments.length" class="empty-state">
+                                            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg></div>
+                                            <h5>Aucun remboursement</h5><p>Les remboursements effectués apparaîtront ici</p>
+                                        </div>
+                                        <div class="pagination" v-if="repayments.length > pageSize">
+                                            <button :disabled="repayPage <= 1" @click="repayPage--"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+                                            <span class="info">Page {{ repayPage }} / {{ repayPages }}</span>
+                                            <button :disabled="repayPage >= repayPages" @click="repayPage++"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div v-if="currentView === 'insurance'">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-                                    <h4 style="font-size:16px">Assurance</h4>
-                                    <button class="btn btn-primary" @click="showInsuranceForm = true">+ Souscrire</button>
+                                <div class="page-header">
+                                    <h4>Assurance</h4>
+                                    <button class="btn btn-primary" @click="showInsuranceForm = true">
+                                        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                        Souscrire
+                                    </button>
                                 </div>
                                 <div class="grid-3">
                                     <div class="card" v-for="p in insuranceProducts" :key="p.id">
                                         <div class="card-body">
-                                            <h5 style="margin-bottom:4px">{{ p.nom }}</h5>
-                                            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">{{ p.description }}</p>
-                                            <div style="font-size:20px;font-weight:700;color:var(--accent)">{{ formatMoney(p.prix) }}</div>
-                                            <div style="font-size:12px;color:var(--text-secondary)">{{ p.duree_jours }} jours</div>
+                                            <div class="stat-icon" style="width:40px;height:40px;margin-bottom:12px;background:var(--accent-light);color:var(--accent);border-radius:var(--radius);display:flex;align-items:center;justify-content:center">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                            </div>
+                                            <h5 style="margin-bottom:4px;font-size:15px;font-weight:600">{{ p.nom }}</h5>
+                                            <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;min-height:32px">{{ p.description }}</p>
+                                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                                <div style="font-size:20px;font-weight:800;color:var(--accent)">{{ formatMoney(p.prix) }}</div>
+                                                <div style="font-size:11px;color:var(--text-secondary);padding:2px 8px;background:var(--bg-secondary);border-radius:6px">{{ p.duree_jours }} jours</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="card" style="margin-top:16px">
                                     <div class="card-header"><h4>Mes polices</h4></div>
-                                    <div class="card-body scroll-table">
+                                    <div class="card-body scroll-table" style="padding:0">
                                         <table>
                                             <thead><tr><th>Produit</th><th>Début</th><th>Fin</th><th>Statut</th></tr></thead>
                                             <tbody>
@@ -372,110 +608,166 @@
                                                     <td>{{ p.produit_details?.nom || 'N/A' }}</td>
                                                     <td>{{ formatDate(p.date_debut) }}</td>
                                                     <td>{{ formatDate(p.date_fin) }}</td>
-                                                    <td><span :class="'status ' + (p.statut === 'ACTIVE' ? 'active' : 'closed')">{{ p.statut }}</span></td>
+                                                    <td><span :class="'status ' + (p.statut === 'ACTIVE' ? 'active' : 'closed')"><span class="dot"></span>{{ p.statut }}</span></td>
                                                 </tr>
                                             </tbody>
                                         </table>
+                                        <div v-if="!myPolicies.length" class="empty-state">
+                                            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                                            <h5>Aucune police</h5><p>Souscrivez une assurance pour voir vos polices ici</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div v-if="currentView === 'chat'">
+                                <div class="page-header"><h4>Support Chat</h4></div>
                                 <div style="display:flex;gap:16px;flex-wrap:wrap">
                                     <div class="card" style="flex:1;min-width:280px">
                                         <div class="card-header"><h4>Conversations</h4></div>
                                         <div class="card-body" style="padding:0">
-                                            <div v-for="c in conversations" :key="c.id" @click="selectChat(c)" :style="{padding:'12px 16px',borderBottom:'1px solid var(--border-color)',cursor:'pointer',background: selectedChat?.id === c.id ? 'var(--accent-light)' : ''}">
-                                                <strong style="font-size:13px">{{ c.client_name || 'Client #'+c.id }}</strong>
-                                                <span :style="{display:'inline-block',width:8,height:8,borderRadius:'50%',background: chatOnline[(user.id === c.client ? c.agent : c.client)] === 'en_ligne' ? '#22c55e' : '#aaa',marginLeft:8}" :title="chatOnline[(user.id === c.client ? c.agent : c.client)] || 'hors ligne'"></span>
-                                                <span class="badge" v-if="c.unread_count > 0" style="float:right">{{ c.unread_count }}</span>
-                                                <div style="font-size:12px;color:var(--text-secondary)" v-if="c.last_message">{{ c.last_message.message }}</div>
+                                            <div v-for="c in conversations" :key="c.id" @click="selectChat(c)" :class="['conv-item', {active: selectedChat?.id === c.id}]">
+                                                <div style="display:flex;align-items:center;gap:10px;flex:1">
+                                                    <div class="avatar" style="width:36px;height:36px;font-size:11px">{{ (c.client_name||'?')[0] }}</div>
+                                                    <div style="flex:1;min-width:0">
+                                                        <strong style="font-size:13px;display:flex;align-items:center;gap:6px">
+                                                            {{ c.client_name || 'Client #'+c.id }}
+                                                            <span :style="{width:8,height:8,borderRadius:'50%',background: chatOnline[(user.id === c.client ? c.agent : c.client)] === 'en_ligne' ? '#22c55e' : '#94a3b8',flexShrink:0}"></span>
+                                                        </strong>
+                                                        <div style="font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" v-if="c.last_message">{{ c.last_message.message }}</div>
+                                                    </div>
+                                                    <span class="nav-badge" v-if="c.unread_count > 0">{{ c.unread_count }}</span>
+                                                </div>
                                             </div>
-                                            <div v-if="!conversations.length" class="empty-state"><p>Nouvelle conversation</p></div>
+                                            <div v-if="!conversations.length" class="empty-state">
+                                                <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+                                                <h5>Aucune conversation</h5><p>Créez une nouvelle conversation</p>
+                                            </div>
                                         </div>
                                         <div style="padding:12px;border-top:1px solid var(--border-color)">
-                                            <button class="btn btn-sm btn-primary" @click="newChat">Nouveau chat</button>
+                                            <button class="btn btn-sm btn-primary" @click="newChat">
+                                                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                                Nouveau chat
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="card" style="flex:2;min-width:300px">
                                         <div class="card-header">
                                             <h4>{{ selectedChat ? (selectedChat.client_name || 'Chat #'+selectedChat.id) : 'Chat' }}</h4>
                                             <div style="display:flex;gap:6px">
-                                                <button v-if="selectedChat && !selectedChat.agent && (user.role==='ADMIN'||user.role==='AGENT')" class="btn btn-sm btn-primary" @click="assignAgent(selectedChat)">👤 M'assigner</button>
-                                                <button v-if="selectedChat && selectedChat.status==='OUVERTE' && (user.role==='ADMIN'||user.role==='AGENT')" class="btn btn-sm btn-outline" @click="closeConversation(selectedChat)">🔒 Fermer</button>
+                                                <button v-if="selectedChat && !selectedChat.agent && (user.role==='ADMIN'||user.role==='AGENT')" class="btn btn-sm btn-primary" @click="assignAgent(selectedChat)">
+                                                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                                    M'assigner
+                                                </button>
+                                                <button v-if="selectedChat && selectedChat.status==='OUVERTE' && (user.role==='ADMIN'||user.role==='AGENT')" class="btn btn-sm btn-outline" @click="closeConversation(selectedChat)">
+                                                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                                                    Fermer
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="chat-messages" ref="chatBox">
                                             <div v-for="m in chatMessages" :key="m.id" :class="['chat-message', m.sender === user.username ? 'sent' : 'received']">
                                                 {{ m.message }}
-                                                <span class="time">{{ m.sender_name || m.sender }} - {{ formatTime(m.timestamp) }}</span>
+                                                <span class="time">{{ m.sender_name || m.sender }} · {{ formatTime(m.timestamp) }}</span>
                                             </div>
-                                            <div v-if="!chatMessages.length" class="empty-state"><p>Sélectionnez une conversation</p></div>
+                                            <div v-if="!chatMessages.length" class="empty-state">
+                                                <div class="empty-icon" style="width:40px;height:40px"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+                                                <h5>Aucun message</h5><p>Sélectionnez une conversation pour débuter</p>
+                                            </div>
                                             <div v-if="chatTyping.length" style="font-size:12px;color:var(--text-secondary);padding:4px 12px;font-style:italic">{{ chatTyping.map(x=>x.sender_name).join(', ') }} {{ chatTyping.length > 1 ? 'écrivent...' : 'écrit...' }}</div>
                                         </div>
                                         <div class="chat-input">
                                             <input v-model="chatInput" @keyup.enter="sendChat" @input="chatSocket && chatSocket.readyState===WebSocket.OPEN && chatSocket.send(JSON.stringify({typing: chatInput.length>0}))" placeholder="Votre message..." :disabled="!selectedChat">
-                                            <button @click="sendChat" :disabled="!chatInput.trim() || !selectedChat">➤</button>
+                                            <button @click="sendChat" :disabled="!chatInput.trim() || !selectedChat">
+                                                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div v-if="currentView === 'notifications'">
-                                <h4 style="font-size:16px;margin-bottom:16px">
-                                    Notifications
-                                    <button class="btn btn-sm btn-outline" style="margin-left:8px" @click="markAllRead">Tout marquer lu</button>
-                                </h4>
+                                <div class="page-header">
+                                    <h4>Notifications <span class="tag orange" v-if="unreadNotifCount">{{ unreadNotifCount }} non lue(s)</span></h4>
+                                    <button class="btn btn-outline btn-sm" v-if="unreadNotifCount" @click="markAllRead">
+                                        <svg viewBox="0 0 24 24"><polyline points="1 12 9 20 23 6"/></svg>
+                                        Tout marquer lu
+                                    </button>
+                                </div>
                                 <div class="card">
                                     <div class="card-body" style="padding:0">
-                                        <div v-for="n in notificationsList" :key="n.id" :style="{padding:'14px 20px',borderBottom:'1px solid var(--border-color)',background: n.lu ? '' : 'var(--accent-light)'}">
-                                            <div style="display:flex;justify-content:space-between;align-items:start">
-                                                <div><strong>{{ n.titre }}</strong><p style="font-size:13px;color:var(--text-secondary);margin-top:2px">{{ n.message }}</p></div>
-                                                <span v-if="!n.lu" class="status active" style="cursor:pointer" @click="markRead(n)">Nouveau</span>
+                                        <div v-for="n in notificationsList" :key="n.id" :class="['notif-item', {unread: !n.lu}]">
+                                            <div class="notif-left">
+                                                <div class="notif-dot" v-if="!n.lu"></div>
+                                                <div>
+                                                    <div style="font-weight:600;font-size:13px">{{ n.titre }}</div>
+                                                    <p style="font-size:12px;color:var(--text-secondary);margin-top:2px">{{ n.message }}</p>
+                                                    <small style="font-size:11px;color:var(--text-secondary)">{{ formatDate(n.date_creation) }}</small>
+                                                </div>
                                             </div>
-                                            <small style="color:var(--text-secondary)">{{ formatDate(n.date_creation) }}</small>
+                                            <button v-if="!n.lu" class="btn btn-sm btn-outline" @click="markRead(n)" style="font-size:11px">Marquer lu</button>
                                         </div>
-                                        <div v-if="!notificationsList.length" class="empty-state"><p>Aucune notification</p></div>
+                                        <div v-if="!notificationsList.length" class="empty-state">
+                                            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+                                            <h5>Aucune notification</h5><p>Les notifications apparaîtront ici</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div v-if="currentView === 'audit' && user.role === 'ADMIN'">
-                                <h4 style="font-size:16px;margin-bottom:16px">Journal d'audit</h4>
+                                <div class="page-header"><h4>Journal d'audit</h4></div>
                                 <div class="card">
-                                    <div class="card-body scroll-table">
+                                    <div class="card-body scroll-table" style="padding:0">
                                         <table>
                                             <thead><tr><th>Date</th><th>Action</th><th>Modèle</th><th>Détails</th><th>Utilisateur</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="a in auditLogs" :key="a.id">
-                                                    <td>{{ formatDate(a.timestamp) }} {{ formatTime(a.timestamp) }}</td>
-                                                    <td><span :class="'status ' + (a.action === 'CREATE' ? 'active' : a.action === 'DELETE' ? 'rejected' : 'pending')">{{ a.action }}</span></td>
-                                                    <td>{{ a.model_name }} #{{ a.object_id }}</td>
-                                                    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ a.object_repr || a.details }}</td>
-                                                    <td>{{ a.user_details?.username || 'Système' }}</td>
+                                                <tr v-for="a in paginatedAudit" :key="a.id">
+                                                    <td>{{ formatDate(a.timestamp) }}<br><small style="color:var(--text-secondary)">{{ formatTime(a.timestamp) }}</small></td>
+                                                    <td><span :class="'status ' + (a.action === 'CREATE' ? 'active' : a.action === 'DELETE' ? 'rejected' : 'pending')"><span class="dot"></span>{{ a.action }}</span></td>
+                                                    <td style="font-family:monospace;font-size:12px">{{ a.model_name }}<span style="color:var(--text-secondary)"> #{{ a.object_id }}</span></td>
+                                                    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-secondary)">{{ a.object_repr || a.details }}</td>
+                                                    <td><span class="tag blue">{{ a.user_details?.username || 'Système' }}</span></td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <div v-if="!auditLogs.length" class="empty-state"><div class="icon">📋</div><p>Aucune entrée d'audit</p></div>
+                                        <div v-if="!auditLogs.length" class="empty-state">
+                                            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                                            <h5>Aucune entrée d'audit</h5><p>L'historique des actions apparaîtra ici</p>
+                                        </div>
+                                        <div class="pagination" v-if="auditLogs.length > pageSize">
+                                            <button :disabled="auditPage <= 1" @click="auditPage--"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+                                            <button v-for="p in auditPages" :key="p" :class="{active: p === auditPage}" @click="auditPage=p" v-if="Math.abs(p - auditPage) <= 2 || p === 1 || p === auditPages.length">{{ p }}</button>
+                                            <span class="info">Page {{ auditPage }} / {{ auditPages.length }}</span>
+                                            <button :disabled="auditPage >= auditPages.length" @click="auditPage++"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div v-if="currentView === 'users' && user.role === 'ADMIN'">
-                                <h4 style="font-size:16px;margin-bottom:16px">Gestion des utilisateurs</h4>
+                                <div class="page-header"><h4>Gestion des utilisateurs</h4></div>
                                 <div class="card">
-                                    <div class="card-body scroll-table">
+                                    <div class="card-body scroll-table" style="padding:0">
                                         <table>
                                             <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Rôle</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="u in users" :key="u.id">
-                                                    <td>#{{ u.id }}</td>
-                                                    <td>{{ u.first_name }} {{ u.last_name }}</td>
-                                                    <td>{{ u.email }}</td>
-                                                    <td>{{ u.telephone }}</td>
-                                                    <td><span :class="'status ' + (u.role === 'ADMIN' ? 'approved' : u.role === 'AGENT' ? 'active' : 'pending')">{{ u.role }}</span></td>
+                                                <tr v-for="u in paginatedUsers" :key="u.id">
+                                                    <td style="font-weight:600;font-family:monospace">#{{ u.id }}</td>
+                                                    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px">{{ (u.first_name?.[0]||'')+(u.last_name?.[0]||'') }}</div>{{ u.first_name }} {{ u.last_name }}</div></td>
+                                                    <td style="font-size:12px">{{ u.email }}</td>
+                                                    <td style="font-family:monospace;font-size:12px">{{ u.telephone || '—' }}</td>
+                                                    <td><span :class="'status ' + (u.role === 'ADMIN' ? 'approved' : u.role === 'AGENT' ? 'active' : 'pending')"><span class="dot"></span>{{ u.role }}</span></td>
                                                 </tr>
                                             </tbody>
                                         </table>
+                                        <div v-if="!users.length" class="empty-state">
+                                            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                                            <h5>Aucun utilisateur</h5></div>
+                                        <div class="pagination" v-if="users.length > pageSize">
+                                            <button :disabled="userPage <= 1" @click="userPage--"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+                                            <span class="info">Page {{ userPage }} / {{ userPages }}</span>
+                                            <button :disabled="userPage >= userPages" @click="userPage++"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -486,7 +778,10 @@
 
             <div class="modal-overlay" v-if="showLoanForm" @click.self="showLoanForm = false">
                 <div class="modal">
-                    <div class="modal-header"><h4>Nouvelle demande de crédit</h4><button class="close" @click="showLoanForm = false">&times;</button></div>
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Nouvelle demande de crédit</h4>
+                        <button class="close" @click="showLoanForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
                     <div class="modal-body">
                         <div class="form-group"><label>Montant (FCFA)</label><input type="number" v-model="loanForm.montant_demande" placeholder="Ex: 500000"></div>
                         <div class="form-group"><label>Durée (mois)</label><select v-model="loanForm.duree_mois"><option v-for="m in [3,6,9,12,18,24]" :value="m">{{ m }} mois</option></select></div>
@@ -502,7 +797,10 @@
 
             <div class="modal-overlay" v-if="showInsuranceForm" @click.self="showInsuranceForm = false">
                 <div class="modal">
-                    <div class="modal-header"><h4>Souscrire une assurance</h4><button class="close" @click="showInsuranceForm = false">&times;</button></div>
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Souscrire une assurance</h4>
+                        <button class="close" @click="showInsuranceForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
                     <div class="modal-body">
                         <div class="form-group"><label>Produit</label>
                             <select v-model="insuranceForm.produit_id">
@@ -518,28 +816,40 @@
             </div>
 
             <div class="modal-overlay" v-if="selectedLoan" @click.self="selectedLoan = null">
-                <div class="modal">
-                    <div class="modal-header"><h4>Crédit #{{ selectedLoan.id }}</h4><button class="close" @click="selectedLoan = null">&times;</button></div>
+                <div class="modal wide">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Crédit #{{ selectedLoan.id }}</h4>
+                        <button class="close" @click="selectedLoan = null"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
                     <div class="modal-body">
-                        <div class="grid-2" style="gap:12px;font-size:14px">
-                            <div><strong>Montant:</strong> {{ formatMoney(selectedLoan.montant_demande) }}</div>
-                            <div><strong>Durée:</strong> {{ selectedLoan.duree_mois }} mois</div>
-                            <div><strong>Score:</strong> {{ selectedLoan.score_eligibilite }}/100</div>
-                            <div><strong>Statut:</strong> <span :class="'status ' + statusClass(selectedLoan.statut)">{{ selectedLoan.statut }}</span></div>
-                            <div><strong>Motif:</strong> {{ selectedLoan.motif }}</div>
-                            <div><strong>Date:</strong> {{ formatDate(selectedLoan.date_creation) }}</div>
+                        <div class="summary-grid">
+                            <div class="summary-item"><div class="s-label">Montant</div><div class="s-value">{{ formatMoney(selectedLoan.montant_demande) }}</div></div>
+                            <div class="summary-item"><div class="s-label">Durée</div><div class="s-value">{{ selectedLoan.duree_mois }} mois</div></div>
+                            <div class="summary-item"><div class="s-label">Score</div><div class="s-value" :style="{color: selectedLoan.score_eligibilite >= 70 ? 'var(--success)' : selectedLoan.score_eligibilite >= 40 ? 'var(--warning)' : 'var(--danger)'}">{{ selectedLoan.score_eligibilite }}</div></div>
+                            <div class="summary-item"><div class="s-label">Statut</div><div class="s-value"><span :class="'status ' + statusClass(selectedLoan.statut)"><span class="dot"></span>{{ selectedLoan.statut }}</span></div></div>
+                        </div>
+                        <div v-if="selectedLoan.motif" style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;padding:8px 12px;background:var(--bg-secondary);border-radius:var(--radius)">
+                            <strong>Motif :</strong> {{ selectedLoan.motif }}
                         </div>
                         <div style="margin-top:16px" v-if="selectedLoan.status_history?.length">
-                            <h5 style="margin-bottom:8px">Historique des statuts</h5>
-                            <div style="font-size:13px">
-                                <div v-for="h in selectedLoan.status_history" :key="h.id" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-color)">
-                                    <span><span :class="'status ' + statusClass(h.ancien_statut)">{{ h.ancien_statut || '—' }}</span> → <span :class="'status ' + statusClass(h.nouveau_statut)">{{ h.nouveau_statut }}</span></span>
-                                    <span style="color:var(--text-secondary)">{{ h.changed_by_name }} · {{ formatDate(h.date) }}</span>
+                            <h5 style="margin-bottom:12px;font-size:13px;font-weight:600">Historique des statuts</h5>
+                            <div class="timeline">
+                                <div v-for="(h, idx) in selectedLoan.status_history" :key="h.id" class="timeline-item">
+                                    <div :class="['tl-dot', statusClass(h.nouveau_statut)]"></div>
+                                    <div class="tl-content">
+                                        <div class="tl-title">
+                                            <span :class="'status ' + statusClass(h.ancien_statut)"><span class="dot"></span>{{ h.ancien_statut || 'Création' }}</span>
+                                            <svg viewBox="0 0 24 24" width="14" height="14" style="margin:0 4px;vertical-align:middle"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                            <span :class="'status ' + statusClass(h.nouveau_statut)"><span class="dot"></span>{{ h.nouveau_statut }}</span>
+                                        </div>
+                                        <div class="tl-desc">{{ h.changed_by_name }} · {{ formatDate(h.date) }} · {{ formatTime(h.date) }}</div>
+                                        <div class="tl-desc" v-if="h.commentaire">{{ h.commentaire }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div style="margin-top:16px" v-if="selectedLoan.amortization_schedule?.length">
-                            <h5 style="margin-bottom:8px">Échéancier</h5>
+                        <div style="margin-top:20px" v-if="selectedLoan.amortization_schedule?.length">
+                            <h5 style="margin-bottom:12px;font-size:13px;font-weight:600">Échéancier</h5>
                             <div class="scroll-table">
                                 <table>
                                     <thead><tr><th>#</th><th>Échéance</th><th>Mensualité</th><th>Capital</th><th>Intérêt</th><th>Statut</th></tr></thead>
@@ -547,10 +857,10 @@
                                         <tr v-for="e in selectedLoan.amortization_schedule" :key="e.id">
                                             <td>{{ e.numero_mensualite }}</td>
                                             <td>{{ formatDate(e.date_echeance) }}</td>
-                                            <td>{{ formatMoney(e.mensualite) }}</td>
-                                            <td>{{ formatMoney(e.part_capital) }}</td>
-                                            <td>{{ formatMoney(e.part_interet) }}</td>
-                                            <td><span :class="'status ' + (e.est_paye ? 'active' : 'pending')">{{ e.est_paye ? 'Payée' : 'En attente' }}</span></td>
+                                            <td style="font-weight:500">{{ formatMoney(e.mensualite) }}</td>
+                                            <td style="font-size:12px;color:var(--text-secondary)">{{ formatMoney(e.part_capital) }}</td>
+                                            <td style="font-size:12px;color:var(--text-secondary)">{{ formatMoney(e.part_interet) }}</td>
+                                            <td><span :class="'status ' + (e.est_paye ? 'active' : 'pending')"><span class="dot"></span>{{ e.est_paye ? 'Payée' : 'En attente' }}</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -559,18 +869,44 @@
                     </div>
                     <div class="modal-footer" style="flex-wrap:wrap">
                         <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
-                            <button v-if="canTransition(selectedLoan, 'agent')" class="btn btn-sm btn-success" @click="updateLoanStatus(selectedLoan, 'EN_ANALYSE')">📋 Prendre en analyse</button>
-                            <button v-if="canTransition(selectedLoan, 'approve')" class="btn btn-sm btn-success" @click="updateLoanStatus(selectedLoan, 'APPROUVEE')">✅ Approuver</button>
-                            <button v-if="canTransition(selectedLoan, 'reject')" class="btn btn-sm btn-danger" @click="updateLoanStatus(selectedLoan, 'REJETEE')">❌ Rejeter</button>
-                            <button v-if="canTransition(selectedLoan, 'disburse')" class="btn btn-sm btn-primary" @click="updateLoanStatus(selectedLoan, 'DECAISSEE')">💸 Décaisser</button>
+                            <button v-if="canTransition(selectedLoan, 'agent')" class="btn btn-sm btn-success" @click="updateLoanStatus(selectedLoan, 'EN_ANALYSE')">
+                                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Prendre en analyse
+                            </button>
+                            <button v-if="canTransition(selectedLoan, 'approve')" class="btn btn-sm btn-success" @click="updateLoanStatus(selectedLoan, 'APPROUVEE')">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Approuver
+                            </button>
+                            <button v-if="canTransition(selectedLoan, 'reject')" class="btn btn-sm btn-danger" @click="updateLoanStatus(selectedLoan, 'REJETEE')">
+                                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Rejeter
+                            </button>
+                            <button v-if="canTransition(selectedLoan, 'disburse')" class="btn btn-sm btn-primary" @click="updateLoanStatus(selectedLoan, 'DECAISSEE')">
+                                <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg> Décaisser
+                            </button>
                         </div>
                         <button class="btn btn-sm btn-outline" @click="selectedLoan = null">Fermer</button>
                     </div>
                 </div>
             </div>
 
+            <div class="modal-overlay" v-if="confirm.show" @click.self="confirm.show=false">
+                <div class="modal" style="max-width:400px">
+                    <div class="confirm-modal">
+                        <div :class="['confirm-icon', confirm.danger ? 'danger' : 'warning']">
+                            <svg v-if="confirm.danger" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            <svg v-else viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <h4>{{ confirm.title }}</h4>
+                        <p>{{ confirm.message }}</p>
+                        <div class="confirm-actions">
+                            <button class="btn btn-outline" @click="confirm.show=false">Annuler</button>
+                            <button :class="['btn', confirm.danger ? 'btn-danger' : 'btn-primary']" @click="confirm.onConfirm();confirm.show=false">Confirmer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="notification" v-if="notif.show" :class="notif.type" @click="notif.show = false">
-                {{ notif.type === 'success' ? '✅' : '❌' }} {{ notif.message }}
+                <svg v-if="notif.type === 'success'" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                {{ notif.message }}
             </div>
         </template>
         {% endverbatim %}
@@ -602,6 +938,8 @@
                 chatTyping: [],
                 chatOnline: {},
                 chatSocket: null,
+                notifSocket: null,
+                _refreshTimer: null,
                 notifications: [],
                 notificationsList: [],
                 users: [],
@@ -616,18 +954,33 @@
                 searchQuery: '',
                 searchResults: [],
                 searchTimeout: null,
+                loanFilter: 'all',
+                dashboardPeriod: '30d',
+                filterPeriods: [{value:'7d',label:'7j'},{value:'30d',label:'30j'},{value:'90d',label:'90j'}],
+                loanFilters: [{value:'all',label:'Tous'},{value:'SOUMISE',label:'Soumises'},{value:'EN_ANALYSE',label:'En analyse'},{value:'APPROUVEE',label:'Approuvées'},{value:'REJETEE',label:'Rejetées'},{value:'DECAISSEE',label:'Décaissées'}],
+                loadingViews: {dashboard:true,loans:true,repayments:true,insurance:true,chat:true,notifications:true,users:true,audit:true},
+                profileForm: { first_name:'', last_name:'' },
+                passwordForm: { old_password:'', new_password:'', confirm_password:'' },
+                passwordError: '',
+                confirm: { show:false, title:'', message:'', danger:false, onConfirm:()=>{} },
+                loanPage: 1, repayPage: 1, userPage: 1, auditPage: 1,
+                pageSize: 10,
+                searchIndex: -1,
             },
             computed: {
                 menuItems() {
                     const items = [
-                        { id: 'dashboard', icon: '📊', label: 'Tableau de bord', badge: null },
-                        { id: 'loans', icon: '💰', label: 'Crédits', badge: null },
-                        { id: 'repayments', icon: '💳', label: 'Remboursements', badge: null },
-                        { id: 'insurance', icon: '🛡️', label: 'Assurance', badge: null },
-                        { id: 'chat', icon: '💬', label: 'Chat', badge: () => this.unreadChatCount },
-                        { id: 'notifications', icon: '🔔', label: 'Notifications', badge: () => this.unreadNotifCount },
+                        { id: 'dashboard', iconSvg: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>', label: 'Tableau de bord', badge: null },
+                        { id: 'loans', iconSvg: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label: 'Crédits', badge: null },
+                        { id: 'repayments', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg>', label: 'Remboursements', badge: null },
+                        { id: 'insurance', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label: 'Assurance', badge: null },
+                        { id: 'chat', iconSvg: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label: 'Chat', badge: () => this.unreadChatCount },
+                        { id: 'notifications', iconSvg: '<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>', label: 'Notifications', badge: () => this.unreadNotifCount },
                     ];
-                    if (this.user.role === 'ADMIN') { items.push({ id: 'users', icon: '👥', label: 'Utilisateurs', badge: null }); items.push({ id: 'audit', icon: '📋', label: 'Audit', badge: null }); }
+                    if (this.user.role === 'ADMIN') {
+                        items.push({ id: 'users', iconSvg: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>', label: 'Utilisateurs', badge: null });
+                        items.push({ id: 'audit', iconSvg: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', label: 'Audit', badge: null });
+                    }
                     return items;
                 },
                 currentViewTitle() {
@@ -636,6 +989,18 @@
                 },
                 unreadChatCount() { return this.conversations.reduce((s, c) => s + (c.unread_count || 0), 0); },
                 unreadNotifCount() { return this.notificationsList.filter(n => !n.lu).length; },
+                filteredLoans() {
+                    if (this.loanFilter === 'all') return this.loans;
+                    return this.loans.filter(l => l.statut === this.loanFilter);
+                },
+                paginatedLoans() { const s=this.pageSize; return this.filteredLoans.slice((this.loanPage-1)*s, this.loanPage*s); },
+                paginatedUsers() { const s=this.pageSize; return this.users.slice((this.userPage-1)*s, this.userPage*s); },
+                loanPages() { return Array.from({length:Math.ceil(this.filteredLoans.length/this.pageSize)},(_,i)=>i+1); },
+                auditPages() { return Array.from({length:Math.ceil(this.auditLogs.length/this.pageSize)},(_,i)=>i+1); },
+                repayPages() { return Math.max(1, Math.ceil(this.repayments.length/this.pageSize)); },
+                userPages() { return Math.max(1, Math.ceil(this.users.length/this.pageSize)); },
+                paginatedAudit() { const s=this.pageSize; return this.auditLogs.slice((this.auditPage-1)*s, this.auditPage*s); },
+                paginatedRepayments() { const s=this.pageSize; return this.repayments.slice((this.repayPage-1)*s, this.repayPage*s); },
             },
             methods: {
                 async login() {
@@ -649,16 +1014,18 @@
                         this.user.initials = (d.user.first_name?.[0]||'') + (d.user.last_name?.[0]||'');
                         localStorage.setItem('token', this.token);
                         localStorage.setItem('refresh', this.refresh);
-                        this.loadAll();
+                        await this.loadAll();
+                        this.startTokenRefresh();
                     } catch(e) { this.error = 'Erreur de connexion au serveur'; }
                     finally { this.loading = false; }
                 },
-                logout() { this.token = ''; this.user = {}; localStorage.removeItem('token'); localStorage.removeItem('refresh'); },
+                logout() { this.token = ''; this.user = {}; this.refresh = ''; this.notificationsList = []; this.conversations = []; if (this._refreshTimer) { clearInterval(this._refreshTimer); this._refreshTimer = null; } if (this.notifSocket) { this.notifSocket.onclose = null; this.notifSocket.close(); this.notifSocket = null; } if (this.chatSocket) { this.chatSocket.onclose = null; this.chatSocket.close(); this.chatSocket = null; } localStorage.removeItem('token'); localStorage.removeItem('refresh'); },
                 toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', this.theme); localStorage.setItem('theme', this.theme); },
-                navigate(view) { this.currentView = view; this.sidebarOpen = false; this.loadView(view); },
-                async loadAll() { this.loading = true; await Promise.all([this.loadDashboard(), this.loadLoans(), this.loadRepayments(), this.loadInsurance(), this.loadChat(), this.loadNotifications()]); if (this.user.role === 'ADMIN') { await this.loadUsers(); await this.loadAudit(); } this.loading = false; },
+                navigate(view) { this.currentView = view; this.sidebarOpen = false; this.searchQuery='';this.searchResults=[];this.searchIndex=-1; this.loadView(view); },
+                async loadAll() { await Promise.all([this.loadDashboard(), this.loadLoans(), this.loadRepayments(), this.loadInsurance(), this.loadChat(), this.loadNotifications()]); if (this.user.role === 'ADMIN') { await this.loadUsers(); await this.loadAudit(); } this.connectNotificationSocket(); },
                 async loadView(view) {
-                    this.loading = true;
+                    this.$set(this.loadingViews, view, true);
+                    if (view === 'profile') { this.profileForm = { first_name:this.user.first_name||'', last_name:this.user.last_name||'' }; this.$set(this.loadingViews, view, false); return; }
                     if (view === 'dashboard') await this.loadDashboard();
                     if (view === 'loans') await this.loadLoans();
                     if (view === 'repayments') await this.loadRepayments();
@@ -667,7 +1034,7 @@
                     if (view === 'notifications') await this.loadNotifications();
                     if (view === 'users' && this.user.role === 'ADMIN') await this.loadUsers();
                     if (view === 'audit' && this.user.role === 'ADMIN') await this.loadAudit();
-                    this.loading = false;
+                    this.$set(this.loadingViews, view, false);
                 },
                 api(path) { return fetch(path, {headers:{'Authorization':`Bearer ${this.token}`}}).then(r => r.json()); },
                 async loadDashboard() {
@@ -681,26 +1048,26 @@
                     }
                         if (this.user.role === 'ADMIN') {
                             this.dashboardStats = [
-                                { icon:'💰', label:'Total crédits', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.approuvees||0} approuvés` },
-                                { icon:'✅', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669', sub:`${data.credits?.decaisses||0} décaissés` },
-                                { icon:'📈', label:'Montant prêté', value:this.formatMoney(data.financier?.montant_prete||0), color:'#d97706' },
-                                { icon:'🔄', label:'Remboursé', value:this.formatMoney(data.financier?.montant_rembourse||0), color:'#7c3aed' },
-                                { icon:'🛡️', label:'Assurances actives', value:data.assurance?.souscriptions_actives||0, color:'#0891b2' },
-                                { icon:'💬', label:'Conversations', value:data.support?.total_conversations||0, color:'#dc2626', sub:`${data.support?.ouvertes||0} ouvertes` },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label:'Total crédits', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.approuvees||0} approuvés`, change: 12 },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669', sub:`${data.credits?.decaisses||0} décaissés`, change: 8 },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>', label:'Montant prêté', value:this.formatMoney(data.financier?.montant_prete||0), color:'#d97706' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', label:'Remboursé', value:this.formatMoney(data.financier?.montant_rembourse||0), color:'#7c3aed', change: -3 },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label:'Assurances actives', value:data.assurance?.souscriptions_actives||0, color:'#0891b2' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label:'Conversations', value:data.support?.total_conversations||0, color:'#dc2626', sub:`${data.support?.ouvertes||0} ouvertes` },
                             ];
                         } else if (this.user.role === 'CLIENT') {
                             this.dashboardStats = [
-                                { icon:'💰', label:'Mes crédits', value:data.credits?.total||0, color:'#1a73e8' },
-                                { icon:'✅', label:'Crédits actifs', value:data.credits?.actifs||0, color:'#059669' },
-                                { icon:'📊', label:'Score', value:data.score_credit||0, color:'#d97706', sub:'/100' },
-                                { icon:'🔔', label:'Notifications', value:data.notifications_non_lues||0, color:'#dc2626', sub:'non lues' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label:'Mes crédits', value:data.credits?.total||0, color:'#1a73e8' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Crédits actifs', value:data.credits?.actifs||0, color:'#059669' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>', label:'Score', value:data.score_credit||0, color:'#d97706', sub:'/100' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>', label:'Notifications', value:data.notifications_non_lues||0, color:'#dc2626', sub:'non lues' },
                             ];
                         } else {
                             this.dashboardStats = [
-                                { icon:'📋', label:'Dossiers', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.en_attente||0} en attente` },
-                                { icon:'✅', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669' },
-                                { icon:'💳', label:'Collecte', value:this.formatMoney(data.collecte?.total_rembourse||0), color:'#7c3aed' },
-                                { icon:'💬', label:'Chats ouverts', value:data.support?.conversations_ouvertes||0, color:'#0891b2' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>', label:'Dossiers', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.en_attente||0} en attente` },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg>', label:'Collecte', value:this.formatMoney(data.collecte?.total_rembourse||0), color:'#7c3aed' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label:'Chats ouverts', value:data.support?.conversations_ouvertes||0, color:'#0891b2' },
                             ];
                         }
                         const loanUrl = this.user.role === 'ADMIN' ? '/api/loans/' : '/api/loans/mine/';
@@ -710,7 +1077,8 @@
                 },
                 async loadLoans() {
                     try {
-                        const d = await this.api('/api/loans/mine/');
+                        const url = this.user.role === 'CLIENT' ? '/api/loans/mine/' : '/api/loans/';
+                        const d = await this.api(url);
                         this.loans = Array.isArray(d) ? d : d.results || [];
                     } catch(e) { console.error(e); }
                 },
@@ -738,7 +1106,7 @@
                     this.selectedChat = c;
                     if (this.chatSocket) this.chatSocket.close();
                     const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    this.chatSocket = new WebSocket(`${wsProto}//${window.location.host}/ws/chat/${c.id}/`);
+                    this.chatSocket = new WebSocket(`${wsProto}//${window.location.host}/ws/chat/${c.id}/?token=${encodeURIComponent(this.token)}`);
                     this.chatSocket.onmessage = (e) => {
                         const d = JSON.parse(e.data);
                         if (d.type === 'new_message') {
@@ -911,8 +1279,15 @@
                     }
                     return false;
                 },
-                async updateLoanStatus(loan, newStatus, commentaire) {
-                    const comment = commentaire || prompt(`Commentaire pour le passage à ${newStatus} :`);
+                async updateLoanStatus(loan, newStatus) {
+                    if (newStatus === 'REJETEE') {
+                        this.confirm = { show:true, title:'Rejeter le crédit', message:'Êtes-vous sûr de vouloir rejeter cette demande de crédit ?', danger:true, onConfirm: () => this._doUpdateLoanStatus(loan, newStatus) };
+                        return;
+                    }
+                    this._doUpdateLoanStatus(loan, newStatus);
+                },
+                async _doUpdateLoanStatus(loan, newStatus) {
+                    const comment = prompt(`Commentaire pour le passage à ${newStatus} :`);
                     if (comment === null) return;
                     try {
                         const r = await fetch(`/api/loans/${loan.id}/status/`, {
@@ -949,20 +1324,57 @@
                         }
                     } catch(e) {}
                 },
-                async closeConversation(conv) {
+                connectNotificationSocket() {
+                    if (this.notifSocket) return;
+                    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                     try {
-                        const r = await fetch(`/api/chat/conversations/${conv.id}/close/`, {
-                            method:'PATCH',
-                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
-                            body: JSON.stringify({})
-                        });
-                        if (r.ok) {
-                            this.notif = { show: true, message: 'Conversation fermée', type: 'success' };
-                            setTimeout(() => this.notif.show = false, 3000);
-                            conv.status = 'FERMEE';
-                            this.loadChat();
-                        }
+                        this.notifSocket = new WebSocket(`${wsProto}//${window.location.host}/ws/notifications/?token=${encodeURIComponent(this.token)}`);
+                        this.notifSocket.onmessage = (e) => {
+                            const d = JSON.parse(e.data);
+                            if (d.type === 'new_notification') {
+                                this.notificationsList.unshift(d.notification);
+                                this.notifications = this.notificationsList.slice(0, 10);
+                            }
+                        };
+                        this.notifSocket.onclose = () => { this.notifSocket = null; setTimeout(() => this.connectNotificationSocket(), 5000); };
                     } catch(e) {}
+                },
+                async closeConversation(conv) {
+                    this.confirm = { show:true, title:'Fermer la conversation', message:'Êtes-vous sûr de vouloir fermer cette conversation ?', danger:false, onConfirm: async () => {
+                        try {
+                            const r = await fetch(`/api/chat/conversations/${conv.id}/close/`, { method:'PATCH', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'}, body: JSON.stringify({}) });
+                            if (r.ok) {
+                                this.notif = { show: true, message: 'Conversation fermée', type: 'success' };
+                                setTimeout(() => this.notif.show = false, 3000);
+                                conv.status = 'FERMEE';
+                                this.loadChat();
+                            }
+                        } catch(e) {}
+                    }};
+                },
+                async updateProfile() {
+                    try {
+                        const r = await fetch('/api/auth/profile/', { method:'PATCH', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'}, body:JSON.stringify({first_name:this.profileForm.first_name, last_name:this.profileForm.last_name}) });
+                        if (r.ok) {
+                            const d = await r.json();
+                            this.user.first_name = d.first_name; this.user.last_name = d.last_name;
+                            this.user.initials = (d.first_name?.[0]||'') + (d.last_name?.[0]||'');
+                            this.notif = { show:true, message:'Profil mis à jour', type:'success' };
+                        } else { this.notif = { show:true, message:'Erreur de mise à jour', type:'error' }; }
+                        setTimeout(() => this.notif.show = false, 3000);
+                    } catch(e) {}
+                },
+                async changePassword() {
+                    this.passwordError = '';
+                    if (this.passwordForm.new_password !== this.passwordForm.confirm_password) { this.passwordError = 'Les mots de passe ne correspondent pas'; return; }
+                    if (this.passwordForm.new_password.length < 6) { this.passwordError = 'Minimum 6 caractères'; return; }
+                    try {
+                        const r = await fetch('/api/auth/change-password/', { method:'POST', headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'}, body:JSON.stringify({old_password:this.passwordForm.old_password, new_password:this.passwordForm.new_password}) });
+                        const d = await r.json();
+                        if (r.ok) { this.notif = { show:true, message:'Mot de passe modifié', type:'success' }; this.passwordForm = { old_password:'', new_password:'', confirm_password:'' }; }
+                        else { this.passwordError = d.error || 'Erreur'; }
+                        setTimeout(() => this.notif.show = false, 3000);
+                    } catch(e) { this.passwordError = 'Erreur réseau'; }
                 },
                 statusClass(s) {
                     const map = { 'SOUMISE':'pending','EN_ANALYSE':'pending','APPROUVEE':'approved','REJETEE':'rejected','DECAISSEE':'active','ACTIVE':'active','EXPIREE':'closed','OUVERTE':'active','FERMEE':'closed' };
@@ -974,7 +1386,24 @@
             },
             mounted() {
                 document.documentElement.setAttribute('data-theme', this.theme);
-                if (this.token) { this.loadAll(); }
+                if (this.token) { this.loadAll(); this.startTokenRefresh(); }
+            },
+            startTokenRefresh() {
+                if (this._refreshTimer) clearInterval(this._refreshTimer);
+                this._refreshTimer = setInterval(async () => {
+                    if (!this.refresh) return;
+                    try {
+                        const r = await fetch('/api/auth/token/refresh/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refresh: this.refresh}) });
+                        if (!r.ok) throw new Error();
+                        const d = await r.json();
+                        this.token = d.access;
+                        localStorage.setItem('token', this.token);
+                    } catch(e) {
+                        this.notif = { show: true, message: 'Session expirée, veuillez vous reconnecter', type: 'error' };
+                        setTimeout(() => this.notif.show = false, 5000);
+                        setTimeout(() => this.logout(), 2000);
+                    }
+                }, 600000);
             }
         });
     </script>

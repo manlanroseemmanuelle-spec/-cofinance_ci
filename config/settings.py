@@ -86,7 +86,7 @@ else:
         }
     }
 
-CHANNEL_LAYER_BACKEND = config('CHANNEL_LAYER_BACKEND', default='channels_redis.core.RedisChannelLayer')
+CHANNEL_LAYER_BACKEND = config('CHANNEL_LAYER_BACKEND', default='channels.layers.InMemoryChannelLayer')
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': CHANNEL_LAYER_BACKEND,
@@ -94,7 +94,10 @@ CHANNEL_LAYERS = {
 }
 if CHANNEL_LAYER_BACKEND == 'channels_redis.core.RedisChannelLayer':
     CHANNEL_LAYERS['default']['CONFIG'] = {
-        'hosts': [config('REDIS_URL', default='redis://localhost:6379/0')],
+        'hosts': [{
+            'address': config('REDIS_URL', default='redis://localhost:6379/0'),
+            'protocol': 2,
+        }],
     }
 
 AUTH_USER_MODEL = 'accounts.User'

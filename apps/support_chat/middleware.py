@@ -20,18 +20,9 @@ class JwtAuthMiddleware:
     def __init__(self, inner):
         self.inner = inner
 
-    def __call__(self, scope):
-        return JwtAuthMiddlewareInstance(scope, self.inner)
-
-
-class JwtAuthMiddlewareInstance:
-    def __init__(self, scope, inner):
-        self.scope = dict(scope)
-        self.inner = inner
-
-    async def __call__(self, receive, send):
-        query_string = self.scope.get('query_string', b'').decode()
+    async def __call__(self, scope, receive, send):
+        query_string = scope.get('query_string', b'').decode()
         token = parse_qs(query_string).get('token', [None])[0]
         if token:
-            self.scope['user'] = await get_user_from_token(token)
-        return await self.inner(self.scope, receive, send)
+            scope['user'] = await get_user_from_token(token)
+        return await self.inner(scope, receive, send)

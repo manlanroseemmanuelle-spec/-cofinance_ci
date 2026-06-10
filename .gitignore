@@ -11,3 +11,6 @@ redis/
 dist/
 build/
 .DS_Store
+_check*.py
+_test*.py
+temp/

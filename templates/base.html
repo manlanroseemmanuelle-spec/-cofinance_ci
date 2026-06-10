@@ -735,11 +735,11 @@
                                             <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
                                             <h5>Aucune entrée d'audit</h5><p>L'historique des actions apparaîtra ici</p>
                                         </div>
-                                        <div class="pagination" v-if="auditLogs.length > pageSize">
-                                            <button :disabled="auditPage <= 1" @click="auditPage--"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
-                                            <button v-for="p in auditPages" :key="p" :class="{active: p === auditPage}" @click="auditPage=p" v-if="Math.abs(p - auditPage) <= 2 || p === 1 || p === auditPages.length">{{ p }}</button>
+                                        <div class="pagination" v-if="auditCount > pageSize">
+                                            <button :disabled="auditPage <= 1" @click="auditPage--;loadAudit()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+                                            <button v-for="p in auditPages" :key="p" :class="{active: p === auditPage}" @click="auditPage=p;loadAudit()" v-if="Math.abs(p - auditPage) <= 2 || p === 1 || p === auditPages.length">{{ p }}</button>
                                             <span class="info">Page {{ auditPage }} / {{ auditPages.length }}</span>
-                                            <button :disabled="auditPage >= auditPages.length" @click="auditPage++"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                                            <button :disabled="auditPage >= auditPages.length" @click="auditPage++;loadAudit()"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
                                         </div>
                                     </div>
                                 </div>
@@ -763,10 +763,10 @@
                                         <div v-if="!users.length" class="empty-state">
                                             <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
                                             <h5>Aucun utilisateur</h5></div>
-                                        <div class="pagination" v-if="users.length > pageSize">
-                                            <button :disabled="userPage <= 1" @click="userPage--"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+                                        <div class="pagination" v-if="userCount > pageSize">
+                                            <button :disabled="userPage <= 1" @click="userPage--;loadUsers()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
                                             <span class="info">Page {{ userPage }} / {{ userPages }}</span>
-                                            <button :disabled="userPage >= userPages" @click="userPage++"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                                            <button :disabled="userPage >= userPages" @click="userPage++;loadUsers()"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
                                         </div>
                                     </div>
                                 </div>
@@ -982,7 +982,9 @@
                 notifications: [],
                 notificationsList: [],
                 users: [],
+                userCount: 0,
                 auditLogs: [],
+                auditCount: 0,
                 showLoanForm: false,
                 showInsuranceForm: false,
                 selectedLoan: null,
@@ -1036,12 +1038,13 @@
                     return this.loans.filter(l => l.statut === this.loanFilter);
                 },
                 paginatedLoans() { return this.filteredLoans; },
-                loanPages() { return Array.from({length:Math.ceil(this.loanCount/this.pageSize)},(_,i)=>i+1); },
-                auditPages() { return Array.from({length:Math.ceil(this.auditLogs.length/this.pageSize)},(_,i)=>i+1); },
-                repayPages() { return Math.max(1, Math.ceil(this.repayments.length/this.pageSize)); },
-                userPages() { return Math.max(1, Math.ceil(this.users.length/this.pageSize)); },
-                paginatedAudit() { const s=this.pageSize; return this.auditLogs.slice((this.auditPage-1)*s, this.auditPage*s); },
+                paginatedAudit() { return this.auditLogs; },
+                paginatedUsers() { return this.users; },
                 paginatedRepayments() { const s=this.pageSize; return this.repayments.slice((this.repayPage-1)*s, this.repayPage*s); },
+                loanPages() { return Array.from({length:Math.ceil(this.loanCount/this.pageSize)},(_,i)=>i+1); },
+                auditPages() { return Array.from({length:Math.ceil(this.auditCount/this.pageSize)},(_,i)=>i+1); },
+                userPages() { return Math.max(1, Math.ceil(this.userCount/this.pageSize)); },
+                repayPages() { return Math.max(1, Math.ceil(this.repayments.length/this.pageSize)); },
             },
             methods: {
                 async login() {
@@ -1204,14 +1207,16 @@
                 },
                 async loadUsers() {
                     try {
-                        const d = await this.api('/api/auth/users/');
+                        const d = await this.api(`/api/auth/users/?page=${this.userPage}`);
                         this.users = Array.isArray(d) ? d : d.results || [];
+                        this.userCount = d.count || this.users.length;
                     } catch(e) { console.error(e); }
                 },
                 async loadAudit() {
                     try {
-                        const d = await this.api('/api/common/audit/');
+                        const d = await this.api(`/api/common/audit/?page=${this.auditPage}`);
                         this.auditLogs = Array.isArray(d) ? d : d.results || [];
+                        this.auditCount = d.count || this.auditLogs.length;
                     } catch(e) { console.error(e); }
                 },
                 async submitLoan() {

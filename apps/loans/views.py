@@ -10,11 +10,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from io import BytesIO
-from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory
+from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory, LoanProduct, Collateral, LoanRestructuring, GracePeriod
 from .serializers import (
     LoanApplicationSerializer, LoanCreateSerializer,
     LoanStatusUpdateSerializer, AmortizationScheduleSerializer,
-    DocumentSerializer, DocumentUploadSerializer, LoanStatusHistorySerializer
+    DocumentSerializer, DocumentUploadSerializer, LoanStatusHistorySerializer,
+    LoanProductSerializer, CollateralSerializer, CollateralCreateSerializer,
+    LoanRestructuringSerializer, LoanRestructuringActionSerializer, GracePeriodSerializer
 )
 from .services import calculer_score_eligibilite, generer_echeancier
 from apps.accounts.permissions import IsAdminOrAgent, IsOwnerAdminOrAssignedAgent
@@ -292,3 +294,85 @@ class LoanExportPdfView(generics.GenericAPIView):
         response = HttpResponse(pdf, content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="credits.pdf"'
         return response
+
+
+@extend_schema(tags=['Crédits'])
+class LoanProductListView(generics.ListAPIView):
+    serializer_class = LoanProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return LoanProduct.objects.none()
+        qs = LoanProduct.objects.all()
+        if self.request.query_params.get('only_active') == 'true':
+            qs = qs.filter(est_actif=True)
+        return qs
+
+
+@extend_schema(tags=['Crédits'])
+class CollateralListCreateView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CollateralCreateSerializer
+        return CollateralSerializer
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Collateral.objects.none()
+        qs = Collateral.objects.select_related('loan__client__user', 'caution_solidaire__user')
+        user = self.request.user
+        if user.role == 'CLIENT':
+            qs = qs.filter(loan__client=user.client_profile)
+        elif user.role == 'AGENT':
+            qs = qs.filter(loan__agent=user.agent_profile)
+        return qs
+
+
+@extend_schema(tags=['Crédits'])
+class LoanRestructuringListCreateView(generics.ListCreateAPIView):
+    serializer_class = LoanRestructuringSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return LoanRestructuring.objects.none()
+        user = self.request.user
+        if user.role == 'CLIENT':
+            return LoanRestructuring.objects.filter(loan__client=user.client_profile)
+        return LoanRestructuring.objects.all()
+
+    def perform_create(self, serializer):
+        if self.request.user.role == 'ADMIN':
+            serializer.save()
+
+
+@extend_schema(tags=['Crédits'])
+class LoanRestructuringActionView(generics.GenericAPIView):
+    serializer_class = LoanRestructuringActionSerializer
+    permission_classes = [IsAdminOrAgent]
+
+    def patch(self, request, pk):
+        restructuring = generics.get_object_or_404(LoanRestructuring, pk=pk)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_status = serializer.validated_data['statut']
+        restructuring.statut = new_status
+        if new_status == 'APPROUVEE':
+            restructuring.date_approbation = timezone.now()
+            restructuring.approuve_par = request.user
+        restructuring.save()
+        return Response({'statut': new_status, 'message': f'Restructuring {new_status.lower()}'})
+
+
+@extend_schema(tags=['Crédits'])
+class GracePeriodListCreateView(generics.ListCreateAPIView):
+    serializer_class = GracePeriodSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return GracePeriod.objects.none()
+        return GracePeriod.objects.filter(loan_id=self.kwargs.get('loan_id'))

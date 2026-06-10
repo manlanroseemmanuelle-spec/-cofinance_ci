@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cofinance CI - Plateforme de Microfinance</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.7/dist/vue.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-    <style>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7/dist/vue.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+     <style>
         :root {
             --bg-primary: #ffffff;
             --bg-secondary: #f5f7fa;
@@ -320,9 +321,143 @@
                     Admin: <strong>admin</strong> / <strong>admin123</strong><br>
                     Agents: <strong>agent1</strong> à <strong>agent5</strong> / <strong>agent123</strong><br>
                     Clients: <strong>client1</strong> à <strong>client20</strong> / <strong>client123</strong>
+</div>
+                            </div>
+                        </div>
+
+                        <div v-if="currentView === 'savings'" class="view-fade">
+                            <div class="page-header">
+                                <h4>Épargne</h4>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-card" v-for="s in savingsStats" :key="s.label">
+                                    <div class="stat-top">
+                                        <div class="stat-icon" :style="{background: s.color+'20', color: s.color}" v-html="s.iconSvg"></div>
+                                    </div>
+                                    <div class="label">{{ s.label }}</div>
+                                    <div class="value">{{ s.value }}</div>
+                                </div>
+                            </div>
+                            <div class="card" style="margin-top:20px">
+                                <div class="card-header"><h4>Mes comptes</h4></div>
+                                <div class="card-body scroll-table">
+                                    <table v-if="savingsAccounts.length">
+                                        <thead><tr><th>Numéro</th><th>Produit</th><th>Solde</th><th>Statut</th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="c in savingsAccounts" :key="c.id">
+                                                <td><code>{{ c.numero_compte }}</code></td>
+                                                <td>{{ c.produit_details?.nom }}</td>
+                                                <td>{{ formatMoney(c.solde) }}</td>
+                                                <td><span :class="'status ' + (c.statut === 'ACTIF' ? 'active' : 'closed')">{{ c.statut }}</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div v-else class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h5>Aucun compte</h5></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="currentView === 'groups'" class="view-fade">
+                            <div class="page-header">
+                                <h4>Groupes Solidaires</h4>
+                                <div class="page-actions">
+                                    <button class="btn btn-primary btn-sm" @click="showGroupForm=true">
+                                        <svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="5" r="3"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="19" r="3"/></svg>
+                                        Nouveau groupe
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="card">
+                                    <div class="card-header"><h4>Groupes ({{ groups.length }})</h4></div>
+                                    <div class="card-body scroll-table">
+                                        <table v-if="groups.length">
+                                            <thead><tr><th>Nom</th><th>Type</th><th>Région</th><th>Membres</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="g in groups" :key="g.id">
+                                                    <td>{{ g.nom }}</td>
+                                                    <td><span class="tag">{{ g.type }}</span></td>
+                                                    <td>{{ g.region }}</td>
+                                                    <td>{{ g.members?.length || 0 }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-else class="empty-state"><p>Aucun groupe</p></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="currentView === 'accounting' && user.role === 'ADMIN'" class="view-fade">
+                            <div class="page-header"><h4>Comptabilité</h4></div>
+                            <div class="card">
+                                <div class="card-header"><h4>Plan comptable</h4></div>
+                                <div class="card-body scroll-table">
+                                    <table v-if="accounts.length">
+                                        <thead><tr><th>Code</th><th>Nom</th><th>Type</th><th>Solde</th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="a in accounts" :key="a.id">
+                                                <td><code>{{ a.code }}</code></td>
+                                                <td>{{ a.nom }}</td>
+                                                <td><span class="tag">{{ a.type }}</span></td>
+                                                <td>{{ formatMoney(a.solde) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div v-else class="empty-state"><p>Aucun compte</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="currentView === 'compliance' && user.role === 'ADMIN'" class="view-fade">
+                            <div class="page-header"><h4>Conformité BCEAO</h4></div>
+                            <div class="stats-grid">
+                                <div class="stat-card" v-for="r in prudentialRatios" :key="r.code">
+                                    <div class="stat-top"><div class="stat-icon">{{ r.code }}</div></div>
+                                    <div class="label">{{ r.nom }}</div>
+                                    <div class="value" :style="{color: r.statut === 'CONFORME' ? 'var(--success)' : 'var(--danger)'}">{{ r.valeur }}%</div>
+                                    <div class="sub">{{ r.statut }}</div>
+                                </div>
+                            </div>
+                            <div class="card" style="margin-top:20px">
+                                <div class="card-header"><h4>Rapports réglementaires</h4></div>
+                                <div class="card-body scroll-table">
+                                    <table v-if="regulatoryReports.length">
+                                        <thead><tr><th>Période</th><th>Type</th><th>Statut</th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="r in regulatoryReports" :key="r.id">
+                                                <td>{{ r.periode }}</td>
+                                                <td>{{ r.type }}</td>
+                                                <td><span :class="'status ' + (r.statut === 'TRANSMIS' ? 'active' : r.statut === 'FINALISE' ? 'approved' : 'pending')">{{ r.statut }}</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div v-else class="empty-state"><p>Aucun rapport</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="currentView === 'payments' && user.role === 'ADMIN'" class="view-fade">
+                            <div class="page-header"><h4>Passerelles de paiement</h4></div>
+                            <div class="grid-3">
+                                <div class="card" v-for="g in paymentGateways" :key="g.id">
+                                    <div class="card-body">
+                                        <div class="stat-top">
+                                            <div class="stat-icon" :style="{background: g.est_actif ? 'var(--success-light)' : 'var(--danger-light)', color: g.est_actif ? 'var(--success)' : 'var(--danger)'}">
+                                                <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                            </div>
+                                        </div>
+                                        <div class="label" style="margin-top:8px">{{ g.nom }}</div>
+                                        <div class="sub">{{ g.code }} - {{ g.frais_pourcentage }}% frais</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="!paymentGateways.length" class="card"><div class="card-body scroll-table"><table><tbody><tr><td><div class="empty-state"><p>Aucune passerelle configurée</p></div></td></tr></tbody></table></div></div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
-        </div>
 
         <template v-else>
             <div class="app">
@@ -1001,6 +1136,15 @@
                 loanForm: { montant_demande: '', duree_mois: 12, motif: '', revenu_mensuel: '' },
                 chartData: { months: [], credits_par_mois: [], remboursements_par_mois: [], repartition_statuts: [], top_agents: [] },
                 insuranceForm: { produit_id: '' },
+                savingsAccounts: [],
+                savingsTransactions: [],
+                savingsProducts: [],
+                groups: [],
+                accounts: [],
+                journalEntries: [],
+                regulatoryReports: [],
+                prudentialRatios: [],
+                paymentGateways: [],
                 notif: { show: false, message: '', type: 'success' },
                 searchQuery: '',
                 searchResults: [],
@@ -1009,7 +1153,7 @@
                 dashboardPeriod: '30d',
                 filterPeriods: [{value:'7d',label:'7j'},{value:'30d',label:'30j'},{value:'90d',label:'90j'}],
                 loanFilters: [{value:'all',label:'Tous'},{value:'SOUMISE',label:'Soumises'},{value:'EN_ANALYSE',label:'En analyse'},{value:'APPROUVEE',label:'Approuvées'},{value:'REJETEE',label:'Rejetées'},{value:'DECAISSEE',label:'Décaissées'}],
-                loadingViews: {dashboard:true,loans:true,repayments:true,insurance:true,chat:true,notifications:true,users:true,audit:true},
+                loadingViews: {dashboard:true,loans:true,repayments:true,insurance:true,chat:true,notifications:true,users:true,audit:true,savings:true,groups:true,accounting:true,compliance:true,payments:true},
                 profileForm: { first_name:'', last_name:'' },
                 passwordForm: { old_password:'', new_password:'', confirm_password:'' },
                 passwordError: '',
@@ -1017,6 +1161,8 @@
                 loanPage: 1, repayPage: 1, userPage: 1, auditPage: 1,
                 pageSize: 10,
                 searchIndex: -1,
+                showGroupForm: false,
+                groupForm: { nom:'', type:'SHG', region:'' },
             },
             computed: {
                 menuItems() {
@@ -1028,6 +1174,11 @@
                         { id: 'insurance', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label: 'Assurance', badge: null },
                         { id: 'chat', iconSvg: '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label: 'Chat', badge: () => this.unreadChatCount },
                         { id: 'notifications', iconSvg: '<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>', label: 'Notifications', badge: () => this.unreadNotifCount },
+                        { id: 'savings', iconSvg: '<svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', label: 'Épargne', badge: null },
+                        { id: 'groups', iconSvg: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>', label: 'Groupes', badge: null },
+                        { id: 'accounting', iconSvg: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label: 'Comptabilité', badge: null },
+                        { id: 'compliance', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label: 'Conformité', badge: null },
+                        { id: 'payments', iconSvg: '<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>', label: 'Paiements', badge: null },
                     ];
                     if (this.user.role === 'ADMIN') {
                         items.push({ id: 'users', iconSvg: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>', label: 'Utilisateurs', badge: null });
@@ -1036,7 +1187,7 @@
                     return items;
                 },
                 currentViewTitle() {
-                    const map = { dashboard:'Tableau de bord', profile:'Mon Profil', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs', audit:"Journal d'audit" };
+                    const map = { dashboard:'Tableau de bord', profile:'Mon Profil', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs', audit:"Journal d'audit", savings:'Épargne', groups:'Groupes', accounting:'Comptabilité', compliance:'Conformité', payments:'Paiements' };
                     return map[this.currentView] || 'Cofinance CI';
                 },
                 unreadChatCount() { return this.conversations.reduce((s, c) => s + (c.unread_count || 0), 0); },
@@ -1053,6 +1204,16 @@
                 auditPages() { return Array.from({length:Math.ceil(this.auditCount/this.pageSize)},(_,i)=>i+1); },
                 userPages() { return Math.max(1, Math.ceil(this.userCount/this.pageSize)); },
                 repayPages() { return Math.max(1, Math.ceil(this.repayments.length/this.pageSize)); },
+                savingsStats() {
+                    const totalSolde = this.savingsAccounts.reduce((s, c) => s + (parseFloat(c.solde)||0), 0);
+                    const nbComptes = this.savingsAccounts.length;
+                    const interets = this.savingsTransactions.filter(t => t.type === 'INTERET_CREDITEUR').reduce((s, t) => s + (parseFloat(t.montant)||0), 0);
+                    return [
+                        { iconSvg:'<svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', label:'Total épargne', value:this.formatMoney(totalSolde), color:'#1a73e8' },
+                        { iconSvg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>', label:'Comptes actifs', value:nbComptes, color:'#059669' },
+                        { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', label:'Intérêts cumulés', value:this.formatMoney(interets), color:'#0891b2' },
+                    ];
+                },
             },
             methods: {
                 async login() {
@@ -1081,11 +1242,16 @@
                     if (view === 'dashboard') await this.loadDashboard();
                     if (view === 'loans') await this.loadLoans();
                     if (view === 'repayments') await this.loadRepayments();
-                    if (view === 'insurance') await this.loadInsurance();
+if (view === 'insurance') await this.loadInsurance();
                     if (view === 'chat') await this.loadChat();
                     if (view === 'notifications') await this.loadNotifications();
                     if (view === 'users' && this.user.role === 'ADMIN') await this.loadUsers();
                     if (view === 'audit' && this.user.role === 'ADMIN') await this.loadAudit();
+                    if (view === 'savings') await this.loadSavings();
+                    if (view === 'groups') await this.loadGroups();
+                    if (view === 'accounting' && this.user.role === 'ADMIN') await this.loadAccounting();
+                    if (view === 'compliance' && this.user.role === 'ADMIN') await this.loadCompliance();
+                    if (view === 'payments' && this.user.role === 'ADMIN') await this.loadPayments();
                     this.$set(this.loadingViews, view, false);
                 },
                 api(path) { return fetch(path, {headers:{'Authorization':`Bearer ${this.token}`}}).then(r => r.json()); },
@@ -1153,6 +1319,42 @@
                     try {
                         const d = await this.api('/api/chat/conversations/');
                         this.conversations = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadSavings() {
+                    try {
+                        const d = await this.api('/api/savings/comptes/');
+                        this.savingsAccounts = Array.isArray(d) ? d : d.results || [];
+                        const tx = await this.api('/api/savings/transactions/');
+                        this.savingsTransactions = Array.isArray(tx) ? tx : tx.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadGroups() {
+                    try {
+                        const d = await this.api('/api/groups/');
+                        this.groups = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadAccounting() {
+                    try {
+                        const d = await this.api('/api/accounting/accounts/');
+                        this.accounts = Array.isArray(d) ? d : d.results || [];
+                        const je = await this.api('/api/accounting/journals/');
+                        this.journalEntries = Array.isArray(je) ? je : je.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadCompliance() {
+                    try {
+                        const d = await this.api('/api/compliance/reports/');
+                        this.regulatoryReports = Array.isArray(d) ? d : d.results || [];
+                        const r = await this.api('/api/compliance/ratios/');
+                        this.prudentialRatios = Array.isArray(r) ? r : r.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadPayments() {
+                    try {
+                        const d = await this.api('/api/payments/gateways/');
+                        this.paymentGateways = Array.isArray(d) ? d : d.results || [];
                     } catch(e) { console.error(e); }
                 },
                 async selectChat(c) {

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
-from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory
+from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory, LoanProduct, Collateral, LoanRestructuring, GracePeriod
 from apps.accounts.serializers import ClientSerializer
 
 
@@ -79,3 +79,40 @@ class LoanStatusHistorySerializer(serializers.ModelSerializer):
         if obj.changed_by:
             return obj.changed_by.get_full_name() or obj.changed_by.username
         return 'Système'
+
+
+class LoanProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoanProduct
+        fields = '__all__'
+
+
+class CollateralSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source='caution_solidaire.user.get_full_name', allow_null=True, read_only=True)
+
+    class Meta:
+        model = Collateral
+        fields = '__all__'
+
+
+class CollateralCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Collateral
+        fields = ['loan', 'type', 'description', 'valeur_estimee', 'caution_solidaire', 'fichier_justificatif']
+
+
+class LoanRestructuringSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoanRestructuring
+        fields = '__all__'
+        read_only_fields = ['statut', 'date_soumission', 'date_approbation', 'approuve_par']
+
+
+class LoanRestructuringActionSerializer(serializers.Serializer):
+    statut = serializers.ChoiceField(choices=[('SOUMISE', 'Soumise'), ('APPROUVEE', 'Approuvée'), ('REJETEE', 'Rejetée')])
+
+
+class GracePeriodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GracePeriod
+        fields = '__all__'

@@ -33,6 +33,11 @@ INSTALLED_APPS = [
     'apps.support_chat',
     'apps.dashboard',
     'apps.common',
+    'apps.savings',
+    'apps.groups',
+    'apps.accounting',
+    'apps.compliance',
+    'apps.payments',
 ]
 
 MIDDLEWARE = [

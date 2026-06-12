@@ -7,14 +7,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Cofinance CI">
+    <meta name="version" content="v8-v-cloak+trycatch+sw-v4">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/static/logo-192.svg">
     <link rel="apple-touch-icon" href="/static/logo-192.svg">
     <title>Cofinance CI - Plateforme de Microfinance</title>
-<script src="https://cdn.jsdelivr.net/npm/vue@2.7/dist/vue.min.js"></script>
-     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% load static %}
+     <script src="{% static 'vue.min.js' %}"></script>
+     <script src="{% static 'chart.min.js' %}"></script>
      <style>
+        [v-cloak] { display: none !important; }
         :root {
             --bg-primary: #ffffff;
             --bg-secondary: #f5f7fa;
@@ -237,8 +239,10 @@
         .search-results .result-item.highlighted { background:var(--accent-light); }
         .search-results .result-item .tag { font-size:10px; padding:1px 6px; border-radius:6px; margin-left:6px; background:var(--bg-secondary); color:var(--text-secondary); font-weight:500; }
         .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-        .filter-bar .filter-btn { padding:5px 14px; border-radius:16px; border:1px solid var(--border-color); background:none; color:var(--text-secondary); font-size:12px; font-weight:500; cursor:pointer; transition:all .15s; }
-        .filter-bar .filter-btn:hover, .filter-bar .filter-btn.active { background:var(--accent-light); color:var(--accent); border-color:var(--accent); }
+        .filter-btn { padding:5px 14px; border-radius:16px; border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-secondary); font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; }
+        .filter-btn:hover, .filter-btn.active { background:var(--accent-light); color:var(--accent); border-color:var(--accent); }
+        .chart-box { position: relative; height: 220px; min-height: 220px; }
+        .chart-box canvas { width: 100% !important; height: 100% !important; }
         .summary-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:16px; }
         .summary-item { background:var(--bg-secondary); border-radius:var(--radius); padding:12px 16px; }
         .summary-item .s-label { font-size:11px; color:var(--text-secondary); }
@@ -308,7 +312,7 @@
     </style>
 </head>
 <body>
-    <div id="app">
+    <div id="app" v-cloak>
         {% verbatim %}
         <div v-if="!token" class="login-page">
             <div class="login-card">
@@ -361,225 +365,8 @@
                     Clients: <strong>client1</strong> à <strong>client20</strong> / <strong>client123</strong>
 </div>
                             </div>
-                        </div>
 
-                        <div v-if="currentView === 'savings'" class="view-fade">
-                            <div class="page-header">
-                                <h4>Épargne</h4>
-                            </div>
-                            <div class="stats-grid">
-                                <div class="stat-card" v-for="s in savingsStats" :key="s.label">
-                                    <div class="stat-top">
-                                        <div class="stat-icon" :style="{background: s.color+'20', color: s.color}" v-html="s.iconSvg"></div>
-                                    </div>
-                                    <div class="label">{{ s.label }}</div>
-                                    <div class="value">{{ s.value }}</div>
-                                </div>
-                            </div>
-                            <div class="card" style="margin-top:20px">
-                                <div class="card-header"><h4>Mes comptes</h4></div>
-                                <div class="card-body scroll-table">
-                                    <table v-if="savingsAccounts.length">
-                                        <thead><tr><th>Numéro</th><th>Produit</th><th>Solde</th><th>Statut</th></tr></thead>
-                                        <tbody>
-                                            <tr v-for="c in savingsAccounts" :key="c.id">
-                                                <td><code>{{ c.numero_compte }}</code></td>
-                                                <td>{{ c.produit_details?.nom }}</td>
-                                                <td>{{ formatMoney(c.solde) }}</td>
-                                                <td><span :class="'status ' + (c.statut === 'ACTIF' ? 'active' : 'closed')">{{ c.statut }}</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <div v-else class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h5>Aucun compte</h5></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="currentView === 'groups'" class="view-fade">
-                            <div class="page-header">
-                                <h4>Groupes Solidaires</h4>
-                                <div class="page-actions">
-                                    <button class="btn btn-primary btn-sm" @click="showGroupForm=true">
-                                        <svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="5" r="3"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="19" r="3"/></svg>
-                                        Nouveau groupe
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="grid-2">
-                                <div class="card">
-                                    <div class="card-header"><h4>Groupes ({{ groups.length }})</h4></div>
-                                    <div class="card-body scroll-table">
-                                        <table v-if="groups.length">
-                                            <thead><tr><th>Nom</th><th>Type</th><th>Région</th><th>Membres</th></tr></thead>
-                                            <tbody>
-                                                <tr v-for="g in groups" :key="g.id">
-                                                    <td>{{ g.nom }}</td>
-                                                    <td><span class="tag">{{ g.type }}</span></td>
-                                                    <td>{{ g.region }}</td>
-                                                    <td>{{ g.members?.length || 0 }}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <div v-else class="empty-state"><p>Aucun groupe</p></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="currentView === 'accounting' && user.role === 'ADMIN'" class="view-fade">
-                            <div class="page-header"><h4>Comptabilité</h4></div>
-                            <div class="card">
-                                <div class="card-header"><h4>Plan comptable</h4></div>
-                                <div class="card-body scroll-table">
-                                    <table v-if="accounts.length">
-                                        <thead><tr><th>Code</th><th>Nom</th><th>Type</th><th>Solde</th></tr></thead>
-                                        <tbody>
-                                            <tr v-for="a in accounts" :key="a.id">
-                                                <td><code>{{ a.code }}</code></td>
-                                                <td>{{ a.nom }}</td>
-                                                <td><span class="tag">{{ a.type }}</span></td>
-                                                <td>{{ formatMoney(a.solde) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <div v-else class="empty-state"><p>Aucun compte</p></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="currentView === 'compliance' && user.role === 'ADMIN'" class="view-fade">
-                            <div class="page-header"><h4>Conformité BCEAO</h4></div>
-                            <div class="stats-grid">
-                                <div class="stat-card" v-for="r in prudentialRatios" :key="r.code">
-                                    <div class="stat-top"><div class="stat-icon">{{ r.code }}</div></div>
-                                    <div class="label">{{ r.nom }}</div>
-                                    <div class="value" :style="{color: r.statut === 'CONFORME' ? 'var(--success)' : 'var(--danger)'}">{{ r.valeur }}%</div>
-                                    <div class="sub">{{ r.statut }}</div>
-                                </div>
-                            </div>
-                            <div class="card" style="margin-top:20px">
-                                <div class="card-header"><h4>Rapports réglementaires</h4></div>
-                                <div class="card-body scroll-table">
-                                    <table v-if="regulatoryReports.length">
-                                        <thead><tr><th>Période</th><th>Type</th><th>Statut</th></tr></thead>
-                                        <tbody>
-                                            <tr v-for="r in regulatoryReports" :key="r.id">
-                                                <td>{{ r.periode }}</td>
-                                                <td>{{ r.type }}</td>
-                                                <td><span :class="'status ' + (r.statut === 'TRANSMIS' ? 'active' : r.statut === 'FINALISE' ? 'approved' : 'pending')">{{ r.statut }}</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <div v-else class="empty-state"><p>Aucun rapport</p></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="currentView === 'payments' && user.role === 'ADMIN'" class="view-fade">
-                            <div class="page-header"><h4>Passerelles de paiement</h4></div>
-                            <div class="grid-3">
-                                <div class="card" v-for="g in paymentGateways" :key="g.id">
-                                    <div class="card-body">
-                                        <div class="stat-top">
-                                            <div class="stat-icon" :style="{background: g.est_actif ? 'var(--success-light)' : 'var(--danger-light)', color: g.est_actif ? 'var(--success)' : 'var(--danger)'}">
-                                                <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                                            </div>
-                                        </div>
-                                        <div class="label" style="margin-top:8px">{{ g.nom }}</div>
-                                        <div class="sub">{{ g.code }} - {{ g.frais_pourcentage }}% frais</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-if="!paymentGateways.length" class="card"><div class="card-body scroll-table"><table><tbody><tr><td><div class="empty-state"><p>Aucune passerelle configurée</p></div></td></tr></tbody></table></div></div>
-                        </div>
-
-                        <div v-if="currentView === 'calendar'" class="view-fade">
-                            <div class="page-header">
-                                <h4>Calendrier des échéances</h4>
-                                <div class="page-actions">
-                                    <div class="stats-grid" style="grid-template-columns:repeat(3,auto);gap:12px;margin:0">
-                                        <div class="stat-card" style="padding:8px 16px;min-width:auto">
-                                            <div class="value" style="font-size:16px">{{ calendarEvents.length }}</div>
-                                            <div class="sub">Échéances (90j)</div>
-                                        </div>
-                                        <div class="stat-card" style="padding:8px 16px;min-width:auto">
-                                            <div class="value" style="font-size:16px;color:var(--danger)">{{ calendarOverdue }}</div>
-                                            <div class="sub">En retard</div>
-                                        </div>
-                                        <div class="stat-card" style="padding:8px 16px;min-width:auto">
-                                            <div class="value" style="font-size:16px;color:var(--success)">{{ formatMoney(calendarMonthlyTotal) }}</div>
-                                            <div class="sub">Dû ce mois</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card" style="margin-top:8px">
-                                <div class="card-header">
-                                    <h4>Prochaines échéances</h4>
-                                    <div class="page-actions" style="gap:4px">
-                                        <button class="btn btn-sm btn-outline" @click="calendarFilter='all'" :class="{active:calendarFilter==='all'}">Toutes</button>
-                                        <button class="btn btn-sm btn-outline" @click="calendarFilter='pending'" :class="{active:calendarFilter==='pending'}">En attente</button>
-                                        <button class="btn btn-sm btn-outline" @click="calendarFilter='paid'" :class="{active:calendarFilter==='paid'}">Payées</button>
-                                    </div>
-                                </div>
-                                <div class="card-body scroll-table">
-                                    <table v-if="filteredCalendarEvents.length">
-                                        <thead><tr><th>Date</th><th>Client</th><th>Prêt</th><th>Échéance</th><th>Montant</th><th>Capital</th><th>Intérêt</th><th>Statut</th></tr></thead>
-                                        <tbody>
-                                            <tr v-for="e in filteredCalendarEvents" :key="e.id" :class="{'row-overdue': !e.est_paye && new Date(e.date) < new Date()}">
-                                                <td style="white-space:nowrap;font-weight:500">{{ formatDate(e.date) }}</td>
-                                                <td>{{ e.client }}</td>
-                                                <td><code>#{{ e.loan_id }}</code></td>
-                                                <td><span class="badge">M{{ e.numero }}</span></td>
-                                                <td style="font-weight:600">{{ formatMoney(e.montant) }}</td>
-                                                <td style="font-size:12px;color:var(--text-secondary)">{{ formatMoney(e.part_capital) }}</td>
-                                                <td style="font-size:12px;color:var(--text-secondary)">{{ formatMoney(e.part_interet) }}</td>
-                                                <td><span :class="'status ' + (e.est_paye ? 'active' : (new Date(e.date) < new Date() ? 'closed' : 'pending'))"><span class="dot"></span>{{ e.est_paye ? 'Payée' : (new Date(e.date) < new Date() ? 'Retard' : 'À venir') }}</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <div v-else class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h5>Aucune échéance</h5></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div v-if="currentView === 'clients'" class="view-fade">
-                            <div class="page-header">
-                                <h4>Clients</h4>
-                                <div class="page-actions">
-                                    <div class="search-box" style="position:relative">
-                                        <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-secondary)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                        <input type="text" v-model="clientSearch" placeholder="Rechercher un client..." style="padding:8px 12px 8px 32px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;background:var(--bg-input);color:var(--text-primary);width:260px">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <div class="card-header"><h4>Liste des clients ({{ filteredClients.length }})</h4></div>
-                                <div class="card-body scroll-table">
-                                    <table v-if="filteredClients.length">
-                                        <thead><tr><th>Nom</th><th>Téléphone</th><th>Région</th><th>Profession</th><th>Score</th><th>Prêts actifs</th><th>Total dû</th></tr></thead>
-                                        <tbody>
-                                            <tr v-for="c in filteredClients" :key="c.id">
-                                                <td style="font-weight:500">{{ c.nom }}</td>
-                                                <td>{{ c.telephone }}</td>
-                                                <td><span class="tag">{{ c.region || '—' }}</span></td>
-                                                <td>{{ c.profession }}</td>
-                                                <td><span :class="['status', c.score_credit >= 50 ? 'active' : c.score_credit >= 30 ? 'pending' : 'closed']">{{ c.score_credit }}</span></td>
-                                                <td><span class="tag blue">{{ c.prets_actifs }}</span></td>
-                                                <td style="font-weight:600">{{ formatMoney(c.total_du) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <div v-else class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div><h5>Aucun client trouvé</h5></div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-        <template v-else>
+        <div v-else>
             <div class="app">
                 <aside :class="['sidebar', {open: sidebarOpen}]">
                     <div class="sidebar-brand">
@@ -713,9 +500,9 @@
                                     <div class="card-header"><h4>Graphiques</h4></div>
                                     <div class="card-body">
                                         <div class="grid-3" style="gap:16px">
-                                            <div><canvas id="chartLoans" height="150"></canvas></div>
-                                            <div><canvas id="chartRepayments" height="150"></canvas></div>
-                                            <div><canvas id="chartStatus" height="150"></canvas></div>
+                                            <div class="chart-box"><canvas id="chartLoans"></canvas></div>
+                                            <div class="chart-box"><canvas id="chartRepayments"></canvas></div>
+                                            <div class="chart-box"><canvas id="chartStatus"></canvas></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1043,6 +830,228 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div v-if="currentView === 'savings'" class="view-fade">
+                                <div class="page-header"><h4>Épargne</h4></div>
+                                <div class="stats-grid">
+                                    <div class="stat-card" v-for="s in savingsStats" :key="s.label">
+                                        <div class="stat-top"><div class="stat-icon" :style="{background:s.color+'20',color:s.color}" v-html="s.iconSvg"></div></div>
+                                        <div class="label">{{ s.label }}</div>
+                                        <div class="value" :style="{color:s.color}">{{ s.value }}</div>
+                                    </div>
+                                </div>
+                                <div class="card" style="margin-bottom:20px">
+                                    <div class="card-header"><h4>Comptes d'épargne</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="savingsAccounts.length">
+                                            <thead><tr><th>N° Compte</th><th>Client</th><th>Produit</th><th>Solde</th><th>Statut</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="c in savingsAccounts" :key="c.id">
+                                                    <td style="font-family:monospace;font-size:12px">{{ c.numero_compte }}</td>
+                                                    <td v-if="c.client_details">{{ c.client_details.user?.first_name }} {{ c.client_details.user?.last_name }}</td><td v-else>{{ c.client }}</td>
+                                                    <td>{{ productName(c.produit) }}</td>
+                                                    <td style="font-weight:600">{{ formatMoney(c.solde) }}</td>
+                                                    <td><span :class="['tag', c.statut==='ACTIF'?'green':'red']">{{ c.statut }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!savingsAccounts.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h5>Aucun compte d'épargne</h5></div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h4>Transactions récentes</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="savingsTransactions.length">
+                                            <thead><tr><th>Référence</th><th>Type</th><th>Montant</th><th>Date</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="t in savingsTransactions.slice(0,20)" :key="t.id">
+                                                    <td style="font-family:monospace;font-size:12px">{{ t.reference }}</td>
+                                                    <td><span :class="['tag', t.type==='VERSEMENT'?'green':t.type==='RETRAIT'?'red':t.type==='INTERET_CREDITEUR'?'blue':'orange']">{{ t.type }}</span></td>
+                                                    <td style="font-weight:600">{{ formatMoney(t.montant) }}</td>
+                                                    <td style="font-size:12px;color:var(--text-secondary)">{{ t.date_transaction?.slice(0,10) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!savingsTransactions.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg></div><h5>Aucune transaction</h5></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'groups'" class="view-fade">
+                                <div class="page-header"><h4>Groupes solidaires</h4></div>
+                                <div class="grid-3" v-if="groups.length">
+                                    <div class="card" v-for="g in groups" :key="g.id">
+                                        <div class="card-body">
+                                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                                                <div style="width:40px;height:40px;border-radius:8px;background:var(--accent)20;display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:800;font-size:16px">{{ g.nom?.[0] }}</div>
+                                                <div><div style="font-weight:600;font-size:14px">{{ g.nom }}</div><div style="font-size:12px;color:var(--text-secondary)">{{ g.type === 'SHG' ? 'Self-Help Group' : 'Joint Liability Group' }}</div></div>
+                                            </div>
+                                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+                                                <div><span style="color:var(--text-secondary)">Région:</span> {{ g.region }}</div>
+                                                <div><span style="color:var(--text-secondary)">Membres:</span> {{ g.members_count }}</div>
+                                                <div><span style="color:var(--text-secondary)">Statut:</span> <span :class="['tag', g.statut==='ACTIF'?'green':'red']">{{ g.statut }}</span></div>
+                                                <div v-if="g.centre"><span style="color:var(--text-secondary)">Centre:</span> {{ g.centre }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="!groups.length" class="empty-state" style="margin-top:40px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><h5>Aucun groupe</h5></div>
+                            </div>
+
+                            <div v-if="currentView === 'accounting'" class="view-fade">
+                                <div class="page-header"><h4>Comptabilité</h4></div>
+                                <div class="card" style="margin-bottom:20px">
+                                    <div class="card-header"><h4>Plan comptable</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="accounts.length">
+                                            <thead><tr><th>Code</th><th>Nom</th><th>Type</th><th>Solde</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="a in accounts" :key="a.id">
+                                                    <td style="font-family:monospace;font-size:12px">{{ a.code }}</td>
+                                                    <td>{{ a.nom }}</td>
+                                                    <td><span :class="['tag', a.type==='ACTIF'||a.type==='CHARGE'?'red':'green']">{{ a.type }}</span></td>
+                                                    <td style="font-weight:600">{{ formatMoney(a.solde_actuel) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!accounts.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><h5>Aucun compte comptable</h5></div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h4>Écritures comptables</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="journalEntries.length">
+                                            <thead><tr><th>Référence</th><th>Journal</th><th>Date</th><th>Libellé</th><th>Validée</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="e in journalEntries" :key="e.id">
+                                                    <td style="font-family:monospace;font-size:12px">{{ e.reference }}</td>
+                                                    <td><span class="tag blue">{{ e.journal }}</span></td>
+                                                    <td style="font-size:12px">{{ e.date_ecriture }}</td>
+                                                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ e.libelle }}</td>
+                                                    <td><span :class="['tag', e.est_validee?'green':'orange']">{{ e.est_validee ? 'Oui' : 'Non' }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!journalEntries.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h5>Aucune écriture</h5></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'compliance'" class="view-fade">
+                                <div class="page-header"><h4>Conformité réglementaire</h4></div>
+                                <div class="card" style="margin-bottom:20px">
+                                    <div class="card-header"><h4>Rapports réglementaires</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="regulatoryReports.length">
+                                            <thead><tr><th>Type</th><th>Période</th><th>Statut</th><th>Généré le</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="r in regulatoryReports" :key="r.id">
+                                                    <td><span class="tag blue">{{ r.type }}</span></td>
+                                                    <td style="font-weight:600">{{ r.periode }}</td>
+                                                    <td><span :class="['tag', r.statut==='FINALISE'?'green':r.statut==='TRANSMIS'?'blue':'orange']">{{ r.statut }}</span></td>
+                                                    <td style="font-size:12px;color:var(--text-secondary)">{{ r.date_generation?.slice(0,10) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!regulatoryReports.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h5>Aucun rapport</h5></div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h4>Ratios prudentiels</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="prudentialRatios.length">
+                                            <thead><tr><th>Code</th><th>Nom</th><th>Valeur</th><th>Statut</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="r in prudentialRatios" :key="r.code">
+                                                    <td style="font-family:monospace;font-size:12px">{{ r.code }}</td>
+                                                    <td>{{ r.nom }}</td>
+                                                    <td style="font-weight:600">{{ r.valeur_actuelle ?? '—' }}</td>
+                                                    <td><span :class="['tag', r.statut==='CONFORME'?'green':r.statut==='NON_CONFORME'?'red':'orange']">{{ r.statut }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!prudentialRatios.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h5>Aucun ratio</h5></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'payments'" class="view-fade">
+                                <div class="page-header"><h4>Paiements</h4></div>
+                                <div class="card">
+                                    <div class="card-header"><h4>Passerelles de paiement</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="paymentGateways.length">
+                                            <thead><tr><th>Code</th><th>Nom</th><th>Frais %</th><th>Frais fixe</th><th>Actif</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="g in paymentGateways" :key="g.code">
+                                                    <td style="font-family:monospace;font-size:12px">{{ g.code }}</td>
+                                                    <td style="font-weight:600">{{ g.nom }}</td>
+                                                    <td>{{ g.frais_pourcentage }}%</td>
+                                                    <td>{{ formatMoney(g.frais_fixe) }}</td>
+                                                    <td><span :class="['tag', g.est_actif ? 'green' : 'red']">{{ g.est_actif ? 'Oui' : 'Non' }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!paymentGateways.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><h5>Aucune passerelle configurée</h5></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'calendar'" class="view-fade">
+                                <div class="page-header">
+                                    <h4>Calendrier des échéances</h4>
+                                    <div class="page-actions" style="display:flex;gap:8px">
+                                        <div style="font-size:13px;padding:6px 12px;background:var(--danger-light);color:var(--danger);border-radius:var(--radius);font-weight:600">En retard: {{ calendarOverdue }}</div>
+                                        <div style="font-size:13px;padding:6px 12px;background:var(--accent-light);color:var(--accent);border-radius:var(--radius);font-weight:600">{{ formatMoney(calendarMonthlyTotal) }}</div>
+                                        <select v-model="calendarFilter" style="padding:6px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:12px;background:var(--bg-input);color:var(--text-primary)">
+                                            <option value="all">Toutes</option><option value="pending">En attente</option><option value="paid">Payées</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header"><h4>Échéances</h4></div>
+                                    <div class="card-body">
+                                        <table class="table" v-if="filteredCalendarEvents.length">
+                                            <thead><tr><th>Date</th><th>Client</th><th>Libellé</th><th>Montant</th><th>Statut</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="e in filteredCalendarEvents" :key="e.id">
+                                                    <td style="font-size:12px">{{ e.date }}</td>
+                                                    <td>{{ e.client_nom || '-' }}</td>
+                                                    <td>{{ e.libelle || '-' }}</td>
+                                                    <td style="font-weight:600">{{ formatMoney(e.montant) }}</td>
+                                                    <td><span :class="['tag', e.est_paye ? 'green' : 'red']">{{ e.est_paye ? 'Payée' : 'En attente' }}</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!filteredCalendarEvents.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h5>Aucune échéance</h5></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div v-if="currentView === 'clients'" class="view-fade">
+                                <div class="page-header">
+                                    <h4>Clients</h4>
+                                    <div class="page-actions"><input type="text" v-model="clientSearch" placeholder="Rechercher..." style="padding:6px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;width:220px;background:var(--bg-input);color:var(--text-primary)"></div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <table class="table" v-if="filteredClients.length">
+                                            <thead><tr><th>Nom</th><th>Téléphone</th><th>Région</th><th>Revenu</th><th>Date inscription</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="c in filteredClients" :key="c.id">
+                                                    <td style="font-weight:600">{{ c.nom }}</td>
+                                                    <td>{{ c.telephone }}</td>
+                                                    <td>{{ c.region || '-' }}</td>
+                                                    <td v-if="c.revenu_mensuel">{{ formatMoney(c.revenu_mensuel) }}</td><td v-else>—</td>
+                                                    <td style="font-size:12px;color:var(--text-secondary)">{{ c.date_inscription?.slice(0,10) }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-if="!filteredClients.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><h5>Aucun client</h5></div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </template>
                     </div>
                 </div>
@@ -1219,15 +1228,17 @@
                 <svg v-else viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 {{ notif.message }}
             </div>
-        </template>
+        </div>
         {% endverbatim %}
     </div>
     <script>
+        console.log('SCRIPT EXÉCUTÉ - avant new Vue');
+        try {
         new Vue({
             el: '#app',
             data: {
-                theme: localStorage.getItem('theme') || 'light',
-                token: localStorage.getItem('token') || '',
+                theme: (() => { try { return localStorage.getItem('theme') || 'light'; } catch(e) { return 'light'; } })(),
+                token: (() => { try { return localStorage.getItem('token') || ''; } catch(e) { return ''; } })(),
                 refresh: '',
                 user: {},
                 username: '',
@@ -1433,27 +1444,46 @@
                 logout() { this.token = ''; this.user = {}; this.refresh = ''; this.notificationsList = []; this.conversations = []; if (this._refreshTimer) { clearInterval(this._refreshTimer); this._refreshTimer = null; } if (this.notifSocket) { this.notifSocket.onclose = null; this.notifSocket.close(); this.notifSocket = null; } if (this.chatSocket) { this.chatSocket.onclose = null; this.chatSocket.close(); this.chatSocket = null; } localStorage.removeItem('token'); localStorage.removeItem('refresh'); },
                 toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', this.theme); localStorage.setItem('theme', this.theme); },
                 navigate(view) { this.currentView = view; this.sidebarOpen = false; this.searchQuery='';this.searchResults=[];this.searchIndex=-1; this.loadView(view); },
-                async loadAll() { await Promise.all([this.loadDashboard(), this.loadLoans(), this.loadRepayments(), this.loadInsurance(), this.loadChat(), this.loadNotifications()]); if (this.user.role === 'ADMIN') { await this.loadUsers(); await this.loadAudit(); } this.connectNotificationSocket(); },
+                async loadAll() {
+                    const loadedViews = ['dashboard','loans','repayments','insurance','chat','notifications'];
+                    try {
+                        await Promise.all([this.loadDashboard(), this.loadLoans(), this.loadRepayments(), this.loadInsurance(), this.loadChat(), this.loadNotifications()]);
+                        if (this.user.role === 'ADMIN') {
+                            loadedViews.push('users', 'audit');
+                            await Promise.all([this.loadUsers(), this.loadAudit()]);
+                        }
+                        this.connectNotificationSocket();
+                    } catch(e) {
+                        console.error('Erreur chargement initial', e);
+                    } finally {
+                        loadedViews.forEach(view => this.$set(this.loadingViews, view, false));
+                        if (this.user.role === 'ADMIN') {
+                            this.$nextTick(() => this.renderCharts());
+                        }
+                    }
+                },
                 async loadView(view) {
                     this.$set(this.loadingViews, view, true);
-                    if (view === 'profile') { this.profileForm = { first_name:this.user.first_name||'', last_name:this.user.last_name||'' }; this.$set(this.loadingViews, view, false); return; }
-                    if (view === 'dashboard') await this.loadDashboard();
-                    if (view === 'loans') await this.loadLoans();
-                    if (view === 'repayments') await this.loadRepayments();
-if (view === 'insurance') await this.loadInsurance();
-                    if (view === 'chat') await this.loadChat();
-                    if (view === 'notifications') await this.loadNotifications();
-                    if (view === 'users' && this.user.role === 'ADMIN') await this.loadUsers();
-                    if (view === 'audit' && this.user.role === 'ADMIN') await this.loadAudit();
-                    if (view === 'savings') await this.loadSavings();
-                    if (view === 'groups') await this.loadGroups();
-                    if (view === 'accounting' && this.user.role === 'ADMIN') await this.loadAccounting();
-                    if (view === 'compliance' && this.user.role === 'ADMIN') await this.loadCompliance();
-                    if (view === 'payments' && this.user.role === 'ADMIN') await this.loadPayments();
-                    if (view === 'calendar') await this.loadCalendar();
-                    if (view === 'clients' && (this.user.role === 'AGENT' || this.user.role === 'ADMIN')) await this.loadClientList();
-                    if (view === 'dashboard' && this.user.role === 'ADMIN') { await Promise.all([this.loadDashboardAgents(), this.loadDashboardRegions()]); }
-                    this.$set(this.loadingViews, view, false);
+                    try {
+                        if (view === 'profile') { this.profileForm = { first_name:this.user.first_name||'', last_name:this.user.last_name||'' }; return; }
+                        if (view === 'dashboard') await this.loadDashboard();
+                        if (view === 'loans') await this.loadLoans();
+                        if (view === 'repayments') await this.loadRepayments();
+                        if (view === 'insurance') await this.loadInsurance();
+                        if (view === 'chat') await this.loadChat();
+                        if (view === 'notifications') await this.loadNotifications();
+                        if (view === 'users' && this.user.role === 'ADMIN') await this.loadUsers();
+                        if (view === 'audit' && this.user.role === 'ADMIN') await this.loadAudit();
+                        if (view === 'savings') await this.loadSavings();
+                        if (view === 'groups') await this.loadGroups();
+                        if (view === 'accounting' && this.user.role === 'ADMIN') await this.loadAccounting();
+                        if (view === 'compliance' && this.user.role === 'ADMIN') await this.loadCompliance();
+                        if (view === 'payments' && this.user.role === 'ADMIN') await this.loadPayments();
+                        if (view === 'calendar') await this.loadCalendar();
+                        if (view === 'clients' && this.user.role !== 'CLIENT') await this.loadClientList();
+                    } finally {
+                        this.$set(this.loadingViews, view, false);
+                    }
                 },
                 api(path) { return fetch(path, {headers:{'Authorization':`Bearer ${this.token}`}}).then(r => r.json()); },
                 async loadDashboard() {
@@ -1533,6 +1563,8 @@ if (view === 'insurance') await this.loadInsurance();
                         this.savingsAccounts = Array.isArray(d) ? d : d.results || [];
                         const tx = await this.api('/api/savings/transactions/');
                         this.savingsTransactions = Array.isArray(tx) ? tx : tx.results || [];
+                        const p = await this.api('/api/savings/products/');
+                        this.savingsProducts = Array.isArray(p) ? p : p.results || [];
                     } catch(e) { console.error(e); }
                 },
                 async loadGroups() {
@@ -1681,18 +1713,37 @@ if (view === 'insurance') await this.loadInsurance();
                 },
                 async renderCharts() {
                     if (!window.Chart) return;
-                    const baseOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#666' } } }, scales: { x: { ticks: { color: '#999' } }, y: { ticks: { color: '#999' } } } };
-                    const colors = ['#1a73e8','#059669','#d97706','#dc2626','#7c3aed','#0891b2'];
-                    if (document.getElementById('chartLoans')) {
-                        new Chart(document.getElementById('chartLoans'), { type:'bar', data:{ labels:this.chartData.months, datasets:[{ label:'Crédits', data:this.chartData.credits_par_mois, backgroundColor:colors[0], borderRadius:4 }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Crédits par mois', color:'var(--text-primary)'}}} });
-                    }
-                    if (document.getElementById('chartRepayments')) {
-                        new Chart(document.getElementById('chartRepayments'), { type:'line', data:{ labels:this.chartData.months, datasets:[{ label:'Remboursements (FCFA)', data:this.chartData.remboursements_par_mois, borderColor:colors[1], backgroundColor:colors[1]+'33', fill:true, tension:.3 }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Remboursements par mois', color:'var(--text-primary)'}}} });
-                    }
-                    if (document.getElementById('chartStatus')) {
-                        const st = this.chartData.repartition_statuts || [];
-                        new Chart(document.getElementById('chartStatus'), { type:'doughnut', data:{ labels:st.map(s=>s.label), datasets:[{ data:st.map(s=>s.value), backgroundColor:colors.slice(0,st.length) }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Statuts des crédits', color:'var(--text-primary)'}}} });
-                    }
+                    await this.$nextTick();
+                    requestAnimationFrame(() => {
+                        this._charts = this._charts || {};
+                        Object.values(this._charts).forEach(chart => chart && chart.destroy());
+                        this._charts = {};
+                        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#334155';
+                        const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() || '#e2e8f0';
+                        const baseOpts = {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { labels: { color: textColor } } },
+                            scales: {
+                                x: { ticks: { color: '#64748b' }, grid: { color: gridColor } },
+                                y: { ticks: { color: '#64748b' }, grid: { color: gridColor }, beginAtZero: true }
+                            }
+                        };
+                        const colors = ['#1a73e8','#059669','#d97706','#dc2626','#7c3aed','#0891b2'];
+                        const loansCanvas = document.getElementById('chartLoans');
+                        const repaymentsCanvas = document.getElementById('chartRepayments');
+                        const statusCanvas = document.getElementById('chartStatus');
+                        if (loansCanvas) {
+                            this._charts.loans = new Chart(loansCanvas, { type:'bar', data:{ labels:this.chartData.months, datasets:[{ label:'Crédits', data:this.chartData.credits_par_mois, backgroundColor:colors[0], borderRadius:4 }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Crédits par mois', color:textColor}}} });
+                        }
+                        if (repaymentsCanvas) {
+                            this._charts.repayments = new Chart(repaymentsCanvas, { type:'line', data:{ labels:this.chartData.months, datasets:[{ label:'Remboursements (FCFA)', data:this.chartData.remboursements_par_mois, borderColor:colors[1], backgroundColor:colors[1]+'33', fill:true, tension:.3 }] }, options:{...baseOpts, plugins:{...baseOpts.plugins, title:{display:true, text:'Remboursements par mois', color:textColor}}} });
+                        }
+                        if (statusCanvas) {
+                            const st = this.chartData.repartition_statuts || [];
+                            this._charts.status = new Chart(statusCanvas, { type:'doughnut', data:{ labels:st.map(s=>s.label), datasets:[{ data:st.map(s=>s.value), backgroundColor:colors.slice(0,st.length) }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:textColor } }, title:{display:true, text:'Statuts des crédits', color:textColor} } } });
+                        }
+                    });
                 },
                 async viewLoan(l) {
                     try {
@@ -1907,40 +1958,54 @@ if (view === 'insurance') await this.loadInsurance();
                 formatMoney(v) { return new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'; },
                 formatDate(d) { if (!d) return ''; return new Date(d).toLocaleDateString('fr-FR'); },
                 formatTime(d) { if (!d) return ''; return new Date(d).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}); },
+                productName(id) { const p = this.savingsProducts.find(x => x.id === id); return p ? p.nom : '-'; },
+                async initApp() {
+                    this.refresh = localStorage.getItem('refresh') || '';
+                    try {
+                        if (this.refresh) {
+                            const r = await fetch('/api/auth/refresh/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refresh: this.refresh}) });
+                            if (r.ok) {
+                                const d = await r.json();
+                                this.token = d.access;
+                                localStorage.setItem('token', this.token);
+                                const u = await fetch('/api/auth/profile/', { headers:{'Authorization':`Bearer ${this.token}`} });
+                                if (u.ok) this.user = await u.json();
+                            } else {
+                                this.logout(); return;
+                            }
+                        }
+                    } catch(e) { this.logout(); return; }
+                    await this.loadAll();
+                    this.startTokenRefresh();
+                },
+                startTokenRefresh() {
+                    if (this._refreshTimer) clearInterval(this._refreshTimer);
+                    this._refreshTimer = setInterval(async () => {
+                        if (!this.refresh) return;
+                        try {
+                            const r = await fetch('/api/auth/refresh/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refresh: this.refresh}) });
+                            if (!r.ok) throw new Error();
+                            const d = await r.json();
+                            this.token = d.access;
+                            localStorage.setItem('token', this.token);
+                        } catch(e) {
+                            this.notif = { show: true, message: 'Session expirée, veuillez vous reconnecter', type: 'error' };
+                            setTimeout(() => this.notif.show = false, 5000);
+                            setTimeout(() => this.logout(), 2000);
+                        }
+                    }, 600000);
+                }
             },
             mounted() {
+                console.log('Vue monté, token:', this.token ? 'présent' : 'absent');
                 document.documentElement.setAttribute('data-theme', this.theme);
                 if (this.token) { this.initApp(); }
             },
-            async initApp() {
-                try {
-                    const refresh = localStorage.getItem('refresh');
-                    if (refresh) {
-                        const r = await fetch('/api/auth/refresh/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refresh}) });
-                        if (r.ok) { const d = await r.json(); this.token = d.access; localStorage.setItem('token', this.token); }
-                    }
-                } catch(e) {}
-                await this.loadAll();
-                this.startTokenRefresh();
-            },
-            startTokenRefresh() {
-                if (this._refreshTimer) clearInterval(this._refreshTimer);
-                this._refreshTimer = setInterval(async () => {
-                    if (!this.refresh) return;
-                    try {
-                        const r = await fetch('/api/auth/refresh/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({refresh: this.refresh}) });
-                        if (!r.ok) throw new Error();
-                        const d = await r.json();
-                        this.token = d.access;
-                        localStorage.setItem('token', this.token);
-                    } catch(e) {
-                        this.notif = { show: true, message: 'Session expirée, veuillez vous reconnecter', type: 'error' };
-                        setTimeout(() => this.notif.show = false, 5000);
-                        setTimeout(() => this.logout(), 2000);
-                    }
-                }, 600000);
-            }
         });
+        } catch(e) {
+            console.error('VUE INIT ERROR:', e.message, e.stack);
+            document.getElementById('app').innerHTML = '<div style="padding:40px;text-align:center"><h2>Erreur de chargement</h2><p>'+e.message+'</p><button onclick="location.reload()">Recharger</button></div>';
+        }
     </script>
     <script>
     if ('serviceWorker' in navigator) {

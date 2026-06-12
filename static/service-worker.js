@@ -1,46 +1,21 @@
-const CACHE_NAME = 'cofinance-ci-v1';
+const CACHE_NAME = 'cofinance-ci-v4';
 
-const PRECACHE_URLS = [
-  '/',
-  '/static/manifest.json',
-];
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS);
-    })
-  );
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((names) => {
-      return Promise.all(
-        names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
-      );
-    })
+      return Promise.all(names.map((n) => caches.delete(n)));
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request).then((response) => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, clone);
-          });
-        }
-        return response;
-      }).catch(() => cached);
-
-      return cached || fetchPromise;
-    })
-  );
+  // Ne JAMAIS utiliser le cache - toujours réseau
+  event.respondWith(fetch(event.request).catch(() => {
+    return new Response('Pas de connexion', { status: 503 });
+  }));
 });

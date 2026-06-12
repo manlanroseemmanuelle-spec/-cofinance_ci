@@ -10,6 +10,10 @@ from apps.repayments.models import Repayment
 from apps.insurance.models import InsuranceProduct, Policy
 from apps.notifications.models import Notification
 from apps.support_chat.models import Conversation, Message
+from apps.savings.models import SavingsProduct, SavingsAccount, SavingsTransaction
+from apps.groups.models import SolidarityGroup, GroupMember
+from apps.accounting.models import Account
+from apps.payments.models import PaymentGatewayConfig
 
 User = get_user_model()
 
@@ -223,6 +227,75 @@ class Command(BaseCommand):
                 )
             conversations_created += 1
         self.stdout.write(f'[OK] {conversations_created} conversations chat crees')
+
+        savings_products = [
+            SavingsProduct.objects.create(nom='Epargne Libre', type='EPARGNE', taux_interet_annuel=3.5, montant_min=5000, montant_max=5000000, est_actif=True),
+            SavingsProduct.objects.create(nom='Depot a Vue', type='DAV', taux_interet_annuel=1.0, montant_min=10000, montant_max=0, est_actif=True),
+            SavingsProduct.objects.create(nom='Depot a Terme 3 mois', type='DAT', taux_interet_annuel=5.0, duree_jours=90, montant_min=100000, montant_max=5000000, est_actif=True),
+            SavingsProduct.objects.create(nom='Depot a Terme 6 mois', type='DAT', taux_interet_annuel=6.0, duree_jours=180, montant_min=100000, montant_max=10000000, est_actif=True),
+            SavingsProduct.objects.create(nom='Epargne Logement', type='LOGEMENT', taux_interet_annuel=4.0, montant_min=50000, montant_max=0, est_actif=True),
+        ]
+        clients_all = list(Client.objects.all())
+        agents_all = list(Agent.objects.all())
+        savings_accounts_created = 0
+        for i, client in enumerate(clients_all[:10]):
+            prod = random.choice(savings_products)
+            compte = SavingsAccount.objects.create(
+                client=client, produit=prod, solde=random.uniform(50000, 2000000),
+                statut='ACTIF'
+            )
+            for _ in range(random.randint(0, 5)):
+                t_type = random.choice(['VERSEMENT', 'VERSEMENT', 'RETRAIT', 'INTERET_CREDITEUR'])
+                montant = random.uniform(10000, 300000)
+                SavingsTransaction.objects.create(
+                    compte=compte, type=t_type, montant=montant,
+                    solde_avant=compte.solde, solde_apres=compte.solde + (montant if t_type in ['VERSEMENT','INTERET_CREDITEUR'] else -montant),
+                    agent=random.choice(agents_all)
+                )
+                if t_type in ['VERSEMENT','INTERET_CREDITEUR']:
+                    compte.solde += montant
+                else:
+                    compte.solde = max(0, compte.solde - montant)
+            compte.save()
+            savings_accounts_created += 1
+        self.stdout.write(f'[OK] {savings_accounts_created} comptes epargne crees')
+
+        group_types = ['SHG', 'JLG']
+        groups_created = 0
+        for i in range(6):
+            g = SolidarityGroup.objects.create(
+                nom=f'Groupe Solidaire {chr(65+i)}',
+                type=random.choice(group_types),
+                centre=random.choice(['Abidjan', 'Yamoussoukro', 'Bouake', 'San-Pedro']),
+                region=random.choice(['Lagunes', 'Lacs', 'Vallee du Bandama', 'Bas-Sassandra']),
+                responsable=random.choice(clients_all) if random.random() > 0.3 else None,
+                agent=random.choice(agents_all) if random.random() > 0.4 else None,
+                statut=random.choice(['ACTIF', 'ACTIF', 'ACTIF', 'INACTIF']),
+            )
+            members_count = random.randint(5, 15)
+            for m in random.sample(clients_all, min(members_count, len(clients_all))):
+                GroupMember.objects.create(
+                    groupe=g, client=m,
+                    role=random.choice(['CHEF', 'MEMBRE', 'MEMBRE', 'MEMBRE', 'SECRETAIRE']),
+                    est_actif=True
+                )
+            groups_created += 1
+        self.stdout.write(f'[OK] {groups_created} groupes solidaires crees')
+
+        for code, nom, typ in [
+            ('101', 'Caisse', 'ACTIF'), ('131', 'Capital Social', 'PASSIF'),
+            ('411', 'Clients', 'ACTIF'), ('421', 'Fournisseurs', 'PASSIF'),
+            ('511', 'Banque', 'ACTIF'), ('701', 'Revenus', 'PRODUIT'),
+            ('601', 'Charges Personnel', 'CHARGE'), ('661', 'Interets', 'CHARGE'),
+            ('471', 'Compte de Tiers', 'PASSIF'), ('521', 'Prets', 'ACTIF'),
+        ]:
+            Account.objects.create(code=code, nom=nom, type=typ, solde_actuel=random.uniform(100000, 50000000))
+        self.stdout.write(f'[OK] 10 comptes comptables crees')
+
+        PaymentGatewayConfig.objects.create(code='OM', nom='Orange Money', api_url='https://api.orange.com', api_key='key_om', api_secret='secret_om', est_actif=True)
+        PaymentGatewayConfig.objects.create(code='WV', nom='Wave', api_url='https://api.wave.com', api_key='key_wv', api_secret='secret_wv', est_actif=True)
+        PaymentGatewayConfig.objects.create(code='MTN', nom='MTN Mobile Money', api_url='https://api.mtn.com', api_key='key_mtn', api_secret='secret_mtn', frais_pourcentage=1.5, est_actif=True)
+        self.stdout.write(f'[OK] 3 passerelles de paiement crees')
 
         self.stdout.write(self.style.SUCCESS('\n[SUCCESS] Donnees de demonstration generees avec succes!'))
         self.stdout.write(f'   Admin: admin / admin123')

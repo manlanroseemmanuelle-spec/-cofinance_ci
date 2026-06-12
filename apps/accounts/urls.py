@@ -14,4 +14,6 @@ urlpatterns = [
     path('agents/<int:pk>/', views.AgentDetailView.as_view(), name='agent-detail'),
     path('users/', views.UserListView.as_view(), name='user-list'),
     path('users/<int:pk>/', views.UserDetailView.as_view(), name='user-detail'),
+    path('forgot-password/', views.ForgotPasswordView.as_view(), name='auth-forgot-password'),
+    path('reset-password/', views.ResetPasswordView.as_view(), name='auth-reset-password'),
 ]

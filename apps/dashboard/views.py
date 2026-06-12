@@ -2,16 +2,24 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from drf_spectacular.utils import extend_schema
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncMonth
+from django.db.models import Sum, Count, Q
 from django.utils import timezone
-from datetime import timedelta
-from apps.loans.models import LoanApplication
+from datetime import timedelta, date
+from apps.loans.models import LoanApplication, AmortizationSchedule
 from apps.repayments.models import Repayment
 from apps.insurance.models import Policy
 from apps.support_chat.models import Conversation
-from apps.accounts.models import Agent
+from apps.accounts.models import Agent, Client
+from apps.accounts.serializers import UserSerializer
 from apps.accounts.permissions import IsAdmin
+
+
+def _apply_period(qs, field, period):
+    if period == '7d':
+        return qs.filter(**{f'{field}__gte': timezone.now() - timedelta(days=7)})
+    if period == '90d':
+        return qs.filter(**{f'{field}__gte': timezone.now() - timedelta(days=90)})
+    return qs
 
 
 @extend_schema(tags=['Dashboard'], responses={200: dict})
@@ -19,23 +27,42 @@ class AdminDashboardView(APIView):
     permission_classes = [IsAdmin]
 
     def get(self, request):
-        total_loans = LoanApplication.objects.count()
-        approved_loans = LoanApplication.objects.filter(statut='APPROUVEE').count()
-        rejected_loans = LoanApplication.objects.filter(statut='REJETEE').count()
-        disbursed_loans = LoanApplication.objects.filter(statut='DECAISSEE').count()
-        pending_loans = LoanApplication.objects.filter(statut__in=['SOUMISE', 'EN_ANALYSE']).count()
+        agent_id = request.query_params.get('agent_id')
+        region = request.query_params.get('region')
+        period = request.query_params.get('period', '30d')
 
-        total_amount_loaned = LoanApplication.objects.filter(
+        loan_qs = LoanApplication.objects.all()
+        repay_qs = Repayment.objects.all()
+        policy_qs = Policy.objects.all()
+
+        if agent_id:
+            loan_qs = loan_qs.filter(agent_id=agent_id)
+            repay_qs = repay_qs.filter(agent_id=agent_id)
+        if region:
+            loan_qs = loan_qs.filter(client__user__region=region)
+            repay_qs = repay_qs.filter(loan__client__user__region=region)
+            policy_qs = policy_qs.filter(client__user__region=region)
+        if period != 'all':
+            loan_qs = _apply_period(loan_qs, 'date_creation', period)
+            repay_qs = _apply_period(repay_qs, 'date_paiement', period)
+
+        total_loans = loan_qs.count()
+        approved_loans = loan_qs.filter(statut='APPROUVEE').count()
+        rejected_loans = loan_qs.filter(statut='REJETEE').count()
+        disbursed_loans = loan_qs.filter(statut='DECAISSEE').count()
+        pending_loans = loan_qs.filter(statut__in=['SOUMISE', 'EN_ANALYSE']).count()
+
+        total_amount_loaned = loan_qs.filter(
             statut='DECAISSEE'
         ).aggregate(Sum('montant_demande'))['montant_demande__sum'] or 0
 
-        total_repayments = Repayment.objects.aggregate(
+        total_repayments = repay_qs.aggregate(
             total=Sum('montant'),
             total_penalites=Sum('penalite')
         )
 
-        active_policies = Policy.objects.filter(statut='ACTIVE').count()
-        expired_policies = Policy.objects.filter(statut='EXPIREE').count()
+        active_policies = policy_qs.filter(statut='ACTIVE').count()
+        expired_policies = policy_qs.filter(statut='EXPIREE').count()
 
         total_conversations = Conversation.objects.count()
         open_conversations = Conversation.objects.filter(status='OUVERTE').count()
@@ -201,3 +228,133 @@ class ChartsDataView(APIView):
             'repartition_statuts': status_dist,
             'top_agents': top_agents,
         })
+
+
+@extend_schema(tags=['Dashboard'], responses={200: dict})
+class CalendarView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        today = timezone.now().date()
+        end_date = today + timedelta(days=90)
+
+        if request.user.role == 'ADMIN':
+            schedules = AmortizationSchedule.objects.select_related(
+                'loan__client__user'
+            ).filter(
+                date_echeance__gte=today,
+                date_echeance__lte=end_date,
+            ).order_by('date_echeance')
+        elif request.user.role == 'AGENT':
+            agent = request.user.agent_profile
+            schedules = AmortizationSchedule.objects.select_related(
+                'loan__client__user'
+            ).filter(
+                loan__agent=agent,
+                date_echeance__gte=today,
+                date_echeance__lte=end_date,
+            ).order_by('date_echeance')
+        else:
+            client = request.user.client_profile
+            schedules = AmortizationSchedule.objects.select_related(
+                'loan__client__user'
+            ).filter(
+                loan__client=client,
+                date_echeance__gte=today,
+                date_echeance__lte=end_date,
+            ).order_by('date_echeance')
+
+        events = []
+        for s in schedules:
+            events.append({
+                'id': s.id,
+                'title': f"#{s.loan_id} - {s.mensualite} FCFA",
+                'date': s.date_echeance.isoformat(),
+                'montant': str(s.mensualite),
+                'part_capital': str(s.part_capital),
+                'part_interet': str(s.part_interet),
+                'est_paye': s.est_paye,
+                'numero': s.numero_mensualite,
+                'client': s.loan.client.user.get_full_name() or s.loan.client.user.username,
+                'loan_id': s.loan_id,
+            })
+
+        overdue = AmortizationSchedule.objects.filter(
+            Q(loan__in=[s.loan_id for s in schedules]) if schedules else Q(),
+            est_paye=False,
+            date_echeance__lt=today,
+        ).count()
+
+        return Response({
+            'events': events,
+            'overdue': overdue,
+            'total': schedules.count(),
+            'monthly_total': sum(
+                float(s.mensualite) for s in schedules
+                if s.date_echeance.month == today.month and s.date_echeance.year == today.year
+            ),
+        })
+
+
+@extend_schema(tags=['Dashboard'], responses={200: dict})
+class DashboardClientListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role == 'ADMIN':
+            clients = Client.objects.select_related('user').all()
+        elif request.user.role == 'AGENT':
+            agent = request.user.agent_profile
+            loan_client_ids = LoanApplication.objects.filter(
+                agent=agent
+            ).values_list('client_id', flat=True).distinct()
+            clients = Client.objects.select_related('user').filter(id__in=loan_client_ids)
+        else:
+            return Response({'error': 'Acces reserve aux agents et admins'}, status=status.HTTP_403_FORBIDDEN)
+
+        data = []
+        for c in clients:
+            active_loans = LoanApplication.objects.filter(client=c, statut='DECAISSEE').count()
+            total_due = AmortizationSchedule.objects.filter(
+                loan__client=c, est_paye=False
+            ).aggregate(Sum('mensualite'))['mensualite__sum'] or 0
+            data.append({
+                'id': c.id,
+                'username': c.user.username,
+                'nom': c.user.get_full_name() or c.user.username,
+                'telephone': c.user.telephone,
+                'region': c.user.region,
+                'profession': c.profession,
+                'score_credit': c.score_credit,
+                'prets_actifs': active_loans,
+                'total_du': str(total_due),
+            })
+
+        return Response(data)
+
+
+@extend_schema(tags=['Dashboard'], responses={200: list})
+class DashboardAgentListView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        agents = Agent.objects.select_related('user').all()
+        return Response([{
+            'id': a.id,
+            'nom': a.user.get_full_name() or a.user.username,
+            'matricule': a.matricule,
+            'region': a.region,
+        } for a in agents])
+
+
+@extend_schema(tags=['Dashboard'], responses={200: list})
+class DashboardRegionListView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        regions = Agent.objects.values_list('region', flat=True).distinct().order_by('region')
+        all_regions = list(set(list(regions) + list(
+            Client.objects.values_list('user__region', flat=True).distinct()
+        )))
+        all_regions = sorted([r for r in all_regions if r])
+        return Response(all_regions)

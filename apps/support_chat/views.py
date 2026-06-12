@@ -1,12 +1,16 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
+from django.db.models import Count, Q
+from django.contrib.auth import get_user_model
 from .models import Conversation, Message
 from .serializers import (
     ConversationSerializer, ConversationCreateSerializer,
     MessageSerializer, MessageCreateSerializer
 )
 from apps.accounts.permissions import IsAdminOrAgent, IsConversationParticipant
+
+User = get_user_model()
 
 
 @extend_schema(tags=['Chat'])
@@ -31,7 +35,12 @@ class ConversationListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         if user.role == 'CLIENT':
-            conv = Conversation.objects.create(client=user)
+            available_agent = User.objects.filter(
+                role='ADMIN', is_active=True
+            ).annotate(
+                open_count=Count('agent_conversations', filter=Q(agent_conversations__status='OUVERTE'))
+            ).order_by('open_count').first()
+            conv = Conversation.objects.create(client=user, agent=available_agent)
         else:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Seuls les clients peuvent ouvrir une conversation.")

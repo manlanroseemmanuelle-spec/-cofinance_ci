@@ -79,3 +79,12 @@ class AgentCreateSerializer(serializers.ModelSerializer):
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, min_length=6)
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    telephone = serializers.CharField(required=True)
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, min_length=6)

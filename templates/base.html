@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Cofinance CI">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/static/logo-192.svg">
+    <link rel="apple-touch-icon" href="/static/logo-192.svg">
     <title>Cofinance CI - Plateforme de Microfinance</title>
 <script src="https://cdn.jsdelivr.net/npm/vue@2.7/dist/vue.min.js"></script>
      <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
@@ -203,6 +210,7 @@
         .login-card .login-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 28px; }
         .login-card .error { background: var(--danger-light); color: var(--danger); font-size: 13px; padding: 10px 14px; border-radius: var(--radius); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .login-card .demo-info { margin-top: 20px; padding: 12px 16px; background: var(--bg-secondary); border-radius: var(--radius); font-size: 12px; color: var(--text-secondary); line-height: 1.6; border: 1px solid var(--border-color); }
+        .login-card .error.success { background: #ecfdf5; color: #059669; }
         .login-card .demo-info strong { color: var(--text-primary); }
         .notification-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
         .notification { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 14px 20px; box-shadow: var(--shadow-lg); font-size: 13px; display: flex; align-items: center; gap: 10px; animation: slideIn .3s ease-out; min-width: 300px; }
@@ -290,6 +298,12 @@
             .stats-grid { grid-template-columns: 1fr 1fr; }
             .login-card { margin: 12px; padding: 24px; }
         }
+        .row-overdue { background: var(--danger-light) !important; }
+        .row-overdue td { color: var(--danger); }
+        .row-overdue:hover td { color: var(--danger); }
+        .btn-outline.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .badge { display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;font-size:11px;font-weight:600;border-radius:11px;background:var(--bg-secondary);color:var(--text-secondary); }
+        .stat-card .sub { font-size:12px;color:var(--text-secondary); }
         @media print { .sidebar, .header { display: none; } .main { margin-left: 0; } }
     </style>
 </head>
@@ -311,12 +325,36 @@
                     <label>Mot de passe</label>
                     <input type="password" v-model="password" @keyup.enter="login" placeholder="••••••••">
                 </div>
-                <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" @click="login" :disabled="loading">
-                    <svg v-if="loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
-                    <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                    {{ loading ? 'Connexion...' : 'Se connecter' }}
-                </button>
-                <div class="demo-info">
+                <div v-if="!showForgotPassword">
+                    <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" @click="login" :disabled="loading">
+                        <svg v-if="loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                        <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                        {{ loading ? 'Connexion...' : 'Se connecter' }}
+                    </button>
+                    <div style="text-align:center;margin-top:12px"><a href="#" @click.prevent="showForgotPassword=true;forgotMsg='';forgotPhone=''" style="font-size:13px;color:var(--accent);text-decoration:none">Mot de passe oublié ?</a></div>
+                </div>
+                <div v-else>
+                    <template v-if="resetStep === 'request'">
+                        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">Entrez votre numéro de téléphone pour réinitialiser votre mot de passe.</p>
+                        <div class="form-group"><label>Téléphone</label><input type="text" v-model="forgotPhone" placeholder="+225 01 XX XX XX XX"></div>
+                        <div v-if="forgotMsg" :class="['error', !forgotMsg.includes('Erreur') ? 'success' : '']" style="font-size:13px;padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;background:forgotMsg.includes('Erreur') ? 'var(--danger-light)' : '#ecfdf5';color:forgotMsg.includes('Erreur') ? 'var(--danger)' : '#059669'">{{ forgotMsg }}</div>
+                        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" @click="forgotPassword" :disabled="loading">
+                            <svg v-if="loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                            {{ loading ? 'Envoi...' : 'Envoyer le code' }}
+                        </button>
+                    </template>
+                    <template v-if="resetStep === 'reset'">
+                        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">Entrez votre nouveau mot de passe.</p>
+                        <div class="form-group"><label>Nouveau mot de passe</label><input type="password" v-model="resetPassword" placeholder="Minimum 6 caractères"></div>
+                        <div class="form-group"><label>Confirmer</label><input type="password" v-model="resetConfirm" placeholder="Confirmer le mot de passe"></div>
+                        <div v-if="forgotMsg" :class="['error', !forgotMsg.includes('Erreur') ? 'success' : '']" style="font-size:13px;padding:8px 12px;border-radius:var(--radius);margin-bottom:12px">{{ forgotMsg }}</div>
+                        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" @click="confirmReset" :disabled="loading">
+                            <svg v-if="loading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                            {{ loading ? 'Réinitialisation...' : 'Réinitialiser' }}
+                        </button>
+                    </template>
+                    <div style="text-align:center;margin-top:12px"><a href="#" @click.prevent="showForgotPassword=false;resetStep='request'" style="font-size:13px;color:var(--accent);text-decoration:none">Retour à la connexion</a></div>
+                </div>
                     <strong>Identifiants de démonstration :</strong><br>
                     Admin: <strong>admin</strong> / <strong>admin123</strong><br>
                     Agents: <strong>agent1</strong> à <strong>agent5</strong> / <strong>agent123</strong><br>
@@ -455,6 +493,88 @@
                             <div v-if="!paymentGateways.length" class="card"><div class="card-body scroll-table"><table><tbody><tr><td><div class="empty-state"><p>Aucune passerelle configurée</p></div></td></tr></tbody></table></div></div>
                         </div>
 
+                        <div v-if="currentView === 'calendar'" class="view-fade">
+                            <div class="page-header">
+                                <h4>Calendrier des échéances</h4>
+                                <div class="page-actions">
+                                    <div class="stats-grid" style="grid-template-columns:repeat(3,auto);gap:12px;margin:0">
+                                        <div class="stat-card" style="padding:8px 16px;min-width:auto">
+                                            <div class="value" style="font-size:16px">{{ calendarEvents.length }}</div>
+                                            <div class="sub">Échéances (90j)</div>
+                                        </div>
+                                        <div class="stat-card" style="padding:8px 16px;min-width:auto">
+                                            <div class="value" style="font-size:16px;color:var(--danger)">{{ calendarOverdue }}</div>
+                                            <div class="sub">En retard</div>
+                                        </div>
+                                        <div class="stat-card" style="padding:8px 16px;min-width:auto">
+                                            <div class="value" style="font-size:16px;color:var(--success)">{{ formatMoney(calendarMonthlyTotal) }}</div>
+                                            <div class="sub">Dû ce mois</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card" style="margin-top:8px">
+                                <div class="card-header">
+                                    <h4>Prochaines échéances</h4>
+                                    <div class="page-actions" style="gap:4px">
+                                        <button class="btn btn-sm btn-outline" @click="calendarFilter='all'" :class="{active:calendarFilter==='all'}">Toutes</button>
+                                        <button class="btn btn-sm btn-outline" @click="calendarFilter='pending'" :class="{active:calendarFilter==='pending'}">En attente</button>
+                                        <button class="btn btn-sm btn-outline" @click="calendarFilter='paid'" :class="{active:calendarFilter==='paid'}">Payées</button>
+                                    </div>
+                                </div>
+                                <div class="card-body scroll-table">
+                                    <table v-if="filteredCalendarEvents.length">
+                                        <thead><tr><th>Date</th><th>Client</th><th>Prêt</th><th>Échéance</th><th>Montant</th><th>Capital</th><th>Intérêt</th><th>Statut</th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="e in filteredCalendarEvents" :key="e.id" :class="{'row-overdue': !e.est_paye && new Date(e.date) < new Date()}">
+                                                <td style="white-space:nowrap;font-weight:500">{{ formatDate(e.date) }}</td>
+                                                <td>{{ e.client }}</td>
+                                                <td><code>#{{ e.loan_id }}</code></td>
+                                                <td><span class="badge">M{{ e.numero }}</span></td>
+                                                <td style="font-weight:600">{{ formatMoney(e.montant) }}</td>
+                                                <td style="font-size:12px;color:var(--text-secondary)">{{ formatMoney(e.part_capital) }}</td>
+                                                <td style="font-size:12px;color:var(--text-secondary)">{{ formatMoney(e.part_interet) }}</td>
+                                                <td><span :class="'status ' + (e.est_paye ? 'active' : (new Date(e.date) < new Date() ? 'closed' : 'pending'))"><span class="dot"></span>{{ e.est_paye ? 'Payée' : (new Date(e.date) < new Date() ? 'Retard' : 'À venir') }}</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div v-else class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h5>Aucune échéance</h5></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="currentView === 'clients'" class="view-fade">
+                            <div class="page-header">
+                                <h4>Clients</h4>
+                                <div class="page-actions">
+                                    <div class="search-box" style="position:relative">
+                                        <svg viewBox="0 0 24 24" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-secondary)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                        <input type="text" v-model="clientSearch" placeholder="Rechercher un client..." style="padding:8px 12px 8px 32px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;background:var(--bg-input);color:var(--text-primary);width:260px">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header"><h4>Liste des clients ({{ filteredClients.length }})</h4></div>
+                                <div class="card-body scroll-table">
+                                    <table v-if="filteredClients.length">
+                                        <thead><tr><th>Nom</th><th>Téléphone</th><th>Région</th><th>Profession</th><th>Score</th><th>Prêts actifs</th><th>Total dû</th></tr></thead>
+                                        <tbody>
+                                            <tr v-for="c in filteredClients" :key="c.id">
+                                                <td style="font-weight:500">{{ c.nom }}</td>
+                                                <td>{{ c.telephone }}</td>
+                                                <td><span class="tag">{{ c.region || '—' }}</span></td>
+                                                <td>{{ c.profession }}</td>
+                                                <td><span :class="['status', c.score_credit >= 50 ? 'active' : c.score_credit >= 30 ? 'pending' : 'closed']">{{ c.score_credit }}</span></td>
+                                                <td><span class="tag blue">{{ c.prets_actifs }}</span></td>
+                                                <td style="font-weight:600">{{ formatMoney(c.total_du) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div v-else class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div><h5>Aucun client trouvé</h5></div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -517,7 +637,7 @@
                         </div>
                     </header>
                     <div class="content">
-                        <template v-for="v in ['dashboard','loans','repayments','insurance','chat','notifications','users','audit']">
+                        <template v-for="v in ['dashboard','loans','repayments','insurance','chat','notifications','users','audit','savings','groups','accounting','compliance','payments','calendar','clients']">
                             <div :key="'skeleton-'+v" v-if="loadingViews[v] && currentView === v" class="view-fade">
                                 <div class="page-header" v-if="v==='dashboard'"><h4>Chargement...</h4></div>
                                 <div class="stats-grid" v-if="v==='dashboard'">
@@ -564,7 +684,17 @@
                             <div v-if="currentView === 'dashboard'">
                                 <div class="page-header">
                                     <h4>Tableau de bord</h4>
-                                    <div class="page-actions">
+                                    <div class="page-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+                                        <div style="display:flex;gap:4px" v-if="user.role === 'ADMIN'">
+                                            <select v-model="dashboardAgentId" @change="loadDashboard()" style="padding:6px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:12px;background:var(--bg-input);color:var(--text-primary)">
+                                                <option value="">Tous les agents</option>
+                                                <option v-for="a in dashboardAgents" :key="a.id" :value="a.id">{{ a.nom }}</option>
+                                            </select>
+                                            <select v-model="dashboardRegion" @change="loadDashboard()" style="padding:6px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:12px;background:var(--bg-input);color:var(--text-primary)">
+                                                <option value="">Toutes les régions</option>
+                                                <option v-for="r in dashboardRegions" :key="r" :value="r">{{ r }}</option>
+                                            </select>
+                                        </div>
                                         <button v-for="p in filterPeriods" :key="p.value" :class="['filter-btn', {active: dashboardPeriod === p.value}]" @click="dashboardPeriod=p.value;loadDashboard()">{{ p.label }}</button>
                                     </div>
                                 </div>
@@ -1163,6 +1293,23 @@
                 searchIndex: -1,
                 showGroupForm: false,
                 groupForm: { nom:'', type:'SHG', region:'' },
+                calendarEvents: [],
+                calendarFilter: 'all',
+                calendarOverdue: 0,
+                calendarMonthlyTotal: 0,
+                clientList: [],
+                clientSearch: '',
+                dashboardAgents: [],
+                dashboardRegions: [],
+                dashboardAgentId: '',
+                dashboardRegion: '',
+                showForgotPassword: false,
+                forgotPhone: '',
+                resetToken: '',
+                resetPassword: '',
+                resetConfirm: '',
+                resetStep: 'request',
+                forgotMsg: '',
             },
             computed: {
                 menuItems() {
@@ -1176,18 +1323,25 @@
                         { id: 'notifications', iconSvg: '<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>', label: 'Notifications', badge: () => this.unreadNotifCount },
                         { id: 'savings', iconSvg: '<svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>', label: 'Épargne', badge: null },
                         { id: 'groups', iconSvg: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>', label: 'Groupes', badge: null },
-                        { id: 'accounting', iconSvg: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label: 'Comptabilité', badge: null },
-                        { id: 'compliance', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label: 'Conformité', badge: null },
-                        { id: 'payments', iconSvg: '<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>', label: 'Paiements', badge: null },
                     ];
                     if (this.user.role === 'ADMIN') {
+                        items.push({ id: 'accounting', iconSvg: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label: 'Comptabilité', badge: null });
+                        items.push({ id: 'compliance', iconSvg: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label: 'Conformité', badge: null });
+                        items.push({ id: 'payments', iconSvg: '<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>', label: 'Paiements', badge: null });
                         items.push({ id: 'users', iconSvg: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>', label: 'Utilisateurs', badge: null });
                         items.push({ id: 'audit', iconSvg: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>', label: 'Audit', badge: null });
+                    }
+                    if (this.user.role === 'AGENT') {
+                        items.push({ id: 'clients', iconSvg: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>', label: 'Clients', badge: null });
+                        items.push({ id: 'calendar', iconSvg: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', label: 'Calendrier', badge: null });
+                    }
+                    if (this.user.role === 'CLIENT') {
+                        items.push({ id: 'calendar', iconSvg: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', label: 'Mes échéances', badge: null });
                     }
                     return items;
                 },
                 currentViewTitle() {
-                    const map = { dashboard:'Tableau de bord', profile:'Mon Profil', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs', audit:"Journal d'audit", savings:'Épargne', groups:'Groupes', accounting:'Comptabilité', compliance:'Conformité', payments:'Paiements' };
+                    const map = { dashboard:'Tableau de bord', profile:'Mon Profil', loans:'Crédits', repayments:'Remboursements', insurance:'Assurance', chat:'Support Chat', notifications:'Notifications', users:'Utilisateurs', audit:"Journal d'audit", savings:'Épargne', groups:'Groupes', accounting:'Comptabilité', compliance:'Conformité', payments:'Paiements', calendar:'Calendrier des échéances', clients:'Clients' };
                     return map[this.currentView] || 'Cofinance CI';
                 },
                 unreadChatCount() { return this.conversations.reduce((s, c) => s + (c.unread_count || 0), 0); },
@@ -1204,6 +1358,22 @@
                 auditPages() { return Array.from({length:Math.ceil(this.auditCount/this.pageSize)},(_,i)=>i+1); },
                 userPages() { return Math.max(1, Math.ceil(this.userCount/this.pageSize)); },
                 repayPages() { return Math.max(1, Math.ceil(this.repayments.length/this.pageSize)); },
+                filteredCalendarEvents() {
+                    let events = [...this.calendarEvents];
+                    if (this.calendarFilter === 'pending') events = events.filter(e => !e.est_paye);
+                    if (this.calendarFilter === 'paid') events = events.filter(e => e.est_paye);
+                    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+                    return events;
+                },
+                filteredClients() {
+                    if (!this.clientSearch) return this.clientList;
+                    const q = this.clientSearch.toLowerCase();
+                    return this.clientList.filter(c =>
+                        c.nom.toLowerCase().includes(q) ||
+                        c.telephone.includes(q) ||
+                        (c.region && c.region.toLowerCase().includes(q))
+                    );
+                },
                 savingsStats() {
                     const totalSolde = this.savingsAccounts.reduce((s, c) => s + (parseFloat(c.solde)||0), 0);
                     const nbComptes = this.savingsAccounts.length;
@@ -1216,6 +1386,34 @@
                 },
             },
             methods: {
+                async forgotPassword() {
+                    if (!this.forgotPhone) { this.forgotMsg = 'Veuillez entrer votre numéro de téléphone'; return; }
+                    this.loading = true; this.forgotMsg = '';
+                    try {
+                        const r = await fetch('/api/auth/forgot-password/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({telephone: this.forgotPhone}) });
+                        const d = await r.json();
+                        if (!r.ok) { this.forgotMsg = d.error || 'Erreur'; return; }
+                        this.resetToken = d.token;
+                        this.forgotMsg = 'Code de réinitialisation envoyé. Veuillez choisir un nouveau mot de passe.';
+                        this.resetStep = 'reset';
+                    } catch(e) { this.forgotMsg = 'Erreur de connexion au serveur'; }
+                    finally { this.loading = false; }
+                },
+                async confirmReset() {
+                    if (!this.resetPassword || this.resetPassword.length < 6) { this.forgotMsg = 'Minimum 6 caractères'; return; }
+                    if (this.resetPassword !== this.resetConfirm) { this.forgotMsg = 'Les mots de passe ne correspondent pas'; return; }
+                    this.loading = true; this.forgotMsg = '';
+                    try {
+                        const r = await fetch('/api/auth/reset-password/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token: this.resetToken, new_password: this.resetPassword}) });
+                        const d = await r.json();
+                        if (!r.ok) { this.forgotMsg = d.error || 'Erreur'; return; }
+                        this.forgotMsg = 'Mot de passe réinitialisé avec succès ! Vous pouvez vous connecter.';
+                        this.showForgotPassword = false;
+                        this.resetStep = 'request';
+                        this.resetPassword = ''; this.resetConfirm = ''; this.resetToken = '';
+                    } catch(e) { this.forgotMsg = 'Erreur de connexion au serveur'; }
+                    finally { this.loading = false; }
+                },
                 async login() {
                     if (!this.username || !this.password) return;
                     this.loading = true; this.error = '';
@@ -1252,13 +1450,21 @@ if (view === 'insurance') await this.loadInsurance();
                     if (view === 'accounting' && this.user.role === 'ADMIN') await this.loadAccounting();
                     if (view === 'compliance' && this.user.role === 'ADMIN') await this.loadCompliance();
                     if (view === 'payments' && this.user.role === 'ADMIN') await this.loadPayments();
+                    if (view === 'calendar') await this.loadCalendar();
+                    if (view === 'clients' && (this.user.role === 'AGENT' || this.user.role === 'ADMIN')) await this.loadClientList();
+                    if (view === 'dashboard' && this.user.role === 'ADMIN') { await Promise.all([this.loadDashboardAgents(), this.loadDashboardRegions()]); }
                     this.$set(this.loadingViews, view, false);
                 },
                 api(path) { return fetch(path, {headers:{'Authorization':`Bearer ${this.token}`}}).then(r => r.json()); },
                 async loadDashboard() {
                 try {
                     const role = this.user.role.toLowerCase();
-                    const data = await this.api(`/api/dashboard/${role}/`);
+                    const params = new URLSearchParams();
+                    if (this.dashboardPeriod) params.set('period', this.dashboardPeriod);
+                    if (this.dashboardAgentId) params.set('agent_id', this.dashboardAgentId);
+                    if (this.dashboardRegion) params.set('region', this.dashboardRegion);
+                    const qs = params.toString();
+                    const data = await this.api(`/api/dashboard/${role}/${qs ? '?' + qs : ''}`);
                     if (role === 'admin') {
                         const chartResp = await this.api('/api/dashboard/charts/');
                         this.chartData = chartResp;
@@ -1355,6 +1561,26 @@ if (view === 'insurance') await this.loadInsurance();
                     try {
                         const d = await this.api('/api/payments/gateways/');
                         this.paymentGateways = Array.isArray(d) ? d : d.results || [];
+                    } catch(e) { console.error(e); }
+                },
+                async loadDashboardAgents() {
+                    try { const d = await this.api('/api/dashboard/agents/'); this.dashboardAgents = Array.isArray(d) ? d : []; } catch(e) {}
+                },
+                async loadDashboardRegions() {
+                    try { const d = await this.api('/api/dashboard/regions/'); this.dashboardRegions = Array.isArray(d) ? d : []; } catch(e) {}
+                },
+                async loadCalendar() {
+                    try {
+                        const d = await this.api('/api/dashboard/calendar/');
+                        this.calendarEvents = Array.isArray(d.events) ? d.events : [];
+                        this.calendarOverdue = d.overdue || 0;
+                        this.calendarMonthlyTotal = d.monthly_total || 0;
+                    } catch(e) { console.error(e); }
+                },
+                async loadClientList() {
+                    try {
+                        const d = await this.api('/api/dashboard/clients/');
+                        this.clientList = Array.isArray(d) ? d : d.results || [];
                     } catch(e) { console.error(e); }
                 },
                 async selectChat(c) {
@@ -1703,6 +1929,17 @@ if (view === 'insurance') await this.loadInsurance();
                 }, 600000);
             }
         });
+    </script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/static/service-worker.js').then((reg) => {
+                console.log('SW enregistré:', reg.scope);
+            }, (err) => {
+                console.log('Erreur SW:', err);
+            });
+        });
+    }
     </script>
 </body>
 </html>

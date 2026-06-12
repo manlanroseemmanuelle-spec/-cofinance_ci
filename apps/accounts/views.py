@@ -4,13 +4,22 @@ from rest_framework.views import APIView
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema
+from django.utils.crypto import get_random_string
+from django.utils import timezone
+from datetime import timedelta
 from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer,
     ClientSerializer, ClientCreateSerializer, AgentSerializer,
-    AgentCreateSerializer, ChangePasswordSerializer
+    AgentCreateSerializer, ChangePasswordSerializer,
+    ForgotPasswordSerializer, ResetPasswordSerializer
 )
 from .models import Client, Agent
 from .permissions import IsAdmin
+
+User = get_user_model()
+
+# In-memory reset tokens (dev only — use Redis/DB in production)
+_reset_tokens = {}
 
 User = get_user_model()
 
@@ -135,3 +144,54 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]
+
+
+@extend_schema(tags=['Authentification'])
+class ForgotPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(request=ForgotPasswordSerializer)
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        telephone = serializer.validated_data['telephone']
+        try:
+            user = User.objects.get(telephone=telephone)
+        except User.DoesNotExist:
+            return Response({'error': 'Aucun compte trouvé avec ce numéro'}, status=status.HTTP_404_NOT_FOUND)
+
+        token = get_random_string(32)
+        _reset_tokens[token] = {
+            'user_id': user.id,
+            'expires': timezone.now() + timedelta(hours=1),
+        }
+        return Response({
+            'message': 'Token de réinitialisation généré',
+            'token': token,
+            'reset_url': f'/reset-password/{token}/',
+        })
+
+
+@extend_schema(tags=['Authentification'])
+class ResetPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(request=ResetPasswordSerializer)
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+
+        data = _reset_tokens.get(token)
+        if not data:
+            return Response({'error': 'Token invalide'}, status=status.HTTP_400_BAD_REQUEST)
+        if timezone.now() > data['expires']:
+            del _reset_tokens[token]
+            return Response({'error': 'Token expiré'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(id=data['user_id'])
+        user.set_password(new_password)
+        user.save()
+        del _reset_tokens[token]
+        return Response({'message': 'Mot de passe réinitialisé avec succès'})

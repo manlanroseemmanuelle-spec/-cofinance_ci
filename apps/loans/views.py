@@ -145,6 +145,61 @@ class LoanStatusUpdateView(generics.UpdateAPIView):
                 user=loan.agent.user,
             )
 
+        # Accounting entries on disbursement or approval
+        if new_status == LoanApplication.Statut.DECAISSEE:
+            _creer_ecriture_decaissement(loan)
+        elif new_status == LoanApplication.Statut.APPROUVEE:
+            _creer_ecriture_approbation(loan)
+
+
+def _creer_ecriture_approbation(loan):
+    """Crée une écriture comptable lors de l'approbation d'un prêt."""
+    from apps.accounting.models import Account, JournalEntry, JournalEntryLine
+    from django.utils import timezone
+    compte_pret, _ = Account.objects.get_or_create(
+        code='521', defaults={'nom': 'Prêts', 'type': 'ACTIF'}
+    )
+    compte_client, _ = Account.objects.get_or_create(
+        code='411', defaults={'nom': 'Clients', 'type': 'ACTIF'}
+    )
+    montant = loan.montant_demande
+    ref = f"APP-{loan.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    entry = JournalEntry.objects.create(
+        journal='OD',
+        reference=ref,
+        date_ecriture=timezone.now().date(),
+        libelle=f"Approbation prêt #{loan.id} - {loan.client.user.get_full_name()}",
+        loan=loan,
+        client=loan.client,
+        agent=loan.agent,
+    )
+    JournalEntryLine.objects.create(entry=entry, account=compte_pret, sens='DEBIT', montant=montant, libelle='Montant du prêt')
+    JournalEntryLine.objects.create(entry=entry, account=compte_client, sens='CREDIT', montant=montant, libelle='Créance client')
+
+
+def _creer_ecriture_decaissement(loan):
+    """Crée une écriture comptable lors du décaissement d'un prêt."""
+    from apps.accounting.models import Account, JournalEntry, JournalEntryLine
+    from django.utils import timezone
+    compte_caisse, _ = Account.objects.get_or_create(
+        code='101', defaults={'nom': 'Caisse', 'type': 'ACTIF'}
+    )
+    compte_client, _ = Account.objects.get_or_create(
+        code='411', defaults={'nom': 'Clients', 'type': 'ACTIF'}
+    )
+    montant = loan.montant_demande
+    ref = f"DCA-{loan.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    entry = JournalEntry.objects.create(
+        journal='CAISSE',
+        reference=ref,
+        date_ecriture=timezone.now().date(),
+        libelle=f"Décaissement prêt #{loan.id} - {loan.client.user.get_full_name()}",
+        loan=loan,
+        client=loan.client,
+        agent=loan.agent,
+    )
+    JournalEntryLine.objects.create(entry=entry, account=compte_client, sens='DEBIT', montant=montant, libelle='Créance client')
+    JournalEntryLine.objects.create(entry=entry, account=compte_caisse, sens='CREDIT', montant=montant, libelle='Décaissement')
 
 
 @extend_schema(tags=['Ã‰chÃ©ancier'])

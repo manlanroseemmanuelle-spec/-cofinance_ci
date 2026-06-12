@@ -23,9 +23,29 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
+        role = validated_data.get('role', User.Role.CLIENT)
         user = User(**validated_data)
         user.set_password(password)
         user.save()
+        # Auto-create Client or Agent profile based on role
+        if role == User.Role.CLIENT:
+            Client.objects.get_or_create(
+                user=user,
+                defaults={
+                    'profession': 'Non renseigné',
+                    'revenu_mensuel': 0,
+                    'date_naissance': '2000-01-01',
+                    'numero_piece': f'TMP-{user.id:06d}',
+                }
+            )
+        elif role == User.Role.AGENT:
+            Agent.objects.get_or_create(
+                user=user,
+                defaults={
+                    'matricule': f'AGT-{user.id:06d}',
+                    'region': user.region or 'Non définie',
+                }
+            )
         return user
 
 

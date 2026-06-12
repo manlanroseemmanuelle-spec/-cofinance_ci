@@ -65,6 +65,40 @@ class RepaymentListCreateView(generics.ListCreateAPIView):
             repayment.amortization.est_paye = True
             repayment.amortization.save()
 
+        # Accounting entry for repayment
+        try:
+            from apps.accounting.models import Account, JournalEntry, JournalEntryLine
+            from django.utils import timezone
+            from decimal import Decimal
+            compte_caisse, _ = Account.objects.get_or_create(
+                code='101', defaults={'nom': 'Caisse', 'type': 'ACTIF'}
+            )
+            compte_client, _ = Account.objects.get_or_create(
+                code='411', defaults={'nom': 'Clients', 'type': 'ACTIF'}
+            )
+            compte_interets, _ = Account.objects.get_or_create(
+                code='701', defaults={'nom': 'Revenus', 'type': 'PRODUIT'}
+            )
+            montant = repayment.montant
+            penalite = repayment.penalite or Decimal('0')
+            principal = montant - penalite
+            ref = f"REM-{repayment.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+            entry = JournalEntry.objects.create(
+                journal='CAISSE',
+                reference=ref,
+                date_ecriture=timezone.now().date(),
+                libelle=f"Remboursement prêt #{repayment.loan_id} - {repayment.loan.client.user.get_full_name()}",
+                loan=repayment.loan,
+                client=repayment.loan.client,
+                agent=repayment.agent,
+            )
+            JournalEntryLine.objects.create(entry=entry, account=compte_caisse, sens='DEBIT', montant=montant, libelle='Encaissement')
+            JournalEntryLine.objects.create(entry=entry, account=compte_client, sens='CREDIT', montant=principal, libelle='Remboursement principal')
+            if penalite > 0:
+                JournalEntryLine.objects.create(entry=entry, account=compte_interets, sens='CREDIT', montant=penalite, libelle='Pénalité de retard')
+        except Exception:
+            pass
+
 
 @extend_schema(tags=['Remboursements'])
 class RepaymentDetailView(generics.RetrieveAPIView):

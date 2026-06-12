@@ -2,6 +2,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model, authenticate
+from django.core.mail import send_mail
+from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema
 from django.utils.crypto import get_random_string
@@ -35,6 +37,23 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         refresh = RefreshToken.for_user(user)
+        # Send welcome email (silently ignore if email is empty)
+        if user.email:
+            try:
+                send_mail(
+                    subject='Bienvenue sur CoFinance CI',
+                    message=(
+                        f'Bonjour {user.get_full_name()},\n\n'
+                        f'Votre compte a ete cree avec succes sur la plateforme CoFinance CI.\n'
+                        f'Votre nom d\'utilisateur est : {user.username}\n\n'
+                        f'Cordialement,\nL\'equipe CoFinance CI'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
         return Response({
             'user': UserSerializer(user).data,
             'refresh': str(refresh),
@@ -165,6 +184,26 @@ class ForgotPasswordView(APIView):
             'user_id': user.id,
             'expires': timezone.now() + timedelta(hours=1),
         }
+        # Send reset link by email if user has one
+        if user.email:
+            try:
+                send_mail(
+                    subject='Reinitialisation de mot de passe - CoFinance CI',
+                    message=(
+                        f'Bonjour {user.get_full_name()},\n\n'
+                        f'Vous avez demande la reinitialisation de votre mot de passe.\n'
+                        f'Utilisez ce lien pour reinitialiser votre mot de passe :\n'
+                        f'{request.build_absolute_uri("/reset-password/" + token + "/")}\n\n'
+                        f'Ce lien expire dans 1 heure.\n\n'
+                        f'Si vous n\'etes pas a l\'origine de cette demande, ignorez ce message.\n\n'
+                        f'Cordialement,\nL\'equipe CoFinance CI'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
         return Response({
             'message': 'Token de réinitialisation généré',
             'token': token,

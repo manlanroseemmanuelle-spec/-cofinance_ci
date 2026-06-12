@@ -1,6 +1,10 @@
 from django.apps import AppConfig
 
+
 class SavingsConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.savings'
-    verbose_name = 'Épargne & Dépôts'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.savings"
+    verbose_name = "Epargne & Depots"
+
+    def ready(self):
+        import apps.savings.signals

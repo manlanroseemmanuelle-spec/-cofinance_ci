@@ -605,6 +605,12 @@
                             <div v-if="currentView === 'repayments'">
                                 <div class="page-header">
                                     <h4>Remboursements <span class="tag blue" v-if="repayments.length">{{ repayments.length }}</span></h4>
+                                    <div class="page-actions">
+                                        <button class="btn btn-primary" @click="showRepaymentForm = true">
+                                            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Enregistrer un remboursement
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card">
                                     <div class="card-body scroll-table" style="padding:0">
@@ -804,7 +810,15 @@
                                 </div>
                             </div>
                             <div v-if="currentView === 'users' && user.role === 'ADMIN'">
-                                <div class="page-header"><h4>Gestion des utilisateurs</h4></div>
+                                <div class="page-header">
+                                    <h4>Gestion des utilisateurs</h4>
+                                    <div class="page-actions">
+                                        <button class="btn btn-primary" @click="showUserForm = true">
+                                            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Créer un utilisateur
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="card">
                                     <div class="card-body scroll-table" style="padding:0">
                                         <table>
@@ -832,7 +846,19 @@
                             </div>
 
                             <div v-if="currentView === 'savings'" class="view-fade">
-                                <div class="page-header"><h4>Épargne</h4></div>
+                                <div class="page-header">
+                                    <h4>Épargne</h4>
+                                    <div class="page-actions">
+                                        <button class="btn btn-primary" @click="showSavingsAccountForm = true">
+                                            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Nouveau compte
+                                        </button>
+                                        <button class="btn btn-outline" @click="showSavingsTransactionForm = true">
+                                            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                            Dépôt/Retrait
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="stats-grid">
                                     <div class="stat-card" v-for="s in savingsStats" :key="s.label">
                                         <div class="stat-top"><div class="stat-icon" :style="{background:s.color+'20',color:s.color}" v-html="s.iconSvg"></div></div>
@@ -878,7 +904,15 @@
                             </div>
 
                             <div v-if="currentView === 'groups'" class="view-fade">
-                                <div class="page-header"><h4>Groupes solidaires</h4></div>
+                                <div class="page-header">
+                                    <h4>Groupes solidaires</h4>
+                                    <div class="page-actions">
+                                        <button class="btn btn-primary" @click="showGroupForm = true">
+                                            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Créer un groupe
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="grid-3" v-if="groups.length">
                                     <div class="card" v-for="g in groups" :key="g.id">
                                         <div class="card-body">
@@ -899,7 +933,15 @@
                             </div>
 
                             <div v-if="currentView === 'accounting'" class="view-fade">
-                                <div class="page-header"><h4>Comptabilité</h4></div>
+                                <div class="page-header">
+                                    <h4>Comptabilité</h4>
+                                    <div class="page-actions">
+                                        <button class="btn btn-primary" @click="showJournalForm = true">
+                                            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Nouvelle écriture
+                                        </button>
+                                    </div>
+                                </div>
                                 <div class="card" style="margin-bottom:20px">
                                     <div class="card-header"><h4>Plan comptable</h4></div>
                                     <div class="card-body">
@@ -1031,7 +1073,13 @@
                             <div v-if="currentView === 'clients'" class="view-fade">
                                 <div class="page-header">
                                     <h4>Clients</h4>
-                                    <div class="page-actions"><input type="text" v-model="clientSearch" placeholder="Rechercher..." style="padding:6px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;width:220px;background:var(--bg-input);color:var(--text-primary)"></div>
+                                    <div class="page-actions">
+                                        <button class="btn btn-primary" @click="showClientForm = true">
+                                            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            Créer un client
+                                        </button>
+                                        <input type="text" v-model="clientSearch" placeholder="Rechercher..." style="padding:6px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;width:220px;background:var(--bg-input);color:var(--text-primary)">
+                                    </div>
                                 </div>
                                 <div class="card">
                                     <div class="card-body">
@@ -1092,6 +1140,209 @@
                     <div class="modal-footer">
                         <button class="btn btn-outline" @click="showInsuranceForm = false">Annuler</button>
                         <button class="btn btn-primary" @click="submitInsurance">Souscrire</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showRepaymentForm" @click.self="showRepaymentForm = false">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 1v22M17 5l-5-4-5 4"/></svg> Enregistrer un remboursement</h4>
+                        <button class="close" @click="showRepaymentForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Prêt (ID)</label><input type="number" v-model="repaymentForm.loan_id" placeholder="ID du prêt"></div>
+                        <div class="form-group"><label>Montant (FCFA)</label><input type="number" v-model="repaymentForm.montant" placeholder="Ex: 50000"></div>
+                        <div class="form-group"><label>Mode de paiement</label>
+                            <select v-model="repaymentForm.mode_paiement">
+                                <option value="ORANGE_MONEY">Orange Money</option>
+                                <option value="MTN_MONEY">MTN Money</option>
+                                <option value="WAVE">Wave</option>
+                                <option value="ESPECES">Espèces</option>
+                                <option value="VIREMENT">Virement</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Notes</label><textarea v-model="repaymentForm.notes" rows="2" placeholder="Notes (optionnel)"></textarea></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showRepaymentForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitRepayment">Confirmer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showSavingsAccountForm" @click.self="showSavingsAccountForm = false">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Nouveau compte d'épargne</h4>
+                        <button class="close" @click="showSavingsAccountForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Client (ID)</label><input type="number" v-model="savingsAccountForm.client" placeholder="ID du client"></div>
+                        <div class="form-group"><label>Produit</label>
+                            <select v-model="savingsAccountForm.produit">
+                                <option v-for="p in savingsProducts" :key="p.id" :value="p.id">{{ p.nom }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showSavingsAccountForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitSavingsAccount">Créer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showSavingsTransactionForm" @click.self="showSavingsTransactionForm = false">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Dépôt / Retrait</h4>
+                        <button class="close" @click="showSavingsTransactionForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Compte (ID)</label><input type="number" v-model="savingsTransactionForm.compte" placeholder="ID du compte"></div>
+                        <div class="form-group"><label>Type</label>
+                            <select v-model="savingsTransactionForm.type">
+                                <option value="VERSEMENT">Versement</option>
+                                <option value="RETRAIT">Retrait</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Montant (FCFA)</label><input type="number" v-model="savingsTransactionForm.montant" placeholder="Ex: 10000"></div>
+                        <div class="form-group"><label>Notes</label><textarea v-model="savingsTransactionForm.notes" rows="2" placeholder="Notes (optionnel)"></textarea></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showSavingsTransactionForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitSavingsTransaction">Confirmer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showGroupForm" @click.self="showGroupForm = false">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> Créer un groupe</h4>
+                        <button class="close" @click="showGroupForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Nom</label><input type="text" v-model="groupForm.nom" placeholder="Nom du groupe"></div>
+                        <div class="form-group"><label>Type</label>
+                            <select v-model="groupForm.type">
+                                <option value="SHG">Self-Help Group (SHG)</option>
+                                <option value="JLG">Joint Liability Group (JLG)</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Région</label><input type="text" v-model="groupForm.region" placeholder="Région"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showGroupForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitGroup">Créer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showJournalForm" @click.self="showJournalForm = false">
+                <div class="modal wide">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Nouvelle écriture comptable</h4>
+                        <button class="close" @click="showJournalForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Journal</label>
+                            <select v-model="journalForm.journal">
+                                <option value="CAISSE">Caisse</option>
+                                <option value="BANQUE">Banque</option>
+                                <option value="OD">Opérations diverses</option>
+                                <option value="VENTES">Ventes</option>
+                                <option value="ACHATS">Achats</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Libellé</label><input type="text" v-model="journalForm.libelle" placeholder="Libellé de l'écriture"></div>
+                        <div class="form-group"><label>Date d'écriture</label><input type="date" v-model="journalForm.date_ecriture"></div>
+                        <div style="margin-top:16px">
+                            <h5 style="font-size:13px;font-weight:600;margin-bottom:8px">Lignes d'écriture</h5>
+                            <div v-for="(line, idx) in journalLines" :key="idx" style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;flex-wrap:wrap">
+                                <div class="form-group" style="margin-bottom:0;flex:1;min-width:120px">
+                                    <label style="font-size:11px">Compte</label>
+                                    <select v-model="line.account" style="padding:8px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;background:var(--bg-input);color:var(--text-primary);width:100%">
+                                        <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.code }} - {{ a.nom }}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;min-width:90px">
+                                    <label style="font-size:11px">Sens</label>
+                                    <select v-model="line.sens" style="padding:8px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;background:var(--bg-input);color:var(--text-primary);width:100%">
+                                        <option value="DEBIT">Débit</option>
+                                        <option value="CREDIT">Crédit</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;min-width:100px">
+                                    <label style="font-size:11px">Montant</label>
+                                    <input type="number" v-model="line.montant" placeholder="0" style="padding:8px 10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;background:var(--bg-input);color:var(--text-primary);width:100%">
+                                </div>
+                                <button class="btn btn-sm btn-danger" @click="removeJournalLine(idx)" :disabled="journalLines.length <= 1" style="margin-bottom:1px">
+                                    <svg viewBox="0 0 24 24" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+                            <button class="btn btn-sm btn-outline" @click="addJournalLine">
+                                <svg viewBox="0 0 24 24" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Ajouter une ligne
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showJournalForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitJournalEntry">Valider</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showUserForm" @click.self="showUserForm = false">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Créer un utilisateur</h4>
+                        <button class="close" @click="showUserForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Nom d'utilisateur</label><input type="text" v-model="userForm.username" placeholder="Nom d'utilisateur"></div>
+                        <div class="form-group"><label>Mot de passe</label><input type="password" v-model="userForm.password" placeholder="Minimum 6 caractères"></div>
+                        <div class="form-group"><label>Email</label><input type="email" v-model="userForm.email" placeholder="email@exemple.com"></div>
+                        <div class="form-group"><label>Prénom</label><input type="text" v-model="userForm.first_name" placeholder="Prénom"></div>
+                        <div class="form-group"><label>Nom</label><input type="text" v-model="userForm.last_name" placeholder="Nom"></div>
+                        <div class="form-group"><label>Téléphone</label><input type="text" v-model="userForm.telephone" placeholder="+225 XX XX XX XX"></div>
+                        <div class="form-group"><label>Rôle</label>
+                            <select v-model="userForm.role">
+                                <option value="CLIENT">Client</option>
+                                <option value="AGENT">Agent</option>
+                                <option value="ADMIN">Administrateur</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showUserForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitUser">Créer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-overlay" v-if="showClientForm" @click.self="showClientForm = false">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h4><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Créer un client</h4>
+                        <button class="close" @click="showClientForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Nom d'utilisateur</label><input type="text" v-model="clientForm.username" placeholder="Nom d'utilisateur"></div>
+                        <div class="form-group"><label>Mot de passe</label><input type="password" v-model="clientForm.password" placeholder="Minimum 6 caractères"></div>
+                        <div class="form-group"><label>Email</label><input type="email" v-model="clientForm.email" placeholder="email@exemple.com"></div>
+                        <div class="form-group"><label>Prénom</label><input type="text" v-model="clientForm.first_name" placeholder="Prénom"></div>
+                        <div class="form-group"><label>Nom</label><input type="text" v-model="clientForm.last_name" placeholder="Nom"></div>
+                        <div class="form-group"><label>Téléphone</label><input type="text" v-model="clientForm.telephone" placeholder="+225 XX XX XX XX"></div>
+                        <div class="form-group"><label>Profession</label><input type="text" v-model="clientForm.profession" placeholder="Profession"></div>
+                        <div class="form-group"><label>Revenu mensuel (FCFA)</label><input type="number" v-model="clientForm.revenu_mensuel" placeholder="Ex: 300000"></div>
+                        <div class="form-group"><label>Date de naissance</label><input type="date" v-model="clientForm.date_naissance"></div>
+                        <div class="form-group"><label>Numéro de pièce</label><input type="text" v-model="clientForm.numero_piece" placeholder="N° pièce d'identité"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showClientForm = false">Annuler</button>
+                        <button class="btn btn-primary" @click="submitClient">Créer</button>
                     </div>
                 </div>
             </div>
@@ -1270,6 +1521,19 @@
                 auditCount: 0,
                 showLoanForm: false,
                 showInsuranceForm: false,
+                showRepaymentForm: false,
+                repaymentForm: { loan_id: '', montant: '', mode_paiement: 'ORANGE_MONEY', notes: '' },
+                showSavingsAccountForm: false,
+                showSavingsTransactionForm: false,
+                savingsAccountForm: { client: '', produit: '' },
+                savingsTransactionForm: { compte: '', type: 'VERSEMENT', montant: '', notes: '' },
+                showUserForm: false,
+                userForm: { username: '', password: '', email: '', first_name: '', last_name: '', telephone: '', role: 'CLIENT' },
+                showClientForm: false,
+                clientForm: { username: '', password: '', email: '', first_name: '', last_name: '', telephone: '', profession: '', revenu_mensuel: '', date_naissance: '', numero_piece: '' },
+                showJournalForm: false,
+                journalForm: { journal: 'CAISSE', libelle: '', date_ecriture: '' },
+                journalLines: [{ account: '', sens: 'DEBIT', montant: '' }],
                 selectedLoan: null,
                 loanCount: 0,
                 showDocUpload: null,
@@ -1713,6 +1977,153 @@
                             setTimeout(() => this.notif.show = false, 3000);
                         }
                     } catch(e) { this.notif = { show: true, message: 'Erreur lors de la souscription', type: 'error' }; }
+                },
+                async submitRepayment() {
+                    try {
+                        const r = await fetch('/api/repayments/', {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify(this.repaymentForm)
+                        });
+                        if (r.ok) {
+                            this.showRepaymentForm = false;
+                            this.repaymentForm = { loan_id: '', montant: '', mode_paiement: 'ORANGE_MONEY', notes: '' };
+                            this.loadRepayments();
+                            this.notif = { show: true, message: 'Remboursement enregistré avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        } else {
+                            const err = await r.json();
+                            this.notif = { show: true, message: Object.values(err).flat().join(', '), type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur réseau', type: 'error' }; setTimeout(() => this.notif.show = false, 3000); }
+                },
+                async submitSavingsAccount() {
+                    try {
+                        const r = await fetch('/api/savings/comptes/', {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify(this.savingsAccountForm)
+                        });
+                        if (r.ok) {
+                            this.showSavingsAccountForm = false;
+                            this.savingsAccountForm = { client: '', produit: '' };
+                            this.loadSavings();
+                            this.notif = { show: true, message: 'Compte d\'épargne créé avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        } else {
+                            const err = await r.json();
+                            this.notif = { show: true, message: Object.values(err).flat().join(', '), type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur réseau', type: 'error' }; setTimeout(() => this.notif.show = false, 3000); }
+                },
+                async submitSavingsTransaction() {
+                    try {
+                        const r = await fetch('/api/savings/transactions/', {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify(this.savingsTransactionForm)
+                        });
+                        if (r.ok) {
+                            this.showSavingsTransactionForm = false;
+                            this.savingsTransactionForm = { compte: '', type: 'VERSEMENT', montant: '', notes: '' };
+                            this.loadSavings();
+                            this.notif = { show: true, message: 'Transaction enregistrée avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        } else {
+                            const err = await r.json();
+                            this.notif = { show: true, message: Object.values(err).flat().join(', '), type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur réseau', type: 'error' }; setTimeout(() => this.notif.show = false, 3000); }
+                },
+                async submitGroup() {
+                    try {
+                        const r = await fetch('/api/groups/', {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify(this.groupForm)
+                        });
+                        if (r.ok) {
+                            this.showGroupForm = false;
+                            this.groupForm = { nom: '', type: 'SHG', region: '' };
+                            this.loadGroups();
+                            this.notif = { show: true, message: 'Groupe créé avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        } else {
+                            const err = await r.json();
+                            this.notif = { show: true, message: Object.values(err).flat().join(', '), type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur réseau', type: 'error' }; setTimeout(() => this.notif.show = false, 3000); }
+                },
+                async submitJournalEntry() {
+                    try {
+                        const r = await fetch('/api/accounting/journals/', {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify({...this.journalForm, lines: this.journalLines})
+                        });
+                        if (r.ok) {
+                            this.showJournalForm = false;
+                            this.journalForm = { journal: 'CAISSE', libelle: '', date_ecriture: '' };
+                            this.journalLines = [{ account: '', sens: 'DEBIT', montant: '' }];
+                            this.loadAccounting();
+                            this.notif = { show: true, message: 'Écriture comptable créée avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        } else {
+                            const err = await r.json();
+                            this.notif = { show: true, message: Object.values(err).flat().join(', '), type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur réseau', type: 'error' }; setTimeout(() => this.notif.show = false, 3000); }
+                },
+                addJournalLine() {
+                    this.journalLines.push({ account: '', sens: 'DEBIT', montant: '' });
+                },
+                removeJournalLine(idx) {
+                    if (this.journalLines.length > 1) this.journalLines.splice(idx, 1);
+                },
+                async submitUser() {
+                    try {
+                        const r = await fetch('/api/auth/register/', {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify(this.userForm)
+                        });
+                        if (r.ok) {
+                            this.showUserForm = false;
+                            this.userForm = { username: '', password: '', email: '', first_name: '', last_name: '', telephone: '', role: 'CLIENT' };
+                            this.loadUsers();
+                            this.notif = { show: true, message: 'Utilisateur créé avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        } else {
+                            const err = await r.json();
+                            this.notif = { show: true, message: Object.values(err).flat().join(', '), type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur réseau', type: 'error' }; setTimeout(() => this.notif.show = false, 3000); }
+                },
+                async submitClient() {
+                    try {
+                        const r = await fetch('/api/auth/register/', {
+                            method:'POST',
+                            headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
+                            body: JSON.stringify({...this.clientForm, role: 'CLIENT'})
+                        });
+                        if (r.ok) {
+                            this.showClientForm = false;
+                            this.clientForm = { username: '', password: '', email: '', first_name: '', last_name: '', telephone: '', profession: '', revenu_mensuel: '', date_naissance: '', numero_piece: '' };
+                            this.loadClientList();
+                            this.notif = { show: true, message: 'Client créé avec succès', type: 'success' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        } else {
+                            const err = await r.json();
+                            this.notif = { show: true, message: Object.values(err).flat().join(', '), type: 'error' };
+                            setTimeout(() => this.notif.show = false, 3000);
+                        }
+                    } catch(e) { this.notif = { show: true, message: 'Erreur réseau', type: 'error' }; setTimeout(() => this.notif.show = false, 3000); }
                 },
                 async renderCharts() {
                     if (!window.Chart) return;

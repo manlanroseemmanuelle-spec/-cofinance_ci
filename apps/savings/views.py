@@ -13,6 +13,7 @@ from .serializers import (
     SavingsTransactionCreateSerializer,
 )
 from apps.accounts.permissions import IsAdmin, IsAdminOrAgent, IsClient, IsOwnerAdminOrAssignedAgent
+from apps.notifications.models import Notification
 
 
 @extend_schema(tags=['Épargne'])
@@ -92,8 +93,31 @@ class SavingsTransactionListCreateView(generics.ListCreateAPIView):
         if user.role not in ('ADMIN', 'AGENT'):
             serializer.save()
         else:
-            agent_profile = getattr(user, 'agent_profile', None)
-            serializer.save(agent=agent_profile)
+            try:
+                agent_profile = user.agent_profile
+                serializer.save(agent=agent_profile)
+            except Exception:
+                serializer.save()
+
+        # Create notification for the account holder
+        transaction = serializer.instance
+        account = transaction.compte
+        type_labels = dict(SavingsTransaction.TypeTransaction.choices)
+        type_label = type_labels.get(transaction.type, transaction.type)
+        Notification.objects.create(
+            titre=f"Epargne: {type_label} - {transaction.montant} FCFA",
+            message=f"{type_label} de {transaction.montant} FCFA sur le compte {account.numero_compte}. Nouveau solde: {transaction.solde_apres} FCFA.",
+            type=Notification.Type.SYSTEME,
+            user=account.client.user,
+        )
+        # Also notify the agent who processed the transaction
+        if transaction.agent:
+            Notification.objects.create(
+                titre=f"{type_label} enregistre",
+                message=f"{type_label} de {transaction.montant} FCFA enregistre pour {account.client.user.get_full_name()} (compte {account.numero_compte}).",
+                type=Notification.Type.SYSTEME,
+                user=transaction.agent.user,
+            )
 
 
 @extend_schema(tags=['Épargne'])

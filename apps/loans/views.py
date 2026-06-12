@@ -1,4 +1,4 @@
-from rest_framework import generics, permissions, status
+﻿from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import HttpResponse
@@ -20,9 +20,10 @@ from .serializers import (
 )
 from .services import calculer_score_eligibilite, generer_echeancier
 from apps.accounts.permissions import IsAdminOrAgent, IsOwnerAdminOrAssignedAgent
+from apps.notifications.models import Notification
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class LoanListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['statut']
@@ -54,7 +55,7 @@ class LoanListCreateView(generics.ListCreateAPIView):
         loan.save()
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class LoanDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerAdminOrAssignedAgent]
 
@@ -75,7 +76,7 @@ class LoanDetailView(generics.RetrieveUpdateDestroyAPIView):
         return LoanApplicationSerializer
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class LoanStatusUpdateView(generics.UpdateAPIView):
     queryset = LoanApplication.objects.all()
     serializer_class = LoanStatusUpdateSerializer
@@ -124,12 +125,29 @@ class LoanStatusUpdateView(generics.UpdateAPIView):
         from apps.common.models import AuditLog
         log_action(
             AuditLog.Action.STATUS_CHANGE, 'LoanApplication', loan.id,
-            f"Prêt #{loan.id}: {old_status} -> {new_status}",
+            f"PrÃªt #{loan.id}: {old_status} -> {new_status}",
             f"Ancien: {old_status}, Nouveau: {new_status}, Agent: {loan.agent}"
         )
+        # Notify client of status change
+        status_labels = dict(LoanApplication.Statut.choices)
+        Notification.objects.create(
+            titre=f"Pret #{loan.id} : {status_labels.get(new_status, new_status)}",
+            message=f"Votre demande de pret de {loan.montant_demande} FCFA est maintenant {status_labels.get(new_status, new_status)}.",
+            type=Notification.Type.CREDIT,
+            user=loan.client.user,
+        )
+        # Notify assigned agent if there is one
+        if loan.agent:
+            Notification.objects.create(
+                titre=f"Pret #{loan.id} : {status_labels.get(new_status, new_status)}",
+                message=f"Le pret de {loan.client.user.get_full_name()} ({loan.montant_demande} FCFA) est {status_labels.get(new_status, new_status)}.",
+                type=Notification.Type.CREDIT,
+                user=loan.agent.user,
+            )
 
 
-@extend_schema(tags=['Échéancier'])
+
+@extend_schema(tags=['Ã‰chÃ©ancier'])
 class AmortizationScheduleListView(generics.ListAPIView):
     serializer_class = AmortizationScheduleSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -179,7 +197,7 @@ class DocumentListCreateView(generics.ListCreateAPIView):
         serializer.save(loan=loan)
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class MyLoansView(generics.ListAPIView):
     serializer_class = LoanApplicationSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -195,7 +213,7 @@ class MyLoansView(generics.ListAPIView):
         return LoanApplication.objects.all()
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class LoanStatusHistoryListView(generics.ListAPIView):
     serializer_class = LoanStatusHistorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -226,12 +244,12 @@ class LoanExportCsvView(generics.GenericAPIView):
 
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = 'attachment; filename=\"credits.csv\"'
-        response.write('id,client,montant,duree_mois,statut,score,date_creation\\n')
+        response.write('id,client,montant,duree_mois,statut,score,date_creation\n')
         for loan in queryset:
             client_name = (loan.client.user.get_full_name() or loan.client.user.username).replace(',', ' ')
             response.write(
                 f'{loan.id},{client_name},{loan.montant_demande},{loan.duree_mois},'
-                f'{loan.statut},{loan.score_eligibilite},{loan.date_creation.isoformat()}\\n'
+                f'{loan.statut},{loan.score_eligibilite},{loan.date_creation.isoformat()}\n'
             )
         return response
 
@@ -253,12 +271,12 @@ class LoanExportPdfView(generics.GenericAPIView):
         styles = getSampleStyleSheet()
         elements = []
 
-        elements.append(Paragraph('Liste des crédits', styles['Title']))
+        elements.append(Paragraph('Liste des crÃ©dits', styles['Title']))
         elements.append(Spacer(1, 6*mm))
-        elements.append(Paragraph(f'Généré le {timezone.now().strftime("%d/%m/%Y %H:%M")}', styles['Normal']))
+        elements.append(Paragraph(f'GÃ©nÃ©rÃ© le {timezone.now().strftime("%d/%m/%Y %H:%M")}', styles['Normal']))
         elements.append(Spacer(1, 4*mm))
 
-        data = [['ID', 'Client', 'Montant', 'Durée', 'Statut', 'Score', 'Date']]
+        data = [['ID', 'Client', 'Montant', 'DurÃ©e', 'Statut', 'Score', 'Date']]
         for loan in queryset:
             client_name = loan.client.user.get_full_name() or loan.client.user.username
             data.append([
@@ -296,7 +314,7 @@ class LoanExportPdfView(generics.GenericAPIView):
         return response
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class LoanProductListView(generics.ListAPIView):
     serializer_class = LoanProductSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -310,7 +328,7 @@ class LoanProductListView(generics.ListAPIView):
         return qs
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class CollateralListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -331,7 +349,7 @@ class CollateralListCreateView(generics.ListCreateAPIView):
         return qs
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class LoanRestructuringListCreateView(generics.ListCreateAPIView):
     serializer_class = LoanRestructuringSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -349,7 +367,7 @@ class LoanRestructuringListCreateView(generics.ListCreateAPIView):
             serializer.save()
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class LoanRestructuringActionView(generics.GenericAPIView):
     serializer_class = LoanRestructuringActionSerializer
     permission_classes = [IsAdminOrAgent]
@@ -367,7 +385,7 @@ class LoanRestructuringActionView(generics.GenericAPIView):
         return Response({'statut': new_status, 'message': f'Restructuring {new_status.lower()}'})
 
 
-@extend_schema(tags=['Crédits'])
+@extend_schema(tags=['CrÃ©dits'])
 class GracePeriodListCreateView(generics.ListCreateAPIView):
     serializer_class = GracePeriodSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -376,3 +394,4 @@ class GracePeriodListCreateView(generics.ListCreateAPIView):
         if getattr(self, 'swagger_fake_view', False):
             return GracePeriod.objects.none()
         return GracePeriod.objects.filter(loan_id=self.kwargs.get('loan_id'))
+

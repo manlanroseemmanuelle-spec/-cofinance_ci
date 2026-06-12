@@ -2,7 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from drf_spectacular.utils import extend_schema
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, Subquery, OuterRef
+from django.db.models.fields import IntegerField, DecimalField
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta, date
 from apps.loans.models import LoanApplication, AmortizationSchedule
@@ -17,10 +19,11 @@ from apps.accounts.permissions import IsAdmin
 def _apply_period(qs, field, period):
     if period == '7d':
         return qs.filter(**{f'{field}__gte': timezone.now() - timedelta(days=7)})
+    if period == '30d':
+        return qs.filter(**{f'{field}__gte': timezone.now() - timedelta(days=30)})
     if period == '90d':
         return qs.filter(**{f'{field}__gte': timezone.now() - timedelta(days=90)})
     return qs
-
 
 @extend_schema(tags=['Dashboard'], responses={200: dict})
 class AdminDashboardView(APIView):
@@ -312,23 +315,34 @@ class DashboardClientListView(APIView):
         else:
             return Response({'error': 'Acces reserve aux agents et admins'}, status=status.HTTP_403_FORBIDDEN)
 
-        data = []
-        for c in clients:
-            active_loans = LoanApplication.objects.filter(client=c, statut='DECAISSEE').count()
-            total_due = AmortizationSchedule.objects.filter(
-                loan__client=c, est_paye=False
-            ).aggregate(Sum('mensualite'))['mensualite__sum'] or 0
-            data.append({
-                'id': c.id,
-                'username': c.user.username,
-                'nom': c.user.get_full_name() or c.user.username,
-                'telephone': c.user.telephone,
-                'region': c.user.region,
-                'profession': c.profession,
-                'score_credit': c.score_credit,
-                'prets_actifs': active_loans,
-                'total_du': str(total_due),
-            })
+        active_loans_sub = LoanApplication.objects.filter(
+            client=OuterRef('pk'), statut='DECAISSEE'
+        ).values('client').annotate(
+            cnt=Count('id')
+        ).values('cnt')
+
+        total_due_sub = AmortizationSchedule.objects.filter(
+            loan__client=OuterRef('pk'), est_paye=False
+        ).values('loan__client').annotate(
+            total=Coalesce(Sum('mensualite'), 0)
+        ).values('total')
+
+        clients = clients.annotate(
+            active_loans=Coalesce(Subquery(active_loans_sub, output_field=IntegerField()), 0),
+            total_due_amt=Coalesce(Subquery(total_due_sub, output_field=DecimalField()), 0),
+        )
+
+        data = [{
+            'id': c.id,
+            'username': c.user.username,
+            'nom': c.user.get_full_name() or c.user.username,
+            'telephone': c.user.telephone,
+            'region': c.user.region,
+            'profession': c.profession,
+            'score_credit': c.score_credit,
+            'prets_actifs': c.active_loans,
+            'total_du': str(c.total_due_amt),
+        } for c in clients]
 
         return Response(data)
 

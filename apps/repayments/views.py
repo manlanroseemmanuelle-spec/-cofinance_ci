@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema
 from .models import Repayment
 from .serializers import RepaymentSerializer, RepaymentCreateSerializer
 from apps.accounts.permissions import IsOwnerAdminOrAssignedAgent
+from apps.notifications.models import Notification
 
 
 @extend_schema(tags=['Remboursements'])
@@ -43,6 +44,22 @@ class RepaymentListCreateView(generics.ListCreateAPIView):
         penalite = repayment.calculer_penalite()
         repayment.penalite = penalite
         repayment.save()
+
+        # Notify client
+        Notification.objects.create(
+            titre=f"Remboursement #{repayment.id} - {repayment.montant} FCFA",
+            message=f"Remboursement de {repayment.montant} FCFA enregistre pour le pret #{repayment.loan_id}.",
+            type=Notification.Type.REMBOURSEMENT,
+            user=repayment.loan.client.user,
+        )
+        # Notify agent who recorded it
+        if repayment.agent:
+            Notification.objects.create(
+                titre=f"Remboursement #{repayment.id} enregistre",
+                message=f"Remboursement de {repayment.montant} FCFA enregistre pour le pret #{repayment.loan_id}.",
+                type=Notification.Type.REMBOURSEMENT,
+                user=repayment.agent.user,
+            )
 
         if repayment.amortization:
             repayment.amortization.est_paye = True

@@ -21,6 +21,7 @@ class JwtAuthMiddleware:
         self.inner = inner
 
     async def __call__(self, scope, receive, send):
+        scope['user'] = AnonymousUser()
         query_string = scope.get('query_string', b'').decode()
         token = parse_qs(query_string).get('token', [None])[0]
         if token:

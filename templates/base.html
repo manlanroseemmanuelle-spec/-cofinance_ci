@@ -486,7 +486,7 @@
                                     </div>
                                 </div>
                                 <div class="stats-grid">
-                                    <div class="stat-card" v-for="s in dashboardStats" :key="s.label">
+                                    <div class="stat-card" v-for="s in dashboardStats" :key="s.label" :style="s.link ? {cursor:'pointer'} : {}" @click="s.link ? navigate(s.link) : null">
                                         <div class="stat-top">
                                             <div class="stat-icon" :style="{background: s.color + '20', color: s.color}" v-html="s.iconSvg"></div>
                                             <span v-if="s.change" :class="['stat-change', s.change > 0 ? 'up' : 'down']">{{ s.change > 0 ? '+' : '' }}{{ s.change }}%</span>
@@ -508,12 +508,15 @@
                                 </div>
                                 <div class="grid-2">
                                     <div class="card">
-                                        <div class="card-header"><h4>Crédits récents</h4></div>
+                                        <div class="card-header">
+                                            <h4>Crédits récents</h4>
+                                            <button class="btn btn-sm btn-outline" @click="navigate('loans')" style="font-size:11px">Voir tout</button>
+                                        </div>
                                         <div class="card-body scroll-table">
                                             <table v-if="recentLoans.length">
                                                 <thead><tr><th>ID</th><th>Client</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
                                                 <tbody>
-                                                    <tr v-for="l in recentLoans" :key="l.id">
+                                                    <tr v-for="l in recentLoans" :key="l.id" style="cursor:pointer" @click="viewLoan(l); $nextTick(() => navigate('loans'))">
                                                         <td>#{{ l.id }}</td>
                                                         <td>{{ l.client_details?.user?.first_name || 'N/A' }}</td>
                                                         <td>{{ formatMoney(l.montant_demande) }}</td>
@@ -529,9 +532,12 @@
                                         </div>
                                     </div>
                                     <div class="card">
-                                        <div class="card-header"><h4>Activité récente</h4></div>
+                                        <div class="card-header">
+                                            <h4>Activité récente</h4>
+                                            <button class="btn btn-sm btn-outline" @click="navigate('notifications')" style="font-size:11px">Voir tout</button>
+                                        </div>
                                         <div class="card-body" style="max-height:320px;overflow-y:auto">
-                                            <div v-for="n in notifications" :key="n.id" style="padding:10px 0;border-bottom:1px solid var(--border-color)">
+                                            <div v-for="n in notifications" :key="n.id" style="padding:10px 0;border-bottom:1px solid var(--border-color);cursor:pointer" @click="navigate('notifications')">
                                                 <div style="font-size:13px;font-weight:500">{{ n.titre }}</div>
                                                 <p style="font-size:12px;color:var(--text-secondary);margin-top:2px">{{ n.message }}</p>
                                                 <small style="font-size:11px;color:var(--text-secondary)">{{ formatDate(n.date_creation) }}</small>
@@ -1769,26 +1775,26 @@
                     }
                         if (this.user.role === 'ADMIN') {
                             this.dashboardStats = [
-                                { iconSvg:'<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label:'Total crédits', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.approuvees||0} approuvés`, change: 12 },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669', sub:`${data.credits?.decaisses||0} décaissés`, change: 8 },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>', label:'Montant prêté', value:this.formatMoney(data.financier?.montant_prete||0), color:'#d97706' },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', label:'Remboursé', value:this.formatMoney(data.financier?.montant_rembourse||0), color:'#7c3aed', change: -3 },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label:'Assurances actives', value:data.assurance?.souscriptions_actives||0, color:'#0891b2' },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label:'Conversations', value:data.support?.total_conversations||0, color:'#dc2626', sub:`${data.support?.ouvertes||0} ouvertes` },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label:'Total crédits', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.approuvees||0} approuvés`, change: 12, link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669', sub:`${data.credits?.decaisses||0} décaissés`, change: 8, link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>', label:'Montant prêté', value:this.formatMoney(data.financier?.montant_prete||0), color:'#d97706', link:'accounting' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', label:'Remboursé', value:this.formatMoney(data.financier?.montant_rembourse||0), color:'#7c3aed', change: -3, link:'repayments' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label:'Assurances actives', value:data.assurance?.souscriptions_actives||0, color:'#0891b2', link:'insurance' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label:'Conversations', value:data.support?.total_conversations||0, color:'#dc2626', sub:`${data.support?.ouvertes||0} ouvertes`, link:'chat' },
                             ];
                         } else if (this.user.role === 'CLIENT') {
                             this.dashboardStats = [
-                                { iconSvg:'<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label:'Mes crédits', value:data.credits?.total||0, color:'#1a73e8' },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Crédits actifs', value:data.credits?.actifs||0, color:'#059669' },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>', label:'Score', value:data.score_credit||0, color:'#d97706', sub:'/100' },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>', label:'Notifications', value:data.notifications_non_lues||0, color:'#dc2626', sub:'non lues' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>', label:'Mes crédits', value:data.credits?.total||0, color:'#1a73e8', link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Crédits actifs', value:data.credits?.actifs||0, color:'#059669', link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>', label:'Score', value:data.score_credit||0, color:'#d97706', sub:'/100', link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>', label:'Notifications', value:data.notifications_non_lues||0, color:'#dc2626', sub:'non lues', link:'notifications' },
                             ];
                         } else {
                             this.dashboardStats = [
-                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>', label:'Dossiers', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.en_attente||0} en attente` },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669' },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg>', label:'Collecte', value:this.formatMoney(data.collecte?.total_rembourse||0), color:'#7c3aed' },
-                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label:'Chats ouverts', value:data.support?.conversations_ouvertes||0, color:'#0891b2' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>', label:'Dossiers', value:data.credits?.total||0, color:'#1a73e8', sub:`${data.credits?.en_attente||0} en attente`, link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669', link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg>', label:'Collecte', value:this.formatMoney(data.collecte?.total_rembourse||0), color:'#7c3aed', link:'repayments' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label:'Chats ouverts', value:data.support?.conversations_ouvertes||0, color:'#0891b2', link:'chat' },
                             ];
                         }
                         const loanUrl = this.user.role === 'ADMIN' ? '/api/loans/' : '/api/loans/mine/';

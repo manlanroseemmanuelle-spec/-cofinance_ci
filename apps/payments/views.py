@@ -52,6 +52,7 @@ class MobileMoneyAccountListCreateView(generics.ListCreateAPIView):
 
 @extend_schema(tags=['Paiements'])
 class MobileMoneyAccountRemoveView(generics.DestroyAPIView):
+    serializer_class = MobileMoneyAccountSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -103,6 +104,7 @@ class PaymentTransactionListView(generics.ListAPIView):
 class PaymentInitiateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=PaymentInitiateSerializer, responses=PaymentTransactionSerializer)
     def post(self, request):
         serializer = PaymentInitiateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -141,6 +143,7 @@ class PaymentInitiateView(APIView):
 class PaymentCallbackView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=PaymentCallbackSerializer, responses=PaymentTransactionSerializer)
     def post(self, request):
         serializer = PaymentCallbackSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -162,6 +165,7 @@ class PaymentCallbackView(APIView):
 class PaymentRetryView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=None, responses=PaymentTransactionSerializer)
     def post(self, request, pk):
         try:
             tx = PaymentTransaction.objects.get(pk=pk)

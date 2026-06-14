@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db.models import Sum, Q
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -67,6 +68,7 @@ class JournalEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
 class JournalEntryValidateView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrComptable]
 
+    @extend_schema(request=JournalEntryValidationSerializer, responses=JournalEntrySerializer)
     def post(self, request, pk):
         try:
             entry = JournalEntry.objects.get(pk=pk)
@@ -83,6 +85,7 @@ class JournalEntryValidateView(APIView):
 class GrandLivreView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         qs = JournalEntryLine.objects.select_related('entry', 'account').filter(
             entry__est_validee=True
@@ -115,6 +118,7 @@ class GrandLivreView(APIView):
 class BalanceView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         balance_date = request.query_params.get('date', date.today().isoformat())
         lines = JournalEntryLine.objects.filter(
@@ -151,6 +155,7 @@ class BalanceView(APIView):
 class CompteResultatView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         period_date = request.query_params.get('date', date.today().isoformat())
 
@@ -186,6 +191,7 @@ class CompteResultatView(APIView):
 class BilanView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         bilan_date = request.query_params.get('date', date.today().isoformat())
 

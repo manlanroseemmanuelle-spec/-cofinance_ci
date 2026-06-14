@@ -64,6 +64,7 @@ class GroupMemberListCreateView(generics.ListCreateAPIView):
 
 @extend_schema(tags=['Groupes'])
 class GroupMemberRemoveView(generics.DestroyAPIView):
+    serializer_class = GroupMemberSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):

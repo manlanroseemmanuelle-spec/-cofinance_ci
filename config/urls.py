@@ -2,17 +2,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import render
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from apps.support_chat.views_chat_template import chat_page, dashboard_page
-
-def test_vue(request):
-    return render(request, 'test_vue.html')
+from apps.support_chat.views_chat_template import dashboard_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('chat/', chat_page, name='chat-page'),
-    path('test-vue/', test_vue, name='test-vue'),
     path('', dashboard_page, name='dashboard'),
     path('api/auth/', include('apps.accounts.urls')),
     path('api/loans/', include('apps.loans.urls')),

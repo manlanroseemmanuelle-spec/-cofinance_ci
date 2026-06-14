@@ -37,6 +37,7 @@ class AuditLogListView(generics.ListAPIView):
 class AuditLogExportPdfView(APIView):
     permission_classes = [IsAdminOrAuditeur]
 
+    @extend_schema(responses=OpenApiResponse(description='Fichier PDF du journal d\'audit'))
     def get(self, request):
         qs = AuditLog.objects.select_related('user').order_by('-timestamp')
         date_from = request.query_params.get('from')

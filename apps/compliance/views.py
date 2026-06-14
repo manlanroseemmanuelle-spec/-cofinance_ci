@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 from django.db.models import Count, Q, Sum
 
 from .models import RegulatoryReport, PrudentialRatio, LoanClassification, DeclarationSuspicion
@@ -39,6 +40,7 @@ class RegulatoryReportDetailView(generics.RetrieveUpdateDestroyAPIView):
 class RegulatoryReportFinalizeView(APIView):
     permission_classes = [IsAdmin]
 
+    @extend_schema(request=None, responses=RegulatoryReportSerializer)
     def post(self, request, pk):
         try:
             report = RegulatoryReport.objects.get(pk=pk)
@@ -71,6 +73,7 @@ class PrudentialRatioListView(generics.ListAPIView):
 class PrudentialRatioComputeView(APIView):
     permission_classes = [IsAdmin]
 
+    @extend_schema(request=None, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         ratios = PrudentialRatio.objects.all()
         updated = []
@@ -175,6 +178,7 @@ class DeclarationSuspicionListCreateView(generics.ListCreateAPIView):
 class ComplianceDashboardView(APIView):
     permission_classes = [IsAdminOrAgent]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         ratios = PrudentialRatioListSerializer(PrudentialRatio.objects.all(), many=True).data
         reports_count = RegulatoryReport.objects.aggregate(

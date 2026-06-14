@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from datetime import timedelta
@@ -170,7 +171,7 @@ class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_scope = 'forgot_password'
 
-    @extend_schema(request=ForgotPasswordSerializer)
+    @extend_schema(request=ForgotPasswordSerializer, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -215,7 +216,7 @@ class ResetPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_scope = 'reset_password'
 
-    @extend_schema(request=ResetPasswordSerializer)
+    @extend_schema(request=ResetPasswordSerializer, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

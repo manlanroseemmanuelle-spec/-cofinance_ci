@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Sum
 from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 
 from .models import SavingsProduct, SavingsAccount, SavingsTransaction
 from .serializers import (
@@ -157,6 +158,7 @@ class MySavingsView(generics.ListAPIView):
 class SavingsSummaryView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         user = request.user
         if user.role != 'CLIENT':

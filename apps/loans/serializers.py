@@ -16,7 +16,9 @@ class LoanApplicationSerializer(serializers.ModelSerializer):
 class LoanCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = LoanApplication
-        fields = ['montant_demande', 'duree_mois', 'motif', 'revenu_mensuel']
+        fields = ['id', 'montant_demande', 'duree_mois', 'motif', 'revenu_mensuel',
+                  'score_eligibilite', 'statut']
+        read_only_fields = ['id', 'score_eligibilite', 'statut']
         extra_kwargs = {
             'montant_demande': {'min_value': 1},
             'duree_mois': {'min_value': 1, 'max_value': 60},

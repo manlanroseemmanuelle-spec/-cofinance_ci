@@ -3,9 +3,10 @@ import uuid
 from datetime import date, timedelta
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.utils import timezone
 from apps.accounts.models import Client, Agent
-from apps.loans.models import LoanApplication, AmortizationSchedule, Document
+from apps.loans.models import LoanApplication, AmortizationSchedule, Document, LoanProduct
 from apps.repayments.models import Repayment
 from apps.insurance.models import InsuranceProduct, Policy
 from apps.notifications.models import Notification
@@ -19,10 +20,32 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Génère un jeu de données de démonstration'
+    help = 'Génère un jeu de données de démonstration (ré-exécutable : réinitialise les données existantes)'
 
+    @transaction.atomic
     def handle(self, *args, **options):
         self.stdout.write('Génération des données de démonstration...')
+
+        # Idempotence : on purge les données de démo avant de recréer,
+        # afin que la commande puisse être relancée sans erreur.
+        Message.objects.all().delete()
+        Conversation.objects.all().delete()
+        Repayment.objects.all().delete()
+        AmortizationSchedule.objects.all().delete()
+        Document.objects.all().delete()
+        LoanApplication.objects.all().delete()
+        Policy.objects.all().delete()
+        InsuranceProduct.objects.all().delete()
+        Notification.objects.all().delete()
+        SavingsTransaction.objects.all().delete()
+        SavingsAccount.objects.all().delete()
+        SavingsProduct.objects.all().delete()
+        GroupMember.objects.all().delete()
+        SolidarityGroup.objects.all().delete()
+        Account.objects.all().delete()
+        PaymentGatewayConfig.objects.all().delete()
+        LoanProduct.objects.all().delete()
+        self.stdout.write('[OK] Anciennes donnees de demo reinitialisees')
 
         admin_user, _ = User.objects.get_or_create(
             username='admin',
@@ -122,6 +145,18 @@ class Command(BaseCommand):
             )
             clients.append(client)
         self.stdout.write(f'[OK] 20 clients crees (mot de passe: client123)')
+
+        loan_products = [
+            {'nom': 'Microcrédit Personnel', 'code': 'LP-PERSO', 'type_pret': 'PERSONNEL', 'description': 'Crédit pour besoins personnels', 'taux_interet_annuel': 12.00, 'montant_min': 50000, 'montant_max': 1000000, 'duree_min_mois': 3, 'duree_max_mois': 24, 'frais_dossier': 1.00},
+            {'nom': 'Crédit Professionnel', 'code': 'LP-PRO', 'type_pret': 'PROFESSIONNEL', 'description': "Financement d'activité commerciale", 'taux_interet_annuel': 14.00, 'montant_min': 100000, 'montant_max': 3000000, 'duree_min_mois': 6, 'duree_max_mois': 36, 'frais_dossier': 1.50, 'garantie_requise': True},
+            {'nom': "Crédit d'Équipement", 'code': 'LP-EQUIP', 'type_pret': 'EQUIPEMENT', 'description': 'Achat de matériel et équipement', 'taux_interet_annuel': 13.00, 'montant_min': 200000, 'montant_max': 5000000, 'duree_min_mois': 6, 'duree_max_mois': 48, 'frais_dossier': 1.50, 'garantie_requise': True},
+            {'nom': 'Crédit Agricole', 'code': 'LP-AGRI', 'type_pret': 'AGRICOLE', 'description': 'Financement de campagne agricole', 'taux_interet_annuel': 10.00, 'montant_min': 50000, 'montant_max': 2000000, 'duree_min_mois': 3, 'duree_max_mois': 12, 'frequence_remboursement': 'TRIMESTRIEL'},
+            {'nom': 'Crédit Solidaire (Groupe)', 'code': 'LP-GRP', 'type_pret': 'GROUPE', 'description': 'Crédit caution solidaire', 'taux_interet_annuel': 11.00, 'montant_min': 25000, 'montant_max': 500000, 'duree_min_mois': 3, 'duree_max_mois': 18, 'frequence_remboursement': 'HEBDOMADAIRE'},
+            {'nom': 'Crédit Saisonnier', 'code': 'LP-SAIS', 'type_pret': 'SAISONNIER', 'description': 'Crédit court terme saisonnier', 'taux_interet_annuel': 15.00, 'montant_min': 50000, 'montant_max': 1500000, 'duree_min_mois': 1, 'duree_max_mois': 9, 'frais_dossier': 2.00},
+        ]
+        for prod in loan_products:
+            LoanProduct.objects.get_or_create(code=prod['code'], defaults=prod)
+        self.stdout.write(f'[OK] {len(loan_products)} produits de credit crees')
 
         statuts = ['SOUMISE', 'EN_ANALYSE', 'APPROUVEE', 'REJETEE', 'DECAISSEE']
         loan_motifs = [

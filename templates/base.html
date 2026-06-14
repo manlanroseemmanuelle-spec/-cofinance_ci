@@ -1063,7 +1063,12 @@
                             </div>
 
                             <div v-if="currentView === 'payments'" class="view-fade">
-                                <div class="page-header"><h4>Paiements</h4></div>
+                                <div class="page-header">
+                                    <h4>Paiements</h4>
+                                    <div class="page-actions" style="display:flex;gap:8px">
+                                        <button class="btn btn-primary" @click="showPaymentForm = !showPaymentForm">{{ showPaymentForm ? 'Fermer' : 'Nouveau paiement' }}</button>
+                                    </div>
+                                </div>
                                 <div class="card">
                                     <div class="card-header"><h4>Passerelles de paiement</h4></div>
                                     <div class="card-body">
@@ -1080,6 +1085,80 @@
                                             </tbody>
                                         </table>
                                         <div v-if="!paymentGateways.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><h5>Aucune passerelle configurée</h5></div>
+                                    </div>
+                                </div>
+
+                                <div class="card" v-if="showPaymentForm">
+                                    <div class="card-header"><h4>Simuler un paiement</h4></div>
+                                    <div class="card-body">
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                                            <div class="form-group">
+                                                <label>Type</label>
+                                                <select v-model="paymentForm.type" style="width:100%">
+                                                    <option value="DECAISSEMENT">Décaissement prêt</option>
+                                                    <option value="REMBOURSEMENT_CREDIT">Remboursement crédit</option>
+                                                    <option value="VERSEMENT_EPARGNE">Versement épargne</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Passerelle</label>
+                                                <select v-model="paymentForm.gateway" style="width:100%">
+                                                    <option value="">Sélectionner...</option>
+                                                    <option v-for="g in paymentGateways" :key="g.id" :value="g.id">{{ g.nom }} ({{ g.code }})</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group" v-if="['DECAISSEMENT','REMBOURSEMENT_CREDIT'].includes(paymentForm.type)">
+                                                <label>Prêt</label>
+                                                <select v-model="paymentForm.loan_id" style="width:100%">
+                                                    <option value="">Sélectionner...</option>
+                                                    <option v-for="l in paymentLoans" :key="l.id" :value="l.id">#{{ l.id }} — {{ l.client_nom || 'N/A' }} ({{ l.montant_demande }} FCFA)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group" v-if="paymentForm.type === 'VERSEMENT_EPARGNE'">
+                                                <label>Compte épargne</label>
+                                                <select v-model="paymentForm.compte_id" style="width:100%">
+                                                    <option value="">Sélectionner...</option>
+                                                    <option v-for="a in paymentAccounts" :key="a.id" :value="a.id">{{ a.numero_compte }} — {{ a.client_nom || 'N/A' }} (solde: {{ formatMoney(a.solde) }})</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Montant (FCFA)</label>
+                                                <input type="number" v-model="paymentForm.montant" placeholder="Ex: 50000" style="width:100%">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Téléphone</label>
+                                                <input type="text" v-model="paymentForm.telephone" placeholder="Ex: 0102030405" style="width:100%">
+                                            </div>
+                                        </div>
+                                        <div style="margin-top:16px;display:flex;gap:8px">
+                                            <button class="btn btn-primary" @click="simulatePayment" :disabled="!paymentForm.gateway || !paymentForm.montant || !paymentForm.telephone || loading">
+                                                <span v-if="loading" class="spinner"></span>
+                                                <span v-else>Initier + Simuler le callback</span>
+                                            </button>
+                                        </div>
+                                        <div v-if="paymentResult" style="margin-top:16px" :class="['alert', paymentResult.success ? 'alert-success' : 'alert-danger']">
+                                            <strong>{{ paymentResult.success ? 'Succès' : 'Échec' }}</strong><br>
+                                            Référence: {{ paymentResult.reference || '-' }}<br>
+                                            Message: {{ paymentResult.message }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card" v-if="paymentTransactions.length">
+                                    <div class="card-header"><h4>Transactions récentes</h4></div>
+                                    <div class="card-body">
+                                        <table class="table">
+                                            <thead><tr><th>Réf</th><th>Type</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
+                                            <tbody>
+                                                <tr v-for="tx in paymentTransactions" :key="tx.id">
+                                                    <td style="font-family:monospace;font-size:12px">{{ tx.reference_interne }}</td>
+                                                    <td>{{ tx.type }}</td>
+                                                    <td style="font-weight:600">{{ formatMoney(tx.montant) }}</td>
+                                                    <td><span :class="['tag', tx.statut === 'SUCCES' ? 'green' : tx.statut === 'ECHEC' ? 'red' : 'orange']">{{ tx.statut }}</span></td>
+                                                    <td style="font-size:12px">{{ tx.date_creation }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -1617,6 +1696,12 @@
                 regulatoryReports: [],
                 prudentialRatios: [],
                 paymentGateways: [],
+                paymentForm: { type: 'DECAISSEMENT', gateway: '', loan_id: '', compte_id: '', montant: '', telephone: '' },
+                paymentResult: null,
+                showPaymentForm: false,
+                paymentTransactions: [],
+                paymentLoans: [],
+                paymentAccounts: [],
                 notif: { show: false, message: '', type: 'success' },
                 searchQuery: '',
                 searchResults: [],
@@ -1943,9 +2028,64 @@
                 },
                 async loadPayments() {
                     try {
-                        const d = await this.api('/api/payments/gateways/');
-                        this.paymentGateways = Array.isArray(d) ? d : d.results || [];
+                        const [g, tx, loans, accounts] = await Promise.all([
+                            this.api('/api/payments/gateways/'),
+                            this.api('/api/payments/transactions/'),
+                            this.api('/api/loans/'),
+                            this.api('/api/savings/comptes/'),
+                        ]);
+                        this.paymentGateways = Array.isArray(g) ? g : g.results || [];
+                        this.paymentTransactions = Array.isArray(tx) ? tx : tx.results || [];
+                        this.paymentLoans = (Array.isArray(loans) ? loans : loans.results || []).map(l => ({ ...l, client_nom: (l.client && (l.client.nom || l.client.user_nom || l.client.id)) || 'N/A' }));
+                        this.paymentAccounts = (Array.isArray(accounts) ? accounts : accounts.results || []).map(a => ({ ...a, client_nom: (a.client && (a.client.nom || a.client.user_nom || a.client.id)) || 'N/A' }));
                     } catch(e) { console.error(e); }
+                },
+                async simulatePayment() {
+                    const f = this.paymentForm;
+                    if (!f.gateway || !f.montant || !f.telephone) return;
+                    this.loading = true;
+                    this.paymentResult = null;
+                    try {
+                        const body = {
+                            gateway: parseInt(f.gateway),
+                            telephone: f.telephone,
+                            montant: parseFloat(f.montant),
+                            type: f.type,
+                            loan_id: f.loan_id ? parseInt(f.loan_id) : null,
+                            compte_id: f.compte_id ? parseInt(f.compte_id) : null,
+                        };
+                        const initRes = await fetch('/api/payments/initiate/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this.token },
+                            body: JSON.stringify(body),
+                        });
+                        const initData = await initRes.json();
+                        if (!initRes.ok) {
+                            this.paymentResult = { success: false, message: initData.error || 'Erreur initiation', reference: '' };
+                            return;
+                        }
+                        const cbRes = await fetch('/api/payments/callback/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this.token },
+                            body: JSON.stringify({
+                                reference_interne: initData.reference_interne,
+                                statut: 'SUCCES',
+                                reference_externe: 'SIM-' + Date.now().toString(36).toUpperCase(),
+                            }),
+                        });
+                        const cbData = await cbRes.json();
+                        if (cbRes.ok) {
+                            this.paymentResult = { success: true, message: 'Transaction simulée avec succès. Tous les effets ont été appliqués (décaissement/remboursement/épargne + compta + notifications).', reference: initData.reference_interne };
+                        } else {
+                            this.paymentResult = { success: false, message: cbData.error || 'Erreur callback', reference: initData.reference_interne };
+                        }
+                        await this.loadPayments();
+                        this.paymentForm = { type: 'DECAISSEMENT', gateway: '', loan_id: '', compte_id: '', montant: '', telephone: '' };
+                    } catch(e) {
+                        this.paymentResult = { success: false, message: 'Erreur réseau: ' + e.message, reference: '' };
+                    } finally {
+                        this.loading = false;
+                    }
                 },
                 async loadDashboardAgents() {
                     try { const d = await this.api('/api/dashboard/agents/'); this.dashboardAgents = Array.isArray(d) ? d : []; } catch(e) {}

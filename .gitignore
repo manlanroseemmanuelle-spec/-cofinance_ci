@@ -14,3 +14,4 @@ build/
 _check*.py
 _test*.py
 temp/
+api-schema.json

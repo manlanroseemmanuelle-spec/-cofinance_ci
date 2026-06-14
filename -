@@ -1,0 +1,7573 @@
+openapi: 3.0.3
+info:
+  title: Cofinance CI API
+  version: 1.0.0
+  description: API de gestion de microfinance
+paths:
+  /api/accounting/accounts/:
+    get:
+      operationId: accounting_accounts_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAccountList'
+          description: ''
+    post:
+      operationId: accounting_accounts_create
+      tags:
+      - Comptabilité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountCreate'
+          description: ''
+  /api/accounting/accounts/{id}/:
+    get:
+      operationId: accounting_accounts_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    put:
+      operationId: accounting_accounts_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    patch:
+      operationId: accounting_accounts_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    delete:
+      operationId: accounting_accounts_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/accounting/journals/:
+    get:
+      operationId: accounting_journals_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedJournalEntryList'
+          description: ''
+    post:
+      operationId: accounting_journals_create
+      tags:
+      - Comptabilité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JournalEntryCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JournalEntryCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JournalEntryCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntryCreate'
+          description: ''
+  /api/accounting/journals/{id}/:
+    get:
+      operationId: accounting_journals_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntry'
+          description: ''
+    put:
+      operationId: accounting_journals_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JournalEntryCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/JournalEntryCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/JournalEntryCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntryCreate'
+          description: ''
+    patch:
+      operationId: accounting_journals_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedJournalEntryCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedJournalEntryCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedJournalEntryCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JournalEntryCreate'
+          description: ''
+    delete:
+      operationId: accounting_journals_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/accounting/journals/{id}/validate/:
+    post:
+      operationId: accounting_journals_validate_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/accounting/reports/balance/:
+    get:
+      operationId: accounting_reports_balance_retrieve
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/accounting/reports/bilan/:
+    get:
+      operationId: accounting_reports_bilan_retrieve
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/accounting/reports/compte-resultat/:
+    get:
+      operationId: accounting_reports_compte_resultat_retrieve
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/accounting/reports/grand-livre/:
+    get:
+      operationId: accounting_reports_grand_livre_retrieve
+      tags:
+      - Comptabilité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/agents/:
+    get:
+      operationId: auth_agents_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Agents
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAgentList'
+          description: ''
+    post:
+      operationId: auth_agents_create
+      tags:
+      - Agents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AgentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AgentCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentCreate'
+          description: ''
+  /api/auth/agents/{id}/:
+    get:
+      operationId: auth_agents_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Agents
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+          description: ''
+    put:
+      operationId: auth_agents_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Agents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AgentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AgentCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentCreate'
+          description: ''
+    patch:
+      operationId: auth_agents_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Agents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAgentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAgentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAgentCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentCreate'
+          description: ''
+    delete:
+      operationId: auth_agents_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Agents
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/change-password/:
+    post:
+      operationId: auth_change_password_create
+      tags:
+      - Authentification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/auth/clients/:
+    get:
+      operationId: auth_clients_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Clients
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedClientList'
+          description: ''
+    post:
+      operationId: auth_clients_create
+      tags:
+      - Clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientCreate'
+          description: ''
+  /api/auth/clients/{id}/:
+    get:
+      operationId: auth_clients_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Clients
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: ''
+    put:
+      operationId: auth_clients_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientCreate'
+          description: ''
+    patch:
+      operationId: auth_clients_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedClientCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedClientCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedClientCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientCreate'
+          description: ''
+    delete:
+      operationId: auth_clients_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Clients
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/forgot-password/:
+    post:
+      operationId: auth_forgot_password_create
+      tags:
+      - Authentification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      tags:
+      - Authentification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+          description: ''
+  /api/auth/login-history/:
+    get:
+      operationId: auth_login_history_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Authentification
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoginHistoryList'
+          description: ''
+  /api/auth/profile/:
+    get:
+      operationId: auth_profile_retrieve
+      tags:
+      - Authentification
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: auth_profile_update
+      tags:
+      - Authentification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_profile_partial_update
+      tags:
+      - Authentification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - Authentification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+          description: ''
+  /api/auth/reset-password/:
+    post:
+      operationId: auth_reset_password_create
+      tags:
+      - Authentification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/auth/users/:
+    get:
+      operationId: auth_users_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Utilisateurs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+  /api/auth/users/{id}/:
+    get:
+      operationId: auth_users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Utilisateurs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: auth_users_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Utilisateurs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: auth_users_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Utilisateurs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: auth_users_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Utilisateurs
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/chat/conversations/:
+    get:
+      operationId: chat_conversations_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Chat
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedConversationList'
+          description: ''
+    post:
+      operationId: chat_conversations_create
+      tags:
+      - Chat
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          description: No response body
+  /api/chat/conversations/{conversation_id}/messages/:
+    get:
+      operationId: chat_conversations_messages_list
+      parameters:
+      - in: path
+        name: conversation_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Chat
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMessageList'
+          description: ''
+  /api/chat/conversations/{conversation_id}/send/:
+    post:
+      operationId: chat_conversations_send_create
+      parameters:
+      - in: path
+        name: conversation_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Chat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MessageCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MessageCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageCreate'
+          description: ''
+  /api/chat/conversations/{id}/:
+    get:
+      operationId: chat_conversations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Chat
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/chat/conversations/{id}/assign/:
+    put:
+      operationId: chat_conversations_assign_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Chat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+    patch:
+      operationId: chat_conversations_assign_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Chat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/chat/conversations/{id}/close/:
+    put:
+      operationId: chat_conversations_close_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Chat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Conversation'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+    patch:
+      operationId: chat_conversations_close_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Chat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedConversation'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+          description: ''
+  /api/common/audit/:
+    get:
+      operationId: common_audit_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Audit
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogList'
+          description: ''
+  /api/common/audit/export/pdf/:
+    get:
+      operationId: common_audit_export_pdf_retrieve
+      tags:
+      - Audit
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/common/health/:
+    get:
+      operationId: common_health_retrieve
+      tags:
+      - Santé
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: API is running
+  /api/common/search/:
+    get:
+      operationId: common_search_retrieve
+      tags:
+      - Recherche
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/compliance/classifications/:
+    get:
+      operationId: compliance_classifications_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoanClassificationList'
+          description: ''
+  /api/compliance/classifications/{loan_id}/:
+    put:
+      operationId: compliance_classifications_update
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Conformité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanClassification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoanClassification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoanClassification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanClassification'
+          description: ''
+    patch:
+      operationId: compliance_classifications_partial_update
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Conformité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanClassification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanClassification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanClassification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanClassification'
+          description: ''
+  /api/compliance/dashboard/:
+    get:
+      operationId: compliance_dashboard_retrieve
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/compliance/declarations/:
+    get:
+      operationId: compliance_declarations_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDeclarationSuspicionList'
+          description: ''
+    post:
+      operationId: compliance_declarations_create
+      tags:
+      - Conformité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeclarationSuspicionCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DeclarationSuspicionCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DeclarationSuspicionCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeclarationSuspicionCreate'
+          description: ''
+  /api/compliance/ratios/:
+    get:
+      operationId: compliance_ratios_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPrudentialRatioList'
+          description: ''
+  /api/compliance/ratios/compute/:
+    post:
+      operationId: compliance_ratios_compute_create
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/compliance/reports/:
+    get:
+      operationId: compliance_reports_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRegulatoryReportList'
+          description: ''
+    post:
+      operationId: compliance_reports_create
+      tags:
+      - Conformité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegulatoryReportCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegulatoryReportCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegulatoryReportCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatoryReportCreate'
+          description: ''
+  /api/compliance/reports/{id}/:
+    get:
+      operationId: compliance_reports_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatoryReport'
+          description: ''
+    put:
+      operationId: compliance_reports_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Conformité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegulatoryReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegulatoryReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegulatoryReport'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatoryReport'
+          description: ''
+    patch:
+      operationId: compliance_reports_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Conformité
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRegulatoryReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRegulatoryReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRegulatoryReport'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatoryReport'
+          description: ''
+    delete:
+      operationId: compliance_reports_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/compliance/reports/{id}/finalize/:
+    post:
+      operationId: compliance_reports_finalize_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Conformité
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/dashboard/admin/:
+    get:
+      operationId: dashboard_admin_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dashboard/agent/:
+    get:
+      operationId: dashboard_agent_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dashboard/agents/:
+    get:
+      operationId: dashboard_agents_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+  /api/dashboard/calendar/:
+    get:
+      operationId: dashboard_calendar_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dashboard/charts/:
+    get:
+      operationId: dashboard_charts_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dashboard/client/:
+    get:
+      operationId: dashboard_client_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dashboard/clients/:
+    get:
+      operationId: dashboard_clients_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dashboard/regions/:
+    get:
+      operationId: dashboard_regions_retrieve
+      tags:
+      - Dashboard
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+  /api/groups/:
+    get:
+      operationId: groups_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSolidarityGroupList'
+          description: ''
+    post:
+      operationId: groups_create
+      tags:
+      - Groupes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolidarityGroupCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SolidarityGroupCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SolidarityGroupCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolidarityGroupCreate'
+          description: ''
+  /api/groups/{group_id}/loans/:
+    get:
+      operationId: groups_loans_list
+      parameters:
+      - in: path
+        name: group_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGroupeLoanList'
+          description: ''
+  /api/groups/{group_id}/members/:
+    get:
+      operationId: groups_members_list
+      parameters:
+      - in: path
+        name: group_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGroupMemberList'
+          description: ''
+    post:
+      operationId: groups_members_create
+      parameters:
+      - in: path
+        name: group_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Groupes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupMemberCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GroupMemberCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GroupMemberCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMemberCreate'
+          description: ''
+  /api/groups/{group_id}/members/{id}/:
+    delete:
+      operationId: groups_members_destroy
+      parameters:
+      - in: path
+        name: group_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/groups/{id}/:
+    get:
+      operationId: groups_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolidarityGroup'
+          description: ''
+    put:
+      operationId: groups_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Groupes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolidarityGroupCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SolidarityGroupCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SolidarityGroupCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolidarityGroupCreate'
+          description: ''
+    patch:
+      operationId: groups_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Groupes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSolidarityGroupCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSolidarityGroupCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSolidarityGroupCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SolidarityGroupCreate'
+          description: ''
+    delete:
+      operationId: groups_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/groups/agent/:
+    get:
+      operationId: groups_agent_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSolidarityGroupList'
+          description: ''
+  /api/groups/mine/:
+    get:
+      operationId: groups_mine_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Groupes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSolidarityGroupList'
+          description: ''
+  /api/insurance/policies/:
+    get:
+      operationId: insurance_policies_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Assurance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPolicyList'
+          description: ''
+    post:
+      operationId: insurance_policies_create
+      tags:
+      - Assurance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PolicyCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PolicyCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyCreate'
+          description: ''
+  /api/insurance/policies/{id}/:
+    get:
+      operationId: insurance_policies_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Assurance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+          description: ''
+    delete:
+      operationId: insurance_policies_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Assurance
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/insurance/policies/mine/:
+    get:
+      operationId: insurance_policies_mine_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Assurance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPolicyList'
+          description: ''
+  /api/insurance/products/:
+    get:
+      operationId: insurance_products_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Assurance
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInsuranceProductList'
+          description: ''
+  /api/loans/:
+    get:
+      operationId: loans_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      - in: query
+        name: statut
+        schema:
+          type: string
+          enum:
+          - APPROUVEE
+          - DECAISSEE
+          - EN_ANALYSE
+          - REJETEE
+          - REMBOURSEE
+          - SOUMISE
+        description: |-
+          * `SOUMISE` - Soumise
+          * `EN_ANALYSE` - En analyse
+          * `APPROUVEE` - Approuvée
+          * `REJETEE` - Rejetée
+          * `DECAISSEE` - Décaissée
+          * `REMBOURSEE` - Remboursée
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoanApplicationList'
+          description: ''
+    post:
+      operationId: loans_create
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanCreate'
+          description: ''
+  /api/loans/{loan_id}/documents/:
+    get:
+      operationId: loans_documents_list
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Documents
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDocumentList'
+          description: ''
+    post:
+      operationId: loans_documents_create
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Documents
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DocumentUpload'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DocumentUpload'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentUpload'
+          description: ''
+  /api/loans/{loan_id}/grace-periods/:
+    get:
+      operationId: loans_grace_periods_list_2
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGracePeriodList'
+          description: ''
+    post:
+      operationId: loans_grace_periods_create_2
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GracePeriod'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GracePeriod'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GracePeriod'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GracePeriod'
+          description: ''
+  /api/loans/{loan_id}/history/:
+    get:
+      operationId: loans_history_list
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoanStatusHistoryList'
+          description: ''
+  /api/loans/{loan_id}/schedule/:
+    get:
+      operationId: loans_schedule_list
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Ã‰chÃ©ancier
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAmortizationScheduleList'
+          description: ''
+  /api/loans/{id}/:
+    get:
+      operationId: loans_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanApplication'
+          description: ''
+    put:
+      operationId: loans_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanCreate'
+          description: ''
+    patch:
+      operationId: loans_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanCreate'
+          description: ''
+    delete:
+      operationId: loans_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/loans/{id}/status/:
+    put:
+      operationId: loans_status_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanStatusUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoanStatusUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoanStatusUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanStatusUpdate'
+          description: ''
+    patch:
+      operationId: loans_status_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanStatusUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanStatusUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanStatusUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanStatusUpdate'
+          description: ''
+  /api/loans/collaterals/:
+    get:
+      operationId: loans_collaterals_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCollateralList'
+          description: ''
+    post:
+      operationId: loans_collaterals_create
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollateralCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CollateralCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CollateralCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollateralCreate'
+          description: ''
+  /api/loans/export/csv/:
+    get:
+      operationId: loans_export_csv_retrieve
+      tags:
+      - Exports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/loans/export/pdf/:
+    get:
+      operationId: loans_export_pdf_retrieve
+      tags:
+      - Exports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/loans/grace-periods/:
+    get:
+      operationId: loans_grace_periods_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedGracePeriodList'
+          description: ''
+    post:
+      operationId: loans_grace_periods_create
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GracePeriod'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GracePeriod'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GracePeriod'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GracePeriod'
+          description: ''
+  /api/loans/mine/:
+    get:
+      operationId: loans_mine_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoanApplicationList'
+          description: ''
+  /api/loans/products/:
+    get:
+      operationId: loans_products_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoanProductList'
+          description: ''
+  /api/loans/restructurings/:
+    get:
+      operationId: loans_restructurings_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - CrÃ©dits
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLoanRestructuringList'
+          description: ''
+    post:
+      operationId: loans_restructurings_create
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanRestructuring'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoanRestructuring'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoanRestructuring'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanRestructuring'
+          description: ''
+  /api/loans/restructurings/{id}/action/:
+    patch:
+      operationId: loans_restructurings_action_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - CrÃ©dits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanRestructuringAction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanRestructuringAction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanRestructuringAction'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanRestructuringAction'
+          description: ''
+  /api/notifications/:
+    get:
+      operationId: notifications_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/notifications/{id}/read/:
+    put:
+      operationId: notifications_read_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    patch:
+      operationId: notifications_read_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotification'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/mark-all-read/:
+    post:
+      operationId: notifications_mark_all_read_create
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/notifications/unread-count/:
+    get:
+      operationId: notifications_unread_count_retrieve
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/payments/{id}/retry/:
+    post:
+      operationId: payments_retry_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/payments/accounts/:
+    get:
+      operationId: payments_accounts_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMobileMoneyAccountList'
+          description: ''
+    post:
+      operationId: payments_accounts_create
+      tags:
+      - Paiements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileMoneyAccountCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MobileMoneyAccountCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MobileMoneyAccountCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileMoneyAccountCreate'
+          description: ''
+  /api/payments/accounts/{id}/:
+    delete:
+      operationId: payments_accounts_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/payments/accounts/mine/:
+    get:
+      operationId: payments_accounts_mine_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMobileMoneyAccountList'
+          description: ''
+  /api/payments/callback/:
+    post:
+      operationId: payments_callback_create
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/payments/gateways/:
+    get:
+      operationId: payments_gateways_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaymentGatewayConfigList'
+          description: ''
+    post:
+      operationId: payments_gateways_create
+      tags:
+      - Paiements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentGatewayConfigCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentGatewayConfigCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentGatewayConfigCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentGatewayConfigCreate'
+          description: ''
+  /api/payments/initiate/:
+    post:
+      operationId: payments_initiate_create
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/payments/transactions/:
+    get:
+      operationId: payments_transactions_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Paiements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPaymentTransactionList'
+          description: ''
+  /api/repayments/:
+    get:
+      operationId: repayments_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Remboursements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRepaymentList'
+          description: ''
+    post:
+      operationId: repayments_create
+      tags:
+      - Remboursements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepaymentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RepaymentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RepaymentCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaymentCreate'
+          description: ''
+  /api/repayments/{id}/:
+    get:
+      operationId: repayments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Remboursements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repayment'
+          description: ''
+    put:
+      operationId: repayments_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Remboursements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Repayment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Repayment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Repayment'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repayment'
+          description: ''
+    patch:
+      operationId: repayments_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Remboursements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRepayment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRepayment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRepayment'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repayment'
+          description: ''
+    delete:
+      operationId: repayments_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Remboursements
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/repayments/loan/{loan_id}/:
+    get:
+      operationId: repayments_loan_list
+      parameters:
+      - in: path
+        name: loan_id
+        schema:
+          type: integer
+        required: true
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Remboursements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRepaymentList'
+          description: ''
+  /api/savings/comptes/:
+    get:
+      operationId: savings_comptes_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Épargne
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSavingsAccountList'
+          description: ''
+    post:
+      operationId: savings_comptes_create
+      tags:
+      - Épargne
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavingsAccountCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccountCreate'
+          description: ''
+  /api/savings/comptes/{id}/:
+    get:
+      operationId: savings_comptes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Épargne
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccount'
+          description: ''
+    put:
+      operationId: savings_comptes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Épargne
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavingsAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavingsAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavingsAccount'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccount'
+          description: ''
+    patch:
+      operationId: savings_comptes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Épargne
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSavingsAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSavingsAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSavingsAccount'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsAccount'
+          description: ''
+    delete:
+      operationId: savings_comptes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Épargne
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/savings/comptes/mine/:
+    get:
+      operationId: savings_comptes_mine_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Épargne
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSavingsAccountList'
+          description: ''
+  /api/savings/products/:
+    get:
+      operationId: savings_products_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Épargne
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSavingsProductList'
+          description: ''
+  /api/savings/resume/:
+    get:
+      operationId: savings_resume_retrieve
+      tags:
+      - Épargne
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/savings/transactions/:
+    get:
+      operationId: savings_transactions_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Quel champ utiliser pour classer les résultats.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: Un terme de recherche.
+        schema:
+          type: string
+      tags:
+      - Épargne
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSavingsTransactionList'
+          description: ''
+    post:
+      operationId: savings_transactions_create
+      tags:
+      - Épargne
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavingsTransactionCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavingsTransactionCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavingsTransactionCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavingsTransactionCreate'
+          description: ''
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        parent_code:
+          type: string
+          readOnly: true
+          nullable: true
+        code:
+          type: string
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 200
+        type:
+          $ref: '#/components/schemas/Type568Enum'
+        niveau:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        solde_actuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        est_actif:
+          type: boolean
+          title: Actif
+        parent:
+          type: integer
+          nullable: true
+          title: Compte parent
+      required:
+      - code
+      - id
+      - nom
+      - parent_code
+      - type
+    AccountCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 10
+        nom:
+          type: string
+          maxLength: 200
+        type:
+          $ref: '#/components/schemas/Type568Enum'
+        niveau:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        solde_actuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        est_actif:
+          type: boolean
+          title: Actif
+        parent:
+          type: integer
+          nullable: true
+          title: Compte parent
+      required:
+      - code
+      - id
+      - nom
+      - type
+    ActionEnum:
+      enum:
+      - CREATE
+      - UPDATE
+      - DELETE
+      - LOGIN
+      - STATUS_CHANGE
+      - PAYMENT
+      - ASSIGN
+      type: string
+      description: |-
+        * `CREATE` - Création
+        * `UPDATE` - Modification
+        * `DELETE` - Suppression
+        * `LOGIN` - Connexion
+        * `STATUS_CHANGE` - Changement de statut
+        * `PAYMENT` - Paiement
+        * `ASSIGN` - Assignation
+    Agent:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        matricule:
+          type: string
+          maxLength: 50
+        region:
+          type: string
+          maxLength: 100
+      required:
+      - id
+      - matricule
+      - region
+      - user
+    AgentCreate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          writeOnly: true
+        matricule:
+          type: string
+          maxLength: 50
+        region:
+          type: string
+          maxLength: 100
+      required:
+      - matricule
+      - region
+      - user_id
+    AmortizationSchedule:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        mensualite:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        date_echeance:
+          type: string
+          format: date
+        capital_restant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        part_capital:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        part_interet:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        est_paye:
+          type: boolean
+        numero_mensualite:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        loan:
+          type: integer
+      required:
+      - capital_restant
+      - date_echeance
+      - id
+      - loan
+      - mensualite
+      - numero_mensualite
+      - part_capital
+      - part_interet
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_details:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        model_name:
+          type: string
+          title: Modèle
+          maxLength: 100
+        object_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          title: ID objet
+        object_repr:
+          type: string
+          title: Représentation
+          maxLength: 255
+        details:
+          type: string
+          title: Détails
+        ip_address:
+          type: string
+          nullable: true
+          title: Adresse IP
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date
+        user:
+          type: integer
+          nullable: true
+          title: Utilisateur
+      required:
+      - action
+      - id
+      - model_name
+      - timestamp
+      - user_details
+    ChangePassword:
+      type: object
+      properties:
+        old_password:
+          type: string
+        new_password:
+          type: string
+          minLength: 6
+      required:
+      - new_password
+      - old_password
+    ClasseEnum:
+      enum:
+      - SAINE
+      - SOUS_SURVEILLANCE
+      - DOUTEUSE
+      - COMPROMISE
+      type: string
+      description: |-
+        * `SAINE` - Saine
+        * `SOUS_SURVEILLANCE` - Sous surveillance
+        * `DOUTEUSE` - Douteuse
+        * `COMPROMISE` - Compromise
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        profession:
+          type: string
+          maxLength: 100
+        revenu_mensuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        score_credit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        date_naissance:
+          type: string
+          format: date
+        numero_piece:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
+      required:
+      - date_naissance
+      - id
+      - numero_piece
+      - profession
+      - revenu_mensuel
+      - user
+    ClientCreate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          writeOnly: true
+        profession:
+          type: string
+          maxLength: 100
+        revenu_mensuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        date_naissance:
+          type: string
+          format: date
+        numero_piece:
+          type: string
+          maxLength: 50
+      required:
+      - date_naissance
+      - numero_piece
+      - profession
+      - revenu_mensuel
+      - user_id
+    Collateral:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        client_name:
+          type: string
+          readOnly: true
+          nullable: true
+        type:
+          $ref: '#/components/schemas/Type07fEnum'
+        description:
+          type: string
+        valeur_estimee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        fichier_justificatif:
+          type: string
+          format: uri
+          nullable: true
+        date_ajout:
+          type: string
+          format: date-time
+          readOnly: true
+        loan:
+          type: integer
+        caution_solidaire:
+          type: integer
+          nullable: true
+      required:
+      - client_name
+      - date_ajout
+      - description
+      - id
+      - loan
+      - type
+      - valeur_estimee
+    CollateralCreate:
+      type: object
+      properties:
+        loan:
+          type: integer
+        type:
+          $ref: '#/components/schemas/Type07fEnum'
+        description:
+          type: string
+        valeur_estimee:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        caution_solidaire:
+          type: integer
+          nullable: true
+        fichier_justificatif:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - description
+      - loan
+      - type
+      - valeur_estimee
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        client_name:
+          type: string
+          readOnly: true
+        agent_name:
+          type: string
+          readOnly: true
+          nullable: true
+        last_message:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+          readOnly: true
+        unread_count:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        date_mise_a_jour:
+          type: string
+          format: date-time
+          readOnly: true
+        client:
+          type: integer
+        agent:
+          type: integer
+          nullable: true
+      required:
+      - agent_name
+      - client
+      - client_name
+      - date_creation
+      - date_mise_a_jour
+      - id
+      - last_message
+      - unread_count
+    DeclarationSuspicion:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        transaction:
+          type: string
+          maxLength: 100
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        motifs:
+          type: string
+        date_faits:
+          type: string
+          format: date
+          title: Date des faits
+        date_declaration:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date de déclaration
+        reference:
+          type: string
+          readOnly: true
+          title: Référence
+        client:
+          type: integer
+        declared_by:
+          type: integer
+          readOnly: true
+          title: Déclaré par
+      required:
+      - client
+      - date_declaration
+      - date_faits
+      - declared_by
+      - id
+      - montant
+      - motifs
+      - reference
+      - transaction
+    DeclarationSuspicionCreate:
+      type: object
+      properties:
+        client:
+          type: integer
+        transaction:
+          type: string
+          maxLength: 100
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        motifs:
+          type: string
+        date_faits:
+          type: string
+          format: date
+          title: Date des faits
+      required:
+      - client
+      - date_faits
+      - montant
+      - motifs
+      - transaction
+    Document:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/Type104Enum'
+        fichier:
+          type: string
+          format: uri
+        date_upload:
+          type: string
+          format: date-time
+          readOnly: true
+        loan:
+          type: integer
+      required:
+      - date_upload
+      - fichier
+      - id
+      - loan
+      - type
+    DocumentUpload:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/Type104Enum'
+        fichier:
+          type: string
+          format: uri
+      required:
+      - fichier
+      - type
+    ForgotPassword:
+      type: object
+      properties:
+        telephone:
+          type: string
+      required:
+      - telephone
+    FrequenceRemboursementEnum:
+      enum:
+      - MENSUEL
+      - HEBDOMADAIRE
+      - TRIMESTRIEL
+      type: string
+      description: |-
+        * `MENSUEL` - Mensuel
+        * `HEBDOMADAIRE` - Hebdomadaire
+        * `TRIMESTRIEL` - Trimestriel
+    GracePeriod:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        mois_debut:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Numéro de mensualité de début
+        mois_fin:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Numéro de mensualité de fin
+        type_interet:
+          $ref: '#/components/schemas/TypeInteretEnum'
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        loan:
+          type: integer
+      required:
+      - date_creation
+      - id
+      - loan
+      - mois_debut
+      - mois_fin
+    GroupMember:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        groupe:
+          type: integer
+        client:
+          type: integer
+        client_name:
+          type: string
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/Role45aEnum'
+        date_adhesion:
+          type: string
+          format: date-time
+          readOnly: true
+        est_actif:
+          type: boolean
+      required:
+      - client
+      - client_name
+      - date_adhesion
+      - groupe
+      - id
+    GroupMemberCreate:
+      type: object
+      properties:
+        groupe:
+          type: integer
+        client:
+          type: integer
+        role:
+          $ref: '#/components/schemas/Role45aEnum'
+        est_actif:
+          type: boolean
+      required:
+      - client
+      - groupe
+    GroupeLoan:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type_caution:
+          $ref: '#/components/schemas/TypeCautionEnum'
+        groupe:
+          type: integer
+        loan:
+          type: integer
+      required:
+      - groupe
+      - id
+      - loan
+    InsuranceProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+        prix:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        duree_jours:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        est_actif:
+          type: boolean
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - date_creation
+      - description
+      - duree_jours
+      - id
+      - nom
+      - prix
+    JournalEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalEntryLine'
+          readOnly: true
+        total_debit:
+          type: string
+          readOnly: true
+        total_credit:
+          type: string
+          readOnly: true
+        journal:
+          $ref: '#/components/schemas/JournalEnum'
+        reference:
+          type: string
+          readOnly: true
+          title: Référence
+        date_ecriture:
+          type: string
+          format: date
+          title: Date d'écriture
+        libelle:
+          type: string
+          title: Libellé
+        est_validee:
+          type: boolean
+          readOnly: true
+          title: Validée
+        date_validation:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: Date de validation
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date de création
+        loan:
+          type: integer
+          nullable: true
+          title: Prêt
+        client:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+        validee_par:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: Validée par
+      required:
+      - date_creation
+      - date_ecriture
+      - date_validation
+      - est_validee
+      - id
+      - journal
+      - libelle
+      - lines
+      - reference
+      - total_credit
+      - total_debit
+      - validee_par
+    JournalEntryCreate:
+      type: object
+      properties:
+        journal:
+          $ref: '#/components/schemas/JournalEnum'
+        date_ecriture:
+          type: string
+          format: date
+          title: Date d'écriture
+        libelle:
+          type: string
+          title: Libellé
+        loan:
+          type: integer
+          nullable: true
+          title: Prêt
+        client:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalEntryLineCreate'
+      required:
+      - date_ecriture
+      - journal
+      - libelle
+      - lines
+    JournalEntryLine:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sens:
+          $ref: '#/components/schemas/SensEnum'
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        libelle:
+          type: string
+          title: Libellé
+        entry:
+          type: integer
+          readOnly: true
+          title: Écriture
+        account:
+          type: integer
+          title: Compte
+      required:
+      - account
+      - entry
+      - id
+      - montant
+      - sens
+    JournalEntryLineCreate:
+      type: object
+      properties:
+        account:
+          type: integer
+          title: Compte
+        sens:
+          $ref: '#/components/schemas/SensEnum'
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        libelle:
+          type: string
+          title: Libellé
+      required:
+      - account
+      - montant
+      - sens
+    JournalEnum:
+      enum:
+      - CAISSE
+      - BANQUE
+      - DIVERS
+      - OD
+      - ASSURANCE
+      type: string
+      description: |-
+        * `CAISSE` - Caisse
+        * `BANQUE` - Banque
+        * `DIVERS` - Opérations diverses
+        * `OD` - OD
+        * `ASSURANCE` - Assurance
+    LoanApplication:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        client_details:
+          allOf:
+          - $ref: '#/components/schemas/Client'
+          readOnly: true
+        montant_demande:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        duree_mois:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        motif:
+          type: string
+        revenu_mensuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        score_eligibilite:
+          type: integer
+          readOnly: true
+        statut:
+          $ref: '#/components/schemas/StatutB11Enum'
+        taux_interet:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        is_active:
+          type: boolean
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        date_mise_a_jour:
+          type: string
+          format: date-time
+          readOnly: true
+        produit:
+          type: integer
+          nullable: true
+          title: Produit de crédit
+        client:
+          type: integer
+        agent:
+          type: integer
+          nullable: true
+      required:
+      - client
+      - client_details
+      - date_creation
+      - date_mise_a_jour
+      - duree_mois
+      - id
+      - montant_demande
+      - motif
+      - revenu_mensuel
+      - score_eligibilite
+    LoanClassification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        loan_details:
+          type: string
+          readOnly: true
+        classe:
+          $ref: '#/components/schemas/ClasseEnum'
+        jours_retard:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: Jours de retard
+        taux_provision:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: Taux de provision
+        montant_provision:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          title: Montant de la provision
+        date_classification:
+          type: string
+          format: date
+          readOnly: true
+          title: Date de classification
+        date_mise_a_jour:
+          type: string
+          format: date
+          readOnly: true
+          title: Date de mise à jour
+        loan:
+          type: integer
+          title: Prêt
+      required:
+      - classe
+      - date_classification
+      - date_mise_a_jour
+      - id
+      - loan
+      - loan_details
+    LoanCreate:
+      type: object
+      properties:
+        montant_demande:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        duree_mois:
+          type: integer
+          maximum: 60
+          minimum: 1
+        motif:
+          type: string
+        revenu_mensuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+      required:
+      - duree_mois
+      - montant_demande
+      - motif
+      - revenu_mensuel
+    LoanProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 20
+        type_pret:
+          $ref: '#/components/schemas/TypePretEnum'
+        description:
+          type: string
+        taux_interet_annuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        montant_min:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        montant_max:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        duree_min_mois:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        duree_max_mois:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        frequence_remboursement:
+          $ref: '#/components/schemas/FrequenceRemboursementEnum'
+        taux_penalite_jour:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,2}(?:\.\d{0,3})?$
+        garantie_requise:
+          type: boolean
+        frais_dossier:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Pourcentage de frais de dossier
+        commission_agent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          description: Commission agent en pourcentage
+        est_actif:
+          type: boolean
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - date_creation
+      - id
+      - montant_max
+      - nom
+    LoanRestructuring:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/LoanRestructuringTypeEnum'
+        statut:
+          allOf:
+          - $ref: '#/components/schemas/Statut1a5Enum'
+          readOnly: true
+        nouvelle_duree_mois:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+        nouveau_taux:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          nullable: true
+        nouveau_montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          nullable: true
+        motif:
+          type: string
+        date_soumission:
+          type: string
+          format: date-time
+          readOnly: true
+        date_approbation:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        loan:
+          type: integer
+        approuve_par:
+          type: integer
+          readOnly: true
+          nullable: true
+      required:
+      - approuve_par
+      - date_approbation
+      - date_soumission
+      - id
+      - loan
+      - motif
+      - statut
+      - type
+    LoanRestructuringAction:
+      type: object
+      properties:
+        statut:
+          $ref: '#/components/schemas/Statut1a5Enum'
+      required:
+      - statut
+    LoanRestructuringTypeEnum:
+      enum:
+      - REECHELONNEMENT
+      - REFINANCEMENT
+      - REPORT_ECHEANCE
+      - REDUCTION_TAUX
+      type: string
+      description: |-
+        * `REECHELONNEMENT` - Rééchelonnement
+        * `REFINANCEMENT` - Refinancement
+        * `REPORT_ECHEANCE` - Report d'échéance
+        * `REDUCTION_TAUX` - Réduction de taux
+    LoanStatusHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        changed_by_name:
+          type: string
+          nullable: true
+          readOnly: true
+        ancien_statut:
+          type: string
+          maxLength: 20
+        nouveau_statut:
+          type: string
+          maxLength: 20
+        commentaire:
+          type: string
+        date:
+          type: string
+          format: date-time
+          readOnly: true
+        loan:
+          type: integer
+          title: Prêt
+        changed_by:
+          type: integer
+          nullable: true
+          title: Modifié par
+      required:
+      - changed_by_name
+      - date
+      - id
+      - loan
+      - nouveau_statut
+    LoanStatusUpdate:
+      type: object
+      properties:
+        statut:
+          $ref: '#/components/schemas/StatutB11Enum'
+        agent:
+          type: integer
+          minimum: 1
+        commentaire:
+          type: string
+      required:
+      - statut
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+      - password
+      - username
+    LoginHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        ip_address:
+          type: string
+          nullable: true
+        user_agent:
+          type: string
+        date_connexion:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+      required:
+      - date_connexion
+      - id
+      - user
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        sender_name:
+          type: string
+          readOnly: true
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+        is_read:
+          type: boolean
+          readOnly: true
+        conversation:
+          type: integer
+        sender:
+          type: integer
+      required:
+      - conversation
+      - id
+      - is_read
+      - message
+      - sender
+      - sender_name
+      - timestamp
+    MessageCreate:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    MobileMoneyAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        operateur:
+          $ref: '#/components/schemas/OperateurEnum'
+        telephone:
+          type: string
+          maxLength: 20
+        est_verifie:
+          type: boolean
+        est_actif:
+          type: boolean
+        date_ajout:
+          type: string
+          format: date-time
+          readOnly: true
+        client:
+          type: integer
+      required:
+      - client
+      - date_ajout
+      - id
+      - operateur
+      - telephone
+    MobileMoneyAccountCreate:
+      type: object
+      properties:
+        operateur:
+          $ref: '#/components/schemas/OperateurEnum'
+        telephone:
+          type: string
+          maxLength: 20
+      required:
+      - operateur
+      - telephone
+    ModePaiementEnum:
+      enum:
+      - ORANGE_MONEY
+      - WAVE
+      - MTN_MOMO
+      - ESPECES
+      type: string
+      description: |-
+        * `ORANGE_MONEY` - Orange Money
+        * `WAVE` - Wave
+        * `MTN_MOMO` - MTN MoMo
+        * `ESPECES` - Espèces
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        titre:
+          type: string
+          maxLength: 200
+        message:
+          type: string
+        type:
+          $ref: '#/components/schemas/NotificationTypeEnum'
+        lu:
+          type: boolean
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+      required:
+      - date_creation
+      - id
+      - message
+      - titre
+      - user
+    NotificationTypeEnum:
+      enum:
+      - CREDIT
+      - ASSURANCE
+      - REMBOURSEMENT
+      - CHAT
+      - SYSTEME
+      type: string
+      description: |-
+        * `CREDIT` - Crédit
+        * `ASSURANCE` - Assurance
+        * `REMBOURSEMENT` - Remboursement
+        * `CHAT` - Chat
+        * `SYSTEME` - Système
+    OperateurEnum:
+      enum:
+      - ORANGE_MONEY
+      - WAVE
+      - MTN_MOMO
+      type: string
+      description: |-
+        * `ORANGE_MONEY` - Orange Money
+        * `WAVE` - Wave
+        * `MTN_MOMO` - MTN MoMo
+    PaginatedAccountList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+    PaginatedAgentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Agent'
+    PaginatedAmortizationScheduleList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AmortizationSchedule'
+    PaginatedAuditLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+    PaginatedClientList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Client'
+    PaginatedCollateralList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collateral'
+    PaginatedConversationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Conversation'
+    PaginatedDeclarationSuspicionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeclarationSuspicion'
+    PaginatedDocumentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+    PaginatedGracePeriodList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GracePeriod'
+    PaginatedGroupMemberList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupMember'
+    PaginatedGroupeLoanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupeLoan'
+    PaginatedInsuranceProductList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsuranceProduct'
+    PaginatedJournalEntryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalEntry'
+    PaginatedLoanApplicationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanApplication'
+    PaginatedLoanClassificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanClassification'
+    PaginatedLoanProductList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanProduct'
+    PaginatedLoanRestructuringList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanRestructuring'
+    PaginatedLoanStatusHistoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanStatusHistory'
+    PaginatedLoginHistoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoginHistory'
+    PaginatedMessageList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    PaginatedMobileMoneyAccountList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MobileMoneyAccount'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedPaymentGatewayConfigList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentGatewayConfig'
+    PaginatedPaymentTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentTransaction'
+    PaginatedPolicyList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Policy'
+    PaginatedPrudentialRatioList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrudentialRatio'
+    PaginatedRegulatoryReportList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegulatoryReport'
+    PaginatedRepaymentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Repayment'
+    PaginatedSavingsAccountList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavingsAccount'
+    PaginatedSavingsProductList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavingsProduct'
+    PaginatedSavingsTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavingsTransaction'
+    PaginatedSolidarityGroupList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SolidarityGroup'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    PatchedAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        parent_code:
+          type: string
+          readOnly: true
+          nullable: true
+        code:
+          type: string
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 200
+        type:
+          $ref: '#/components/schemas/Type568Enum'
+        niveau:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        solde_actuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,14}(?:\.\d{0,2})?$
+        est_actif:
+          type: boolean
+          title: Actif
+        parent:
+          type: integer
+          nullable: true
+          title: Compte parent
+    PatchedAgentCreate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          writeOnly: true
+        matricule:
+          type: string
+          maxLength: 50
+        region:
+          type: string
+          maxLength: 100
+    PatchedClientCreate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          writeOnly: true
+        profession:
+          type: string
+          maxLength: 100
+        revenu_mensuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        date_naissance:
+          type: string
+          format: date
+        numero_piece:
+          type: string
+          maxLength: 50
+    PatchedConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        client_name:
+          type: string
+          readOnly: true
+        agent_name:
+          type: string
+          readOnly: true
+          nullable: true
+        last_message:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+          readOnly: true
+        unread_count:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        date_mise_a_jour:
+          type: string
+          format: date-time
+          readOnly: true
+        client:
+          type: integer
+        agent:
+          type: integer
+          nullable: true
+    PatchedJournalEntryCreate:
+      type: object
+      properties:
+        journal:
+          $ref: '#/components/schemas/JournalEnum'
+        date_ecriture:
+          type: string
+          format: date
+          title: Date d'écriture
+        libelle:
+          type: string
+          title: Libellé
+        loan:
+          type: integer
+          nullable: true
+          title: Prêt
+        client:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalEntryLineCreate'
+    PatchedLoanClassification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        loan_details:
+          type: string
+          readOnly: true
+        classe:
+          $ref: '#/components/schemas/ClasseEnum'
+        jours_retard:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          title: Jours de retard
+        taux_provision:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: Taux de provision
+        montant_provision:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          title: Montant de la provision
+        date_classification:
+          type: string
+          format: date
+          readOnly: true
+          title: Date de classification
+        date_mise_a_jour:
+          type: string
+          format: date
+          readOnly: true
+          title: Date de mise à jour
+        loan:
+          type: integer
+          title: Prêt
+    PatchedLoanCreate:
+      type: object
+      properties:
+        montant_demande:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        duree_mois:
+          type: integer
+          maximum: 60
+          minimum: 1
+        motif:
+          type: string
+        revenu_mensuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+    PatchedLoanRestructuringAction:
+      type: object
+      properties:
+        statut:
+          $ref: '#/components/schemas/Statut1a5Enum'
+    PatchedLoanStatusUpdate:
+      type: object
+      properties:
+        statut:
+          $ref: '#/components/schemas/StatutB11Enum'
+        agent:
+          type: integer
+          minimum: 1
+        commentaire:
+          type: string
+    PatchedNotification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        titre:
+          type: string
+          maxLength: 200
+        message:
+          type: string
+        type:
+          $ref: '#/components/schemas/NotificationTypeEnum'
+        lu:
+          type: boolean
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+    PatchedRegulatoryReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/Type5a9Enum'
+        periode:
+          type: string
+          title: Période
+          description: YYYY-MM for monthly, YYYY-T for quarterly, YYYY for annual
+          maxLength: 7
+        date_generation:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date de génération
+        statut:
+          allOf:
+          - $ref: '#/components/schemas/RegulatoryReportStatutEnum'
+          readOnly: true
+        contenu: {}
+        generated_by:
+          type: integer
+          readOnly: true
+          title: Généré par
+    PatchedRepayment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        penalite:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        date_paiement:
+          type: string
+          format: date-time
+          readOnly: true
+        mode_paiement:
+          $ref: '#/components/schemas/ModePaiementEnum'
+        reference:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        loan:
+          type: integer
+        amortization:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+    PatchedSavingsAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        client_details:
+          allOf:
+          - $ref: '#/components/schemas/Client'
+          readOnly: true
+        numero_compte:
+          type: string
+          readOnly: true
+          title: Numéro de compte
+        solde:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        statut:
+          $ref: '#/components/schemas/SavingsAccountStatutEnum'
+        date_ouverture:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date d'ouverture
+        date_cloture:
+          type: string
+          format: date
+          nullable: true
+          title: Date de clôture
+        client:
+          type: integer
+        produit:
+          type: integer
+          title: Produit d'épargne
+    PatchedSolidarityGroupCreate:
+      type: object
+      properties:
+        nom:
+          type: string
+          maxLength: 200
+        type:
+          $ref: '#/components/schemas/Type30bEnum'
+        centre:
+          type: string
+          maxLength: 100
+        region:
+          type: string
+          maxLength: 100
+        responsable:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+        statut:
+          $ref: '#/components/schemas/StatutAedEnum'
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Nom d’utilisateur
+          description: Requis. 150 caractères maximum. Uniquement des lettres, nombres
+            et les caractères « @ », « . », « + », « - » et « _ ».
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Adresse électronique
+          maxLength: 254
+        first_name:
+          type: string
+          title: Prénom
+          maxLength: 150
+        last_name:
+          type: string
+          title: Nom
+          maxLength: 150
+        telephone:
+          type: string
+          maxLength: 20
+        adresse:
+          type: string
+        region:
+          type: string
+          maxLength: 100
+        photo:
+          type: string
+          format: uri
+          nullable: true
+        role:
+          $ref: '#/components/schemas/RoleE60Enum'
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date d’inscription
+    PaymentGatewayConfig:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 50
+        nom:
+          type: string
+          maxLength: 100
+        api_url:
+          type: string
+          format: uri
+          maxLength: 200
+        api_key:
+          type: string
+          description: Chiffrer au repos (AES-256-GCM)
+        api_secret:
+          type: string
+          description: Chiffrer au repos (AES-256-GCM)
+        frais_pourcentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        frais_fixe:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        est_actif:
+          type: boolean
+      required:
+      - api_key
+      - api_secret
+      - api_url
+      - code
+      - id
+      - nom
+    PaymentGatewayConfigCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 50
+        nom:
+          type: string
+          maxLength: 100
+        api_url:
+          type: string
+          format: uri
+          maxLength: 200
+        api_key:
+          type: string
+          description: Chiffrer au repos (AES-256-GCM)
+        api_secret:
+          type: string
+          description: Chiffrer au repos (AES-256-GCM)
+        frais_pourcentage:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        frais_fixe:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        est_actif:
+          type: boolean
+      required:
+      - api_key
+      - api_secret
+      - api_url
+      - code
+      - id
+      - nom
+    PaymentTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        gateway_name:
+          type: string
+          readOnly: true
+        reference_interne:
+          type: string
+          maxLength: 100
+        reference_externe:
+          type: string
+          maxLength: 100
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        frais:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        devise:
+          type: string
+          maxLength: 5
+        telephone:
+          type: string
+          maxLength: 20
+        statut:
+          $ref: '#/components/schemas/PaymentTransactionStatutEnum'
+        type:
+          $ref: '#/components/schemas/PaymentTransactionTypeEnum'
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        date_execution:
+          type: string
+          format: date-time
+          nullable: true
+        callback_data:
+          nullable: true
+        notes:
+          type: string
+        gateway:
+          type: integer
+        loan:
+          type: integer
+          nullable: true
+        compte:
+          type: integer
+          nullable: true
+      required:
+      - date_creation
+      - gateway
+      - gateway_name
+      - id
+      - montant
+      - reference_interne
+      - telephone
+      - type
+    PaymentTransactionStatutEnum:
+      enum:
+      - INITIE
+      - EN_COURS
+      - SUCCES
+      - ECHEC
+      - REMBOURSE
+      type: string
+      description: |-
+        * `INITIE` - INITIÉ
+        * `EN_COURS` - EN COURS
+        * `SUCCES` - SUCCÈS
+        * `ECHEC` - ÉCHEC
+        * `REMBOURSE` - REMBOURSÉ
+    PaymentTransactionTypeEnum:
+      enum:
+      - VERSEMENT_EPARGNE
+      - REMBOURSEMENT_CREDIT
+      - DECAISSEMENT
+      type: string
+      description: |-
+        * `VERSEMENT_EPARGNE` - Versement épargne
+        * `REMBOURSEMENT_CREDIT` - Remboursement crédit
+        * `DECAISSEMENT` - Décaissement
+    Policy:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        produit_details:
+          allOf:
+          - $ref: '#/components/schemas/InsuranceProduct'
+          readOnly: true
+        date_debut:
+          type: string
+          format: date
+        date_fin:
+          type: string
+          format: date
+          readOnly: true
+        statut:
+          $ref: '#/components/schemas/PolicyStatutEnum'
+        date_souscription:
+          type: string
+          format: date-time
+          readOnly: true
+        client:
+          type: integer
+        produit:
+          type: integer
+      required:
+      - client
+      - date_debut
+      - date_fin
+      - date_souscription
+      - id
+      - produit
+      - produit_details
+    PolicyCreate:
+      type: object
+      properties:
+        produit_id:
+          type: integer
+      required:
+      - produit_id
+    PolicyStatutEnum:
+      enum:
+      - ACTIVE
+      - EXPIREE
+      - ANNULEE
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `EXPIREE` - Expirée
+        * `ANNULEE` - Annulée
+    PrudentialRatio:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 20
+        nom:
+          type: string
+          maxLength: 200
+        formule:
+          type: string
+          description: Description du calcul
+        seuil_min:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+          title: Seuil minimum
+        valeur_actuelle:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          nullable: true
+        date_calcul:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date de calcul
+        statut:
+          $ref: '#/components/schemas/PrudentialRatioStatutEnum'
+      required:
+      - code
+      - date_calcul
+      - formule
+      - id
+      - nom
+    PrudentialRatioStatutEnum:
+      enum:
+      - CONFORME
+      - NON_CONFORME
+      - EN_SURVEILLANCE
+      type: string
+      description: |-
+        * `CONFORME` - Conforme
+        * `NON_CONFORME` - Non conforme
+        * `EN_SURVEILLANCE` - En surveillance
+    Register:
+      type: object
+      properties:
+        username:
+          type: string
+          title: Nom d’utilisateur
+          description: Requis. 150 caractères maximum. Uniquement des lettres, nombres
+            et les caractères « @ », « . », « + », « - » et « _ ».
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Adresse électronique
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 6
+        first_name:
+          type: string
+          title: Prénom
+          maxLength: 150
+        last_name:
+          type: string
+          title: Nom
+          maxLength: 150
+        telephone:
+          type: string
+          maxLength: 20
+        adresse:
+          type: string
+        region:
+          type: string
+          maxLength: 100
+        role:
+          $ref: '#/components/schemas/RoleE60Enum'
+        profession:
+          type: string
+        revenu_mensuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        date_naissance:
+          type: string
+          format: date
+        numero_piece:
+          type: string
+      required:
+      - password
+      - telephone
+      - username
+    RegulatoryReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/Type5a9Enum'
+        periode:
+          type: string
+          title: Période
+          description: YYYY-MM for monthly, YYYY-T for quarterly, YYYY for annual
+          maxLength: 7
+        date_generation:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date de génération
+        statut:
+          allOf:
+          - $ref: '#/components/schemas/RegulatoryReportStatutEnum'
+          readOnly: true
+        contenu: {}
+        generated_by:
+          type: integer
+          readOnly: true
+          title: Généré par
+      required:
+      - contenu
+      - date_generation
+      - generated_by
+      - id
+      - periode
+      - statut
+      - type
+    RegulatoryReportCreate:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/Type5a9Enum'
+        periode:
+          type: string
+          title: Période
+          description: YYYY-MM for monthly, YYYY-T for quarterly, YYYY for annual
+          maxLength: 7
+        contenu: {}
+      required:
+      - contenu
+      - periode
+      - type
+    RegulatoryReportStatutEnum:
+      enum:
+      - BROUILLON
+      - FINALISE
+      - TRANSMIS
+      type: string
+      description: |-
+        * `BROUILLON` - Brouillon
+        * `FINALISE` - Finalisé
+        * `TRANSMIS` - Transmis
+    Repayment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        penalite:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        date_paiement:
+          type: string
+          format: date-time
+          readOnly: true
+        mode_paiement:
+          $ref: '#/components/schemas/ModePaiementEnum'
+        reference:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        loan:
+          type: integer
+        amortization:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+      required:
+      - date_paiement
+      - id
+      - loan
+      - mode_paiement
+      - montant
+      - penalite
+      - reference
+    RepaymentCreate:
+      type: object
+      properties:
+        loan:
+          type: integer
+        amortization:
+          type: integer
+          nullable: true
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        mode_paiement:
+          $ref: '#/components/schemas/ModePaiementEnum'
+        notes:
+          type: string
+      required:
+      - loan
+      - mode_paiement
+      - montant
+    ResetPassword:
+      type: object
+      properties:
+        token:
+          type: string
+        new_password:
+          type: string
+          minLength: 6
+      required:
+      - new_password
+      - token
+    Role45aEnum:
+      enum:
+      - CHEF
+      - MEMBRE
+      - SECRETAIRE
+      type: string
+      description: |-
+        * `CHEF` - Chef
+        * `MEMBRE` - Membre
+        * `SECRETAIRE` - Secrétaire
+    RoleE60Enum:
+      enum:
+      - CLIENT
+      - AGENT
+      - ADMIN
+      - AUDITEUR
+      - COMPTABLE
+      type: string
+      description: |-
+        * `CLIENT` - Client
+        * `AGENT` - Agent de terrain
+        * `ADMIN` - Administrateur
+        * `AUDITEUR` - Auditeur
+        * `COMPTABLE` - Comptable
+    SavingsAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        client_details:
+          allOf:
+          - $ref: '#/components/schemas/Client'
+          readOnly: true
+        numero_compte:
+          type: string
+          readOnly: true
+          title: Numéro de compte
+        solde:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        statut:
+          $ref: '#/components/schemas/SavingsAccountStatutEnum'
+        date_ouverture:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date d'ouverture
+        date_cloture:
+          type: string
+          format: date
+          nullable: true
+          title: Date de clôture
+        client:
+          type: integer
+        produit:
+          type: integer
+          title: Produit d'épargne
+      required:
+      - client
+      - client_details
+      - date_ouverture
+      - id
+      - numero_compte
+      - produit
+      - solde
+    SavingsAccountCreate:
+      type: object
+      properties:
+        client:
+          type: integer
+        produit:
+          type: integer
+          title: Produit d'épargne
+      required:
+      - client
+      - produit
+    SavingsAccountStatutEnum:
+      enum:
+      - ACTIF
+      - CLOTURE
+      - BLOQUE
+      type: string
+      description: |-
+        * `ACTIF` - Actif
+        * `CLOTURE` - Clôturé
+        * `BLOQUE` - Bloqué
+    SavingsProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nom:
+          type: string
+          title: Nom du produit
+          maxLength: 200
+        description:
+          type: string
+        taux_interet_annuel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: Taux d'intérêt annuel (%)
+        duree_jours:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          nullable: true
+          title: Durée (jours)
+          description: Laissez vide pour une durée illimitée
+        montant_min:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          title: Montant minimum
+        montant_max:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          title: Montant maximum
+        type:
+          allOf:
+          - $ref: '#/components/schemas/SavingsProductTypeEnum'
+          title: Type de produit
+        est_actif:
+          type: boolean
+          title: Actif
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date de création
+      required:
+      - date_creation
+      - id
+      - montant_max
+      - montant_min
+      - nom
+      - taux_interet_annuel
+      - type
+    SavingsProductTypeEnum:
+      enum:
+      - DAV
+      - DAT
+      - EPARGNE
+      - LOGEMENT
+      type: string
+      description: |-
+        * `DAV` - Dépôt à Vue
+        * `DAT` - Dépôt à Terme
+        * `EPARGNE` - Épargne Programmée
+        * `LOGEMENT` - Épargne Logement
+    SavingsTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        agent_name:
+          type: string
+          nullable: true
+          readOnly: true
+        type:
+          allOf:
+          - $ref: '#/components/schemas/Type023Enum'
+          title: Type de transaction
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        solde_avant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        solde_apres:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+          title: Solde après
+        reference:
+          type: string
+          readOnly: true
+          title: Référence
+        notes:
+          type: string
+        date_transaction:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date de transaction
+        compte:
+          type: integer
+        agent:
+          type: integer
+          nullable: true
+      required:
+      - agent_name
+      - compte
+      - date_transaction
+      - id
+      - montant
+      - reference
+      - solde_apres
+      - solde_avant
+      - type
+    SavingsTransactionCreate:
+      type: object
+      properties:
+        compte:
+          type: integer
+        type:
+          allOf:
+          - $ref: '#/components/schemas/Type023Enum'
+          title: Type de transaction
+        montant:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+        agent:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+      required:
+      - compte
+      - montant
+      - type
+    SensEnum:
+      enum:
+      - DEBIT
+      - CREDIT
+      type: string
+      description: |-
+        * `DEBIT` - Débit
+        * `CREDIT` - Crédit
+    SolidarityGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nom:
+          type: string
+          maxLength: 200
+        type:
+          $ref: '#/components/schemas/Type30bEnum'
+        centre:
+          type: string
+          maxLength: 100
+        region:
+          type: string
+          maxLength: 100
+        responsable:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        statut:
+          $ref: '#/components/schemas/StatutAedEnum'
+        members_count:
+          type: string
+          readOnly: true
+      required:
+      - date_creation
+      - id
+      - members_count
+      - nom
+      - region
+      - type
+    SolidarityGroupCreate:
+      type: object
+      properties:
+        nom:
+          type: string
+          maxLength: 200
+        type:
+          $ref: '#/components/schemas/Type30bEnum'
+        centre:
+          type: string
+          maxLength: 100
+        region:
+          type: string
+          maxLength: 100
+        responsable:
+          type: integer
+          nullable: true
+        agent:
+          type: integer
+          nullable: true
+        statut:
+          $ref: '#/components/schemas/StatutAedEnum'
+      required:
+      - nom
+      - region
+      - type
+    StatusEnum:
+      enum:
+      - OUVERTE
+      - FERMEE
+      type: string
+      description: |-
+        * `OUVERTE` - Ouverte
+        * `FERMEE` - Fermée
+    Statut1a5Enum:
+      enum:
+      - SOUMISE
+      - APPROUVEE
+      - REJETEE
+      type: string
+      description: |-
+        * `SOUMISE` - Soumise
+        * `APPROUVEE` - Approuvée
+        * `REJETEE` - Rejetée
+    StatutAedEnum:
+      enum:
+      - ACTIF
+      - INACTIF
+      - DISSOUS
+      type: string
+      description: |-
+        * `ACTIF` - Actif
+        * `INACTIF` - Inactif
+        * `DISSOUS` - Dissous
+    StatutB11Enum:
+      enum:
+      - SOUMISE
+      - EN_ANALYSE
+      - APPROUVEE
+      - REJETEE
+      - DECAISSEE
+      - REMBOURSEE
+      type: string
+      description: |-
+        * `SOUMISE` - Soumise
+        * `EN_ANALYSE` - En analyse
+        * `APPROUVEE` - Approuvée
+        * `REJETEE` - Rejetée
+        * `DECAISSEE` - Décaissée
+        * `REMBOURSEE` - Remboursée
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    Type023Enum:
+      enum:
+      - VERSEMENT
+      - RETRAIT
+      - INTERET_CREDITEUR
+      - FRAIS
+      type: string
+      description: |-
+        * `VERSEMENT` - Versement
+        * `RETRAIT` - Retrait
+        * `INTERET_CREDITEUR` - Intérêt créditeur
+        * `FRAIS` - Frais
+    Type07fEnum:
+      enum:
+      - BIEN_IMMOBILIER
+      - VEHICULE
+      - CAUTION_SOLIDAIRE
+      - DEPOT_GARANTIE
+      - MATERIEL
+      - AUTRE
+      type: string
+      description: |-
+        * `BIEN_IMMOBILIER` - Bien immobilier
+        * `VEHICULE` - Véhicule
+        * `CAUTION_SOLIDAIRE` - Caution solidaire
+        * `DEPOT_GARANTIE` - Dépôt de garantie
+        * `MATERIEL` - Matériel
+        * `AUTRE` - Autre
+    Type104Enum:
+      enum:
+      - PIECE_IDENTITE
+      - JUSTIFICATIF_REVENU
+      - PHOTO_CLIENT
+      type: string
+      description: |-
+        * `PIECE_IDENTITE` - Pièce d'identité
+        * `JUSTIFICATIF_REVENU` - Justificatif de revenu
+        * `PHOTO_CLIENT` - Photo du client
+    Type30bEnum:
+      enum:
+      - SHG
+      - JLG
+      type: string
+      description: |-
+        * `SHG` - Self-Help Group
+        * `JLG` - Joint Liability Group
+    Type568Enum:
+      enum:
+      - ACTIF
+      - PASSIF
+      - PRODUIT
+      - CHARGE
+      type: string
+      description: |-
+        * `ACTIF` - Actif
+        * `PASSIF` - Passif
+        * `PRODUIT` - Produit
+        * `CHARGE` - Charge
+    Type5a9Enum:
+      enum:
+      - MENSUEL
+      - TRIMESTRIEL
+      - ANNUEL
+      type: string
+      description: |-
+        * `MENSUEL` - Mensuel
+        * `TRIMESTRIEL` - Trimestriel
+        * `ANNUEL` - Annuel
+    TypeCautionEnum:
+      enum:
+      - SOLIDAIRE
+      - INDIVIDUELLE
+      type: string
+      description: |-
+        * `SOLIDAIRE` - Solidaire
+        * `INDIVIDUELLE` - Individuelle
+    TypeInteretEnum:
+      enum:
+      - CAPITALISE
+      - PAYE
+      type: string
+      description: |-
+        * `CAPITALISE` - Capitalisé
+        * `PAYE` - Payé
+    TypePretEnum:
+      enum:
+      - PERSONNEL
+      - PROFESSIONNEL
+      - EQUIPEMENT
+      - AGRICOLE
+      - GROUPE
+      - SAISONNIER
+      type: string
+      description: |-
+        * `PERSONNEL` - Personnel
+        * `PROFESSIONNEL` - Professionnel
+        * `EQUIPEMENT` - Équipement
+        * `AGRICOLE` - Agricole
+        * `GROUPE` - Groupe
+        * `SAISONNIER` - Saisonnier
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Nom d’utilisateur
+          description: Requis. 150 caractères maximum. Uniquement des lettres, nombres
+            et les caractères « @ », « . », « + », « - » et « _ ».
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Adresse électronique
+          maxLength: 254
+        first_name:
+          type: string
+          title: Prénom
+          maxLength: 150
+        last_name:
+          type: string
+          title: Nom
+          maxLength: 150
+        telephone:
+          type: string
+          maxLength: 20
+        adresse:
+          type: string
+        region:
+          type: string
+          maxLength: 100
+        photo:
+          type: string
+          format: uri
+          nullable: true
+        role:
+          $ref: '#/components/schemas/RoleE60Enum'
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Date d’inscription
+      required:
+      - date_joined
+      - id
+      - telephone
+      - username
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

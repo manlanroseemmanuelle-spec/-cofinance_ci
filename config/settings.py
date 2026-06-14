@@ -169,10 +169,66 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Cofinance CI - Microfinance API',
-    'DESCRIPTION': 'Plateforme de microfinance avec API REST, WebSocket temps réel, authentification JWT.',
+    'TITLE': 'Cofinance CI - API Microfinance',
+    'DESCRIPTION': """
+Plateforme de microfinance intégrée — API REST complète avec authentification JWT,
+WebSocket temps réel, et automatisation des processus métier.
+
+## Modules
+- **Comptes & Auth** — Inscription, connexion, JWT, profils CLIENT/AGENT/ADMIN/AUDITEUR/COMPTABLE
+- **Crédits** — Cycle complet: soumission, analyse, approbation, décaissement, remboursement
+- **Remboursements** — Avec pénalités de retard, amortissement, statut auto REMBOURSEE
+- **Épargne** — Versements, retraits, intérêts créditeurs, frais
+- **Comptabilité** — Écritures, grand livre, balance, bilan, compte de résultat
+- **Conformité** — Ratios prudentiels (TIER1, NPL, LIQUIDITY, COVERAGE, PORTFOLIO_QUALITY)
+- **Paiements** — Initiation, callback simulation, passerelles Mobile Money
+- **Assurance** — Produits, souscription, expiration
+- **Messagerie** — Support Chat avec WebSocket + FAQ chatbot automatique
+- **Notifications** — Push WebSocket temps réel, email (console en dev)
+- **Groupes solidaires** — SHG, GEC, garants solidaires
+- **Audit** — Journalisation exhaustive + détection fraude (4 règles)
+- **Tableau de bord** — KPIs, statistiques, calendrier des échéances
+
+## Automatisations
+- Relance échéances impayées J+1/J+7/J+30 (Celery)
+- Calcul intérêts épargne mensuel
+- Archivage automatique (notifications > 1 an, audit > 3 ans)
+- WebSocket push sur création de notification
+- Détection fraude multi-règles
+
+## Prérequis techniques
+- Authentification: Bearer JWT (access + refresh)
+- Pagination: ?page=1&page_size=10
+- Filtres: ?statut=, ?from=, ?to=, ?search=
+- WebSocket: ws://host/ws/chat/{id}/?token=JWT
+""",
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+    },
+    'TAGS': [
+        {'name': 'Authentification', 'description': 'Inscription, connexion, JWT, mot de passe oublié'},
+        {'name': 'Crédits', 'description': 'Soumission, analyse, approbation, décaissement, statuts'},
+        {'name': 'Remboursements', 'description': 'Remboursements avec pénalités, amortissement'},
+        {'name': 'Épargne', 'description': 'Comptes et transactions épargne'},
+        {'name': 'Comptabilité', 'description': 'Journal, grand livre, balance, bilan, résultat'},
+        {'name': 'Conformité', 'description': 'Ratios prudentiels, classification, rapports'},
+        {'name': 'Paiements', 'description': 'Initiation, callback simulation, passerelles Mobile Money'},
+        {'name': 'Assurance', 'description': 'Produits et polices d\'assurance'},
+        {'name': 'Support Chat', 'description': 'Conversations, messages, FAQ chatbot'},
+        {'name': 'Notifications', 'description': 'Notifications push WebSocket'},
+        {'name': 'Tableau de bord', 'description': 'KPIs, statistiques, calendrier'},
+        {'name': 'Groupes', 'description': 'Groupes solidaires, membres, prêts collectifs'},
+        {'name': 'Audit', 'description': 'Journal d\'audit, logs de connexion'},
+        {'name': 'Administration', 'description': 'Gestion des utilisateurs'},
+    ],
+    'ENUM_NAME_OVERRIDES': {
+        'TypeEnum': ['PIECE_IDENTITE', 'JUSTIFICATIF_REVENU', 'CONTRAT_TRAVAIL', 'FACTURE', 'AUTRE'],
+        'StatutEnum': ['SOUMISE', 'EN_ANALYSE', 'APPROUVEE', 'REJETEE', 'DECAISSEE', 'REMBOURSEE'],
+    },
 }
 
 # ── Email (development: console backend) ──────────────────────────────
@@ -206,12 +262,4 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Cofinance CI API',
-    'DESCRIPTION': 'API de gestion de microfinance',
-    'VERSION': '1.0.0',
-    'ENUM_NAME_OVERRIDES': {
-        'TypeEnum': ['PIECE_IDENTITE', 'JUSTIFICATIF_REVENU', 'CONTRAT_TRAVAIL', 'FACTURE', 'AUTRE'],
-        'StatutEnum': ['SOUMISE', 'EN_ANALYSE', 'APPROUVEE', 'REJETEE', 'DECAISSEE', 'REMBOURSEE'],
-    },
-}
+

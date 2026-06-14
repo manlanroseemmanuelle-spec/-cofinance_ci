@@ -80,6 +80,105 @@ Après `seed_db`, ces comptes existent déjà (tous prêts à tester) :
 | **http://localhost:8000/api/docs/** | La **documentation interactive (Swagger)** : la liste de toutes les actions possibles, testables directement |
 | **http://localhost:8000/api/redoc/** | La même documentation, présentée autrement (Redoc) |
 
+### 3.4 Activer l'environnement virtuel (venv) en détail
+
+Le **venv** est une « bulle » qui contient tout ce dont le projet a besoin (Django, etc.), sans polluer votre ordinateur.
+
+**Si le dossier `venv` existe déjà** (c'est le cas ici) — il suffit de l'activer :
+```bash
+venv\Scripts\activate          # Windows (PowerShell ou CMD)
+source venv/bin/activate       # Linux / Mac
+```
+Une fois activé, vous voyez `(venv)` au début de la ligne du terminal.
+
+**Si le dossier `venv` n'existe pas** (nouveau poste) — créez-le puis installez les dépendances :
+```bash
+python -m venv venv            # 1. créer la bulle
+venv\Scripts\activate          # 2. l'activer
+pip install -r requirements.txt # 3. installer toutes les dépendances
+```
+
+**Pour quitter le venv** quand vous avez fini : tapez `deactivate`.
+
+> Attention — Toutes les commandes `python manage.py ...` doivent être lancées **avec le venv activé**.
+
+### 3.5 Voir / explorer toutes les API
+
+Trois adresses permettent de **voir la liste complète des API** et même de les essayer :
+
+| Adresse | Usage |
+|---------|-------|
+| **http://localhost:8000/api/docs/** | **Swagger** — la plus pratique : on clique « Try it out » et on teste chaque action |
+| **http://localhost:8000/api/redoc/** | **Redoc** — belle présentation pour lire la documentation |
+| **http://localhost:8000/api/schema/** | Le **schéma OpenAPI brut** (fichier technique, utile pour importer dans Postman) |
+
+Sur Swagger, les actions sont **regroupées par module** (Authentification, Crédits, Assurance…).
+Pour tester une action protégée, connectez-vous d'abord (voir chapitre 4, Façon B : bouton **« Authorize »**).
+
+### 3.6 S'inscrire (créer un compte soi-même)
+
+Un nouveau **client** peut créer son compte sans aide, via l'API ou le bouton « Créer un compte » de l'interface.
+
+```bash
+curl -X POST http://localhost:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"jean\",\"password\":\"motdepasse123\",\"email\":\"jean@email.com\",\"first_name\":\"Jean\",\"last_name\":\"Kouassi\",\"telephone\":\"+2250700000099\",\"role\":\"CLIENT\",\"profession\":\"Commerçant\",\"revenu_mensuel\":\"200000\"}"
+```
+→ Ce qui se passe :
+- Le compte est créé **et connecté immédiatement** : la réponse contient déjà un **token** (`access`).
+- Comme `role = CLIENT`, un **profil client** est créé automatiquement (profession, revenu…).
+- Champs **obligatoires** : `username`, `password` (min. 6 caractères), `telephone` (unique).
+- Si vous ne mettez pas `role`, c'est **CLIENT** par défaut.
+
+### 3.7 Créer un super-administrateur (superuser)
+
+Le superuser donne accès à l'**interface d'administration Django** (`http://localhost:8000/admin/`).
+
+```bash
+python manage.py createsuperuser
+```
+On vous demande : **username**, **email**, puis **mot de passe** (deux fois).
+
+> Attention — **Point très important.** `createsuperuser` crée un compte technique avec le rôle **CLIENT** par défaut.
+> Or, les API d'administration (valider un crédit, tableau de bord admin…) exigent le rôle **ADMIN**.
+> Après avoir créé le superuser, **passez son rôle à ADMIN** avec cette commande :
+
+```bash
+python manage.py shell -c "from apps.accounts.models import User; u=User.objects.get(username='VOTRE_USERNAME'); u.role='ADMIN'; u.telephone=u.telephone or '+2250700000001'; u.save(); print('Role:', u.role)"
+```
+→ Remplacez `VOTRE_USERNAME` par le nom choisi. Vous avez maintenant un vrai administrateur,
+utilisable à la fois sur `/admin/` et sur toutes les API admin.
+
+### 3.8 Créer les autres acteurs (agents, admins, comptables…)
+
+Il y a **5 rôles possibles** : `CLIENT`, `AGENT`, `ADMIN`, `AUDITEUR`, `COMPTABLE`.
+Trois méthodes pour créer ces comptes :
+
+**Méthode 1 — Via l'API d'inscription** (le plus rapide). Il suffit de préciser le `role` :
+```bash
+# Créer un AGENT (un profil agent + matricule sont créés automatiquement)
+curl -X POST http://localhost:8000/api/auth/register/ \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"agent_koffi\",\"password\":\"agent123456\",\"email\":\"koffi@cofinance.ci\",\"first_name\":\"Koffi\",\"last_name\":\"Konan\",\"telephone\":\"+2250700000050\",\"role\":\"AGENT\",\"region\":\"Abidjan\"}"
+```
+> Pour `role = AGENT`, un **matricule** est généré automatiquement (ex. `AGT-000123`).
+> Pour `role = ADMIN/AUDITEUR/COMPTABLE`, le compte est créé sans profil supplémentaire.
+
+**Méthode 2 — Via l'interface d'administration Django** (visuel, sans code) :
+1. Connectez-vous sur **http://localhost:8000/admin/** avec votre superuser.
+2. Section **Utilisateurs** → **Ajouter** → remplissez username/mot de passe.
+3. Ouvrez le compte créé, choisissez son **rôle** dans la liste déroulante, enregistrez.
+
+**Méthode 3 — En ligne de commande** (utile pour créer un agent ou admin précis) :
+```bash
+python manage.py shell -c "from apps.accounts.models import User, Agent; u=User.objects.create_user(username='agent_awa', password='agent123456', telephone='+2250700000051', role='AGENT', first_name='Awa', last_name='Toure', region='Bouake'); Agent.objects.create(user=u, matricule='AGT-100', region='Bouake'); print('Agent cree:', u.username)"
+```
+
+> **Récapitulatif des champs par rôle :**
+> - **CLIENT** : profession, revenu_mensuel, date_naissance, numero_piece (profil client auto-créé)
+> - **AGENT** : matricule, region (profil agent auto-créé)
+> - **ADMIN / AUDITEUR / COMPTABLE** : pas de profil supplémentaire, juste le compte utilisateur
+
 ---
 
 ## 4. Deux façons de tester (choisissez la vôtre)
@@ -131,7 +230,7 @@ curl -X POST http://localhost:8000/api/auth/login/ \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"client1\",\"password\":\"client123\"}"
 ```
-➡️ On récupère son **token**. On le note (on l'appellera `$TOKEN`).
+→ On récupère son **token**. On le note (on l'appellera `$TOKEN`).
 
 ### Étape 2 — Voir le catalogue des crédits disponibles
 *« Quels types de crédits puis-je demander ? »*
@@ -139,7 +238,7 @@ curl -X POST http://localhost:8000/api/auth/login/ \
 curl http://localhost:8000/api/loans/products/ \
   -H "Authorization: Bearer $TOKEN"
 ```
-➡️ Renvoie 6 produits : Microcrédit Personnel, Crédit Professionnel, Crédit d'Équipement, Crédit Agricole,
+→ Renvoie 6 produits : Microcrédit Personnel, Crédit Professionnel, Crédit d'Équipement, Crédit Agricole,
 Crédit Solidaire, Crédit Saisonnier (avec taux, montants min/max, durées).
 
 ### Étape 3 — Faire une demande de crédit
@@ -150,7 +249,7 @@ curl -X POST http://localhost:8000/api/loans/ \
   -H "Content-Type: application/json" \
   -d "{\"montant_demande\":\"150000\",\"duree_mois\":6,\"motif\":\"Achat de stock\",\"revenu_mensuel\":\"120000\"}"
 ```
-➡️ Réponse concrète :
+→ Réponse concrète :
 ```json
 { "id": 42, "montant_demande": "150000.00", "duree_mois": 6,
   "motif": "Achat de stock", "score_eligibilite": 95, "statut": "SOUMISE" }
@@ -166,7 +265,7 @@ curl -X POST http://localhost:8000/api/loans/42/documents/ \
   -F "type=PIECE_IDENTITE" \
   -F "fichier=@C:/chemin/vers/ma_cni.png"
 ```
-➡️ Le fichier est **réellement enregistré** sur le serveur. Types possibles : `PIECE_IDENTITE`,
+→ Le fichier est **réellement enregistré** sur le serveur. Types possibles : `PIECE_IDENTITE`,
 `JUSTIFICATIF_REVENU`, `PHOTO_CLIENT`.
 
 ### Étape 5 — Revoir ses documents et le détail de son dossier
@@ -177,7 +276,7 @@ curl http://localhost:8000/api/loans/42/documents/ -H "Authorization: Bearer $TO
 # Le détail complet du crédit
 curl http://localhost:8000/api/loans/42/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ On voit le fichier déposé (avec son URL) et tous les détails : montant, statut, score, taux, agent assigné…
+→ On voit le fichier déposé (avec son URL) et tous les détails : montant, statut, score, taux, agent assigné…
 
 ### Étape 6 — Suivre TOUS ses crédits
 ```bash
@@ -195,7 +294,7 @@ curl -X POST http://localhost:8000/api/insurance/policies/ \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d "{\"produit_id\":1}"
 ```
-➡️ Une **police d'assurance** est créée, avec une date de fin calculée automatiquement. Le client sera
+→ Une **police d'assurance** est créée, avec une date de fin calculée automatiquement. Le client sera
 prévenu **15 jours avant l'expiration**.
 ```bash
 # Voir mes assurances
@@ -208,7 +307,7 @@ curl http://localhost:8000/api/insurance/policies/mine/ -H "Authorization: Beare
 curl http://localhost:8000/api/notifications/ -H "Authorization: Bearer $TOKEN"
 curl http://localhost:8000/api/notifications/unread-count/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ Exemple de message reçu : *« Votre demande de prêt de 150000 FCFA est maintenant Décaissée. »*
+→ Exemple de message reçu : *« Votre demande de prêt de 150000 FCFA est maintenant Décaissée. »*
 
 ### Étape 9 — Ouvrir un chat avec un conseiller
 *« J'ai une question, je discute en direct. »*
@@ -222,13 +321,13 @@ curl -X POST http://localhost:8000/api/chat/conversations/7/send/ \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d "{\"message\":\"Bonjour, où en est mon dossier ?\"}"
 ```
-➡️ Le message part **instantanément** (temps réel). Voir le **chapitre 8** pour la démo « 2 onglets ».
+→ Le message part **instantanément** (temps réel). Voir le **chapitre 8** pour la démo « 2 onglets ».
 
 ### Étape 10 — Voir son propre tableau de bord
 ```bash
 curl http://localhost:8000/api/dashboard/client/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ Résumé personnel : crédits en cours, prochaines échéances, assurances actives.
+→ Résumé personnel : crédits en cours, prochaines échéances, assurances actives.
 
 ---
 
@@ -248,13 +347,13 @@ curl -X POST http://localhost:8000/api/auth/login/ \
 ```bash
 curl http://localhost:8000/api/dashboard/agent/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ Ses dossiers assignés, ses montants à recouvrer, ses tâches.
+→ Ses dossiers assignés, ses montants à recouvrer, ses tâches.
 
 ### Étape 3 — Voir les crédits qui lui sont assignés
 ```bash
 curl http://localhost:8000/api/loans/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ L'agent ne voit **que ses dossiers** (pas ceux des autres agents).
+→ L'agent ne voit **que ses dossiers** (pas ceux des autres agents).
 
 ### Étape 4 — Enregistrer un remboursement d'un client
 *« Le client m'a remis 25 000 FCFA en espèces pour son crédit n°42. »*
@@ -263,7 +362,7 @@ curl -X POST http://localhost:8000/api/repayments/ \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d "{\"loan\":42,\"montant\":\"25000\",\"mode_paiement\":\"ESPECES\",\"notes\":\"Versement guichet\"}"
 ```
-➡️ Modes possibles : `ORANGE_MONEY`, `WAVE`, `MTN_MOMO`, `ESPECES`. La plateforme calcule
+→ Modes possibles : `ORANGE_MONEY`, `WAVE`, `MTN_MOMO`, `ESPECES`. La plateforme calcule
 **automatiquement** les pénalités de retard s'il y en a.
 
 ### Étape 5 — Voir l'historique des remboursements d'un crédit
@@ -300,7 +399,7 @@ curl -X POST http://localhost:8000/api/auth/login/ \
 ```bash
 curl http://localhost:8000/api/dashboard/admin/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ En temps réel : nombre de demandes par statut, taux de recouvrement, souscriptions actives,
+→ En temps réel : nombre de demandes par statut, taux de recouvrement, souscriptions actives,
 conversations ouvertes, etc.
 ```bash
 # Données pour les graphiques
@@ -344,13 +443,13 @@ est généré (une ligne par mois, avec la part de capital et la part d'intérê
 ```bash
 curl http://localhost:8000/api/loans/42/history/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ Qui a changé quoi et quand (traçabilité complète).
+→ Qui a changé quoi et quand (traçabilité complète).
 
 ### Étape 5 — Voir l'échéancier généré
 ```bash
 curl http://localhost:8000/api/loans/42/schedule/ -H "Authorization: Bearer $TOKEN"
 ```
-➡️ Exemple d'une échéance : `date 2026-07-14 | mensualité 25 734,21 | capital 24 484,21 | intérêts 1 250,00`.
+→ Exemple d'une échéance : `date 2026-07-14 | mensualité 25 734,21 | capital 24 484,21 | intérêts 1 250,00`.
 
 ### Étape 6 — Gérer les utilisateurs
 ```bash

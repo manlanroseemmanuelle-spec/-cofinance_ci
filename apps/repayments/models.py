@@ -50,7 +50,7 @@ class Repayment(models.Model):
     def calculer_penalite(self):
         if self.amortization and self.amortization.date_echeance < timezone.now().date():
             jours_retard = (timezone.now().date() - self.amortization.date_echeance).days
-            taux_penalite = Decimal('0.01')
+            taux_penalite = self.amortization.loan.produit.taux_penalite_jour if self.amortization.loan.produit else Decimal('0.01')
             penalite = self.montant * taux_penalite * Decimal(str(jours_retard))
             return round(penalite, 2)
         return Decimal('0')

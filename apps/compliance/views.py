@@ -2,7 +2,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 
 from .models import RegulatoryReport, PrudentialRatio, LoanClassification, DeclarationSuspicion
 from .serializers import (
@@ -84,8 +84,54 @@ class PrudentialRatioComputeView(APIView):
 
     def _compute_ratio(self, ratio):
         from decimal import Decimal
+        from django.utils import timezone
+        from datetime import timedelta
         valeur = Decimal('0.00')
         statut = PrudentialRatio.StatutChoices.CONFORME
+        try:
+            if ratio.code == 'TIER1':
+                from apps.accounting.models import Account
+                total_capital = Account.objects.filter(
+                    type='PASSIF', code__startswith='10'
+                ).aggregate(Sum('solde_actuel'))['solde_actuel__sum'] or 0
+                total_actif = Account.objects.filter(
+                    type='ACTIF'
+                ).aggregate(Sum('solde_actuel'))['solde_actuel__sum'] or 1
+                valeur = (Decimal(str(total_capital)) / Decimal(str(total_actif))) * 100
+            elif ratio.code == 'NPL_RATIO':
+                from apps.loans.models import LoanApplication, AmortizationSchedule
+                today = timezone.now().date()
+                overdue_schedules = AmortizationSchedule.objects.filter(
+                    est_paye=False, date_echeance__lt=today
+                ).values('loan_id').distinct().count()
+                total_active_loans = LoanApplication.objects.filter(
+                    statut='DECAISSEE'
+                ).count() or 1
+                valeur = (Decimal(str(overdue_schedules)) / Decimal(str(total_active_loans))) * 100
+            elif ratio.code == 'LIQUIDITY':
+                from apps.accounting.models import Account
+                cash_balance = Account.objects.filter(
+                    code__in=['101', '102', '103', '571']
+                ).aggregate(Sum('solde_actuel'))['solde_actuel__sum'] or 0
+                total_assets = Account.objects.filter(
+                    type='ACTIF'
+                ).aggregate(Sum('solde_actuel'))['solde_actuel__sum'] or 1
+                valeur = (Decimal(str(cash_balance)) / Decimal(str(total_assets))) * 100
+            elif ratio.code == 'COVERAGE':
+                from apps.insurance.models import Policy
+                active_policies = Policy.objects.filter(statut='ACTIVE').count()
+                total_loans = LoanApplication.objects.filter(
+                    statut='DECAISSEE'
+                ).count() or 1
+                valeur = (Decimal(str(active_policies)) / Decimal(str(total_loans))) * 100
+            elif ratio.code in ('PORTFOLIO_QUALITY', 'TIER2', 'TIER3'):
+                from apps.loans.models import LoanApplication
+                disbursed = LoanApplication.objects.filter(statut='DECAISSEE').count()
+                total = LoanApplication.objects.count() or 1
+                valeur = (Decimal(str(disbursed)) / Decimal(str(total))) * 100
+            valeur = valeur.quantize(Decimal('0.01'))
+        except Exception:
+            valeur = Decimal('0.00')
         if ratio.seuil_min is not None and valeur < ratio.seuil_min:
             statut = PrudentialRatio.StatutChoices.NON_CONFORME
         return valeur, statut

@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import F
 from django.conf import settings
 from django.utils import timezone
 
@@ -125,6 +126,14 @@ class JournalEntry(models.Model):
         return f'{prefix}-{today}-{new_num:03d}'
 
     def valider(self, user):
+        if self.est_validee:
+            raise ValidationError("Cette écriture est déjà validée.")
+        total_debit = self.lines.filter(sens='DEBIT').aggregate(total=models.Sum('montant'))['total'] or 0
+        total_credit = self.lines.filter(sens='CREDIT').aggregate(total=models.Sum('montant'))['total'] or 0
+        if total_debit != total_credit:
+            raise ValidationError(
+                "Le total des débits (%s) ne correspond pas au total des crédits (%s)." % (total_debit, total_credit)
+            )
         self.est_validee = True
         self.validee_par = user
         self.date_validation = timezone.now()
@@ -173,6 +182,13 @@ class JournalEntryLine(models.Model):
         if self.montant <= 0:
             raise ValidationError({'montant': 'Le montant doit être supérieur à zéro.'})
 
+    def update_account_balance(self):
+        if self.sens == 'DEBIT':
+            Account.objects.filter(pk=self.account.pk).update(solde_actuel=F('solde_actuel') + self.montant)
+        elif self.sens == 'CREDIT':
+            Account.objects.filter(pk=self.account.pk).update(solde_actuel=F('solde_actuel') - self.montant)
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+        self.update_account_balance()

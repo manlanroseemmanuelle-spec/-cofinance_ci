@@ -13,15 +13,11 @@ from .serializers import (
     RegisterSerializer, LoginSerializer, UserSerializer,
     ClientSerializer, ClientCreateSerializer, AgentSerializer,
     AgentCreateSerializer, ChangePasswordSerializer,
-    ForgotPasswordSerializer, ResetPasswordSerializer
+    ForgotPasswordSerializer, ResetPasswordSerializer,
+    LoginHistorySerializer
 )
-from .models import Client, Agent
+from .models import Client, Agent, PasswordResetToken, LoginHistory
 from .permissions import IsAdmin
-
-User = get_user_model()
-
-# In-memory reset tokens (dev only — use Redis/DB in production)
-_reset_tokens = {}
 
 User = get_user_model()
 
@@ -31,6 +27,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_scope = 'register'
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -109,7 +106,7 @@ class ChangePasswordView(APIView):
 
 @extend_schema(tags=['Clients'])
 class ClientListView(generics.ListCreateAPIView):
-    queryset = Client.objects.all()
+    queryset = Client.objects.filter(is_active=True)
     permission_classes = [IsAdmin]
 
     def get_serializer_class(self):
@@ -127,6 +124,9 @@ class ClientDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in ('PUT', 'PATCH'):
             return ClientCreateSerializer
         return ClientSerializer
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
 @extend_schema(tags=['Agents'])
@@ -153,14 +153,14 @@ class AgentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema(tags=['Utilisateurs'])
 class UserListView(generics.ListAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]
 
 
 @extend_schema(tags=['Utilisateurs'])
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]
 
@@ -168,6 +168,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 @extend_schema(tags=['Authentification'])
 class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = 'forgot_password'
 
     @extend_schema(request=ForgotPasswordSerializer)
     def post(self, request):
@@ -179,12 +180,12 @@ class ForgotPasswordView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Aucun compte trouvé avec ce numéro'}, status=status.HTTP_404_NOT_FOUND)
 
-        token = get_random_string(32)
-        _reset_tokens[token] = {
-            'user_id': user.id,
-            'expires': timezone.now() + timedelta(hours=1),
-        }
-        # Send reset link by email if user has one
+        token_str = get_random_string(48)
+        PasswordResetToken.objects.create(
+            user=user,
+            token=token_str,
+            expires_at=timezone.now() + timedelta(hours=1),
+        )
         if user.email:
             try:
                 send_mail(
@@ -193,7 +194,7 @@ class ForgotPasswordView(APIView):
                         f'Bonjour {user.get_full_name()},\n\n'
                         f'Vous avez demande la reinitialisation de votre mot de passe.\n'
                         f'Utilisez ce lien pour reinitialiser votre mot de passe :\n'
-                        f'{request.build_absolute_uri("/reset-password/" + token + "/")}\n\n'
+                        f'{request.build_absolute_uri("/reset-password/" + token_str + "/")}\n\n'
                         f'Ce lien expire dans 1 heure.\n\n'
                         f'Si vous n\'etes pas a l\'origine de cette demande, ignorez ce message.\n\n'
                         f'Cordialement,\nL\'equipe CoFinance CI'
@@ -205,15 +206,14 @@ class ForgotPasswordView(APIView):
             except Exception:
                 pass
         return Response({
-            'message': 'Token de réinitialisation généré',
-            'token': token,
-            'reset_url': f'/reset-password/{token}/',
+            'message': 'Si votre compte existe, un lien de réinitialisation vous a été envoyé.',
         })
 
 
 @extend_schema(tags=['Authentification'])
 class ResetPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_scope = 'reset_password'
 
     @extend_schema(request=ResetPasswordSerializer)
     def post(self, request):
@@ -222,15 +222,25 @@ class ResetPasswordView(APIView):
         token = serializer.validated_data['token']
         new_password = serializer.validated_data['new_password']
 
-        data = _reset_tokens.get(token)
-        if not data:
+        try:
+            reset_token = PasswordResetToken.objects.get(token=token, is_used=False)
+        except PasswordResetToken.DoesNotExist:
             return Response({'error': 'Token invalide'}, status=status.HTTP_400_BAD_REQUEST)
-        if timezone.now() > data['expires']:
-            del _reset_tokens[token]
+        if reset_token.is_expired:
             return Response({'error': 'Token expiré'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.get(id=data['user_id'])
+        user = reset_token.user
         user.set_password(new_password)
         user.save()
-        del _reset_tokens[token]
+        reset_token.is_used = True
+        reset_token.save()
         return Response({'message': 'Mot de passe réinitialisé avec succès'})
+
+
+@extend_schema(tags=['Authentification'])
+class LoginHistoryView(generics.ListAPIView):
+    serializer_class = LoginHistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return LoginHistory.objects.filter(user=self.request.user)[:20]

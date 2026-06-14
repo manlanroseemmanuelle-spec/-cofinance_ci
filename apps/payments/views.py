@@ -107,6 +107,18 @@ class PaymentInitiateView(APIView):
         serializer = PaymentInitiateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        loan_id = data.get('loan_id')
+        if loan_id:
+            from apps.loans.models import LoanApplication
+            loan = LoanApplication.objects.filter(id=loan_id).first()
+            if not loan:
+                return Response({'error': 'Prêt inexistant'}, status=400)
+            if request.user.role == 'CLIENT' and loan.client.user_id != request.user.id:
+                return Response({'error': 'Ce prêt ne vous appartient pas'}, status=403)
+            if request.user.role == 'AGENT' and loan.agent and loan.agent.user_id != request.user.id:
+                return Response({'error': 'Ce prêt ne vous est pas assigné'}, status=403)
+
         import uuid
         reference = uuid.uuid4().hex[:12].upper()
         tx = PaymentTransaction.objects.create(

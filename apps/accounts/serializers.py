@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Client, Agent
+from .models import Client, Agent, LoginHistory
 
 User = get_user_model()
 
@@ -15,13 +15,24 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
+    # Client-specific optional fields
+    profession = serializers.CharField(required=False, allow_blank=True)
+    revenu_mensuel = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
+    date_naissance = serializers.DateField(required=False)
+    numero_piece = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'first_name', 'last_name',
-                  'telephone', 'adresse', 'region', 'role']
+                  'telephone', 'adresse', 'region', 'role',
+                  'profession', 'revenu_mensuel', 'date_naissance', 'numero_piece']
 
     def create(self, validated_data):
+        # Extract client-specific fields
+        profession = validated_data.pop('profession', '')
+        revenu_mensuel = validated_data.pop('revenu_mensuel', 0)
+        date_naissance = validated_data.pop('date_naissance', None)
+        numero_piece = validated_data.pop('numero_piece', '')
         password = validated_data.pop('password')
         role = validated_data.get('role', User.Role.CLIENT)
         user = User(**validated_data)
@@ -32,10 +43,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             Client.objects.get_or_create(
                 user=user,
                 defaults={
-                    'profession': 'Non renseigné',
-                    'revenu_mensuel': 0,
-                    'date_naissance': '2000-01-01',
-                    'numero_piece': f'TMP-{user.id:06d}',
+                    'profession': profession or 'Non renseigné',
+                    'revenu_mensuel': revenu_mensuel or 0,
+                    'date_naissance': date_naissance or '2000-01-01',
+                    'numero_piece': numero_piece or f'TMP-{user.id:06d}',
                 }
             )
         elif role == User.Role.AGENT:
@@ -108,3 +119,10 @@ class ForgotPasswordSerializer(serializers.Serializer):
 class ResetPasswordSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True, min_length=6)
+
+
+class LoginHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoginHistory
+        fields = '__all__'
+        read_only_fields = ['id', 'date_connexion']

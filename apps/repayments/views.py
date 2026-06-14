@@ -1,11 +1,14 @@
 import uuid
+import logging
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from .models import Repayment
 from .serializers import RepaymentSerializer, RepaymentCreateSerializer
 from apps.accounts.permissions import IsOwnerAdminOrAssignedAgent
-from apps.notifications.models import Notification
+from apps.loans.models import LoanApplication
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema(tags=['Remboursements'])
@@ -30,6 +33,12 @@ class RepaymentListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         loan = serializer.validated_data['loan']
+        if loan.statut != LoanApplication.Statut.DECAISSEE and loan.statut != LoanApplication.Statut.REMBOURSEE:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Ce prêt n'est pas en cours de remboursement.")
+        if loan.statut == LoanApplication.Statut.REMBOURSEE:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Ce prêt est déjà remboursé.")
         user = self.request.user
         if user.role == 'CLIENT' and loan.client.user_id != user.id:
             from rest_framework.exceptions import PermissionDenied
@@ -45,25 +54,15 @@ class RepaymentListCreateView(generics.ListCreateAPIView):
         repayment.penalite = penalite
         repayment.save()
 
-        # Notify client
-        Notification.objects.create(
-            titre=f"Remboursement #{repayment.id} - {repayment.montant} FCFA",
-            message=f"Remboursement de {repayment.montant} FCFA enregistre pour le pret #{repayment.loan_id}.",
-            type=Notification.Type.REMBOURSEMENT,
-            user=repayment.loan.client.user,
-        )
-        # Notify agent who recorded it
-        if repayment.agent:
-            Notification.objects.create(
-                titre=f"Remboursement #{repayment.id} enregistre",
-                message=f"Remboursement de {repayment.montant} FCFA enregistre pour le pret #{repayment.loan_id}.",
-                type=Notification.Type.REMBOURSEMENT,
-                user=repayment.agent.user,
-            )
-
         if repayment.amortization:
             repayment.amortization.est_paye = True
             repayment.amortization.save()
+
+        # Check if loan is fully repaid → update status to REMBOURSEE
+        unpaid = repayment.loan.amortization_schedule.filter(est_paye=False).count()
+        if unpaid == 0 and repayment.loan.statut == LoanApplication.Statut.DECAISSEE:
+            repayment.loan.statut = LoanApplication.Statut.REMBOURSEE
+            repayment.loan.save()
 
         # Accounting entry for repayment
         try:
@@ -96,12 +95,12 @@ class RepaymentListCreateView(generics.ListCreateAPIView):
             JournalEntryLine.objects.create(entry=entry, account=compte_client, sens='CREDIT', montant=principal, libelle='Remboursement principal')
             if penalite > 0:
                 JournalEntryLine.objects.create(entry=entry, account=compte_interets, sens='CREDIT', montant=penalite, libelle='Pénalité de retard')
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error("Erreur lors de la création de l'écriture comptable de remboursement #%s: %s", repayment.id, str(e), exc_info=True)
 
 
 @extend_schema(tags=['Remboursements'])
-class RepaymentDetailView(generics.RetrieveAPIView):
+class RepaymentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RepaymentSerializer
     permission_classes = [IsOwnerAdminOrAssignedAgent]
 

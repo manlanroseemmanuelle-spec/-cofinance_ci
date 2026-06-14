@@ -3,12 +3,17 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from django.db.models import Count, Q
 from django.contrib.auth import get_user_model
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .models import Conversation, Message
 from .serializers import (
     ConversationSerializer, ConversationCreateSerializer,
     MessageSerializer, MessageCreateSerializer
 )
 from apps.accounts.permissions import IsAdminOrAgent, IsConversationParticipant
+from apps.common.models import AuditLog
+from apps.common.signals import log_action
+from apps.notifications.models import Notification
 
 User = get_user_model()
 
@@ -44,6 +49,16 @@ class ConversationListCreateView(generics.ListCreateAPIView):
         else:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Seuls les clients peuvent ouvrir une conversation.")
+        # Audit + notification
+        log_action(AuditLog.Action.CREATE, 'Conversation', conv.id,
+                   f"Conversation #{conv.id} - {user.get_full_name() or user.username}")
+        if available_agent:
+            Notification.objects.create(
+                titre=f"Nouveau message de {user.get_full_name() or user.username}",
+                message=f"{user.get_full_name() or user.username} a ouvert une conversation.",
+                type=Notification.Type.CHAT,
+                user=available_agent,
+            )
         # Return full conversation data in response
         from rest_framework.renderers import JSONRenderer
         self.created_conv = conv
@@ -91,6 +106,8 @@ class ConversationCloseView(generics.UpdateAPIView):
         conversation = self.get_object()
         conversation.status = Conversation.Statut.FERMEE
         conversation.save()
+        log_action(AuditLog.Action.UPDATE, 'Conversation', conversation.id,
+                   f"Conversation #{conversation.id} fermee par {self.request.user.get_full_name() or self.request.user.username}")
 
 
 @extend_schema(tags=['Chat'])
@@ -131,11 +148,27 @@ class MessageCreateView(generics.CreateAPIView):
         elif user.role == 'AGENT':
             conversations = conversations.filter(agent=user)
         conversation = get_object_or_404(conversations)
-        Message.objects.create(
+        msg = Message.objects.create(
             conversation=conversation,
             sender=self.request.user,
             message=serializer.validated_data['message']
         )
+        # Broadcast via WebSocket for real-time delivery
+        try:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'chat_{conversation.id}',
+                {
+                    'type': 'chat_message',
+                    'message': msg.message,
+                    'sender': user.username,
+                    'sender_name': user.get_full_name(),
+                    'timestamp': msg.timestamp.isoformat(),
+                    'sender_id': user.id,
+                }
+            )
+        except Exception:
+            pass
 
 
 @extend_schema(tags=['Chat'])
@@ -148,3 +181,11 @@ class AssignAgentView(generics.UpdateAPIView):
         conversation = self.get_object()
         conversation.agent = self.request.user
         conversation.save()
+        log_action(AuditLog.Action.UPDATE, 'Conversation', conversation.id,
+                   f"Conversation #{conversation.id} assignee a {self.request.user.get_full_name() or self.request.user.username}")
+        Notification.objects.create(
+            titre=f"Agent assigne a votre conversation",
+            message=f"{self.request.user.get_full_name()} a pris en charge votre demande.",
+            type=Notification.Type.CHAT,
+            user=conversation.client,
+        )

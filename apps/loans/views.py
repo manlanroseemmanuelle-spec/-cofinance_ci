@@ -11,6 +11,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
 from io import BytesIO
 from .models import LoanApplication, AmortizationSchedule, Document, LoanStatusHistory, LoanProduct, Collateral, LoanRestructuring, GracePeriod
+from rest_framework.exceptions import ValidationError
 from .serializers import (
     LoanApplicationSerializer, LoanCreateSerializer,
     LoanStatusUpdateSerializer, AmortizationScheduleSerializer,
@@ -34,10 +35,10 @@ class LoanListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         queryset = LoanApplication.objects.select_related('client__user', 'agent__user')
         if user.role == 'CLIENT':
-            return queryset.filter(client=user.client_profile)
+            return queryset.filter(client=user.client_profile, is_active=True)
         if user.role == 'AGENT':
-            return queryset.filter(agent=user.agent_profile)
-        return queryset
+            return queryset.filter(agent=user.agent_profile, is_active=True)
+        return queryset.filter(is_active=True)
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -54,6 +55,17 @@ class LoanListCreateView(generics.ListCreateAPIView):
         loan.score_eligibilite = score
         loan.save()
 
+        from .fraud import detecter_fraude
+        from apps.common.models import AuditLog
+        from apps.common.signals import log_action
+        alerts = detecter_fraude(loan, client)
+        for alert in alerts:
+            log_action(
+                AuditLog.Action.UPDATE, 'LoanApplication', loan.id,
+                f"Alerte fraude: {alert}",
+                f"Fraude détectée pour le prêt #{loan.id}: {alert}"
+            )
+
 
 @extend_schema(tags=['CrÃ©dits'])
 class LoanDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -65,10 +77,10 @@ class LoanDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         queryset = LoanApplication.objects.select_related('client__user', 'agent__user')
         if user.role == 'CLIENT':
-            return queryset.filter(client=user.client_profile)
+            return queryset.filter(client=user.client_profile, is_active=True)
         if user.role == 'AGENT':
-            return queryset.filter(agent=user.agent_profile)
-        return queryset
+            return queryset.filter(agent=user.agent_profile, is_active=True)
+        return queryset.filter(is_active=True)
 
     def get_serializer_class(self):
         if self.request.method in ('PUT', 'PATCH'):
@@ -92,10 +104,14 @@ class LoanStatusUpdateView(generics.UpdateAPIView):
             LoanApplication.Statut.APPROUVEE: {LoanApplication.Statut.DECAISSEE},
             LoanApplication.Statut.REJETEE: set(),
             LoanApplication.Statut.DECAISSEE: set(),
+            LoanApplication.Statut.REMBOURSEE: set(),
         }
         if new_status != old_status and new_status not in allowed_transitions.get(old_status, set()):
-            from rest_framework.exceptions import ValidationError
             raise ValidationError({'statut': f'Transition interdite: {old_status} -> {new_status}'})
+
+        if old_status == LoanApplication.Statut.EN_ANALYSE and new_status == LoanApplication.Statut.APPROUVEE:
+            if loan.agent and self.request.user.id == loan.agent.user_id and loan.montant_demande > 1000000:
+                raise ValidationError("Un prêt de plus de 1 000 000 FCFA nécessite l'approbation d'un administrateur.")
         loan.statut = new_status
 
         if 'agent' in serializer.validated_data:
@@ -262,10 +278,10 @@ class MyLoansView(generics.ListAPIView):
             return LoanApplication.objects.none()
         user = self.request.user
         if user.role == 'CLIENT':
-            return LoanApplication.objects.filter(client=user.client_profile)
+            return LoanApplication.objects.filter(client=user.client_profile, is_active=True)
         if user.role == 'AGENT':
-            return LoanApplication.objects.filter(agent=user.agent_profile)
-        return LoanApplication.objects.all()
+            return LoanApplication.objects.filter(agent=user.agent_profile, is_active=True)
+        return LoanApplication.objects.filter(is_active=True)
 
 
 @extend_schema(tags=['CrÃ©dits'])
@@ -283,6 +299,13 @@ class LoanStatusHistoryListView(generics.ListAPIView):
         if user.role == 'AGENT':
             return queryset.filter(loan__agent=user.agent_profile)
         return queryset
+
+
+def _sanitize_csv(value):
+    s = str(value)
+    if s and s[0] in ('=', '+', '-', '@', '\t'):
+        return "'" + s
+    return s
 
 
 @extend_schema(tags=['Exports'], responses={200: bytes})
@@ -303,8 +326,8 @@ class LoanExportCsvView(generics.GenericAPIView):
         for loan in queryset:
             client_name = (loan.client.user.get_full_name() or loan.client.user.username).replace(',', ' ')
             response.write(
-                f'{loan.id},{client_name},{loan.montant_demande},{loan.duree_mois},'
-                f'{loan.statut},{loan.score_eligibilite},{loan.date_creation.isoformat()}\n'
+                f'{_sanitize_csv(loan.id)},{_sanitize_csv(client_name)},{_sanitize_csv(loan.montant_demande)},{_sanitize_csv(loan.duree_mois)},'
+                f'{_sanitize_csv(loan.statut)},{_sanitize_csv(loan.score_eligibilite)},{_sanitize_csv(loan.date_creation.isoformat())}\n'
             )
         return response
 
@@ -315,7 +338,7 @@ class LoanExportPdfView(generics.GenericAPIView):
 
     def get(self, request):
         user = request.user
-        queryset = LoanApplication.objects.select_related('client__user', 'agent__user')
+        queryset = LoanApplication.objects.select_related('client__user', 'agent__user').filter(is_active=True)
         if user.role == 'CLIENT':
             queryset = queryset.filter(client=user.client_profile)
         elif user.role == 'AGENT':

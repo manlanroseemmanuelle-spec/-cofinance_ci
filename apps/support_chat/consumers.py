@@ -2,6 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from .models import Conversation, Message
 
 User = get_user_model()
@@ -89,6 +90,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'sender_id': user.id,
                 }
             )
+
+            from .faq import repondre_faq
+            faq_reponse = await database_sync_to_async(repondre_faq)(message)
+            if faq_reponse:
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': f"[Assistant] {faq_reponse}",
+                        'sender': 'assistant',
+                        'sender_name': 'Assistant CoFinance',
+                        'timestamp': timezone.now().isoformat(),
+                        'sender_id': 0,
+                    }
+                )
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({

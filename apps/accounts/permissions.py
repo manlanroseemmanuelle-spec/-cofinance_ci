@@ -41,6 +41,26 @@ class IsOwnerAdminOrAssignedAgent(BasePermission):
         return False
 
 
+class IsAuditeur(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'AUDITEUR'
+
+
+class IsComptable(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'COMPTABLE'
+
+
+class IsAdminOrComptable(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in ['ADMIN', 'COMPTABLE']
+
+
+class IsAdminOrAuditeur(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in ['ADMIN', 'AUDITEUR']
+
+
 class IsConversationParticipant(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated

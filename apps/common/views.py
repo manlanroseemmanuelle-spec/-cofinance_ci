@@ -13,7 +13,7 @@ from reportlab.lib.units import mm
 from io import BytesIO
 from .models import AuditLog
 from .serializers import AuditLogSerializer
-from apps.accounts.permissions import IsAdmin
+from apps.accounts.permissions import IsAdmin, IsAdminOrAuditeur, IsAuditeur
 
 
 @extend_schema(tags=['Santé'], responses={200: OpenApiResponse(description='API is running')})
@@ -27,7 +27,7 @@ def health_check(request):
 class AuditLogListView(generics.ListAPIView):
     queryset = AuditLog.objects.all()
     serializer_class = AuditLogSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrAuditeur]
     search_fields = ['action', 'model_name', 'object_repr', 'details', 'user__username']
     ordering_fields = ['timestamp']
     ordering = ['-timestamp']
@@ -35,7 +35,7 @@ class AuditLogListView(generics.ListAPIView):
 
 @extend_schema(tags=['Audit'])
 class AuditLogExportPdfView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrAuditeur]
 
     def get(self, request):
         qs = AuditLog.objects.select_related('user').order_by('-timestamp')
@@ -91,6 +91,15 @@ class AuditLogExportPdfView(APIView):
         return response
 
 
+from rest_framework.pagination import PageNumberPagination
+
+
+class SearchPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
 @extend_schema(tags=['Recherche'], responses={200: dict})
 class GlobalSearchView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -98,34 +107,54 @@ class GlobalSearchView(APIView):
     def get(self, request):
         query = request.query_params.get('q', '').strip()
         if len(query) < 2:
-            return Response({'query': query, 'results': {}})
+            return Response({'results': [], 'query': query})
 
+        from django.db.models import Q
         from apps.loans.models import LoanApplication
         from apps.insurance.models import Policy
         from apps.support_chat.models import Conversation
 
-        user = request.user
-        loans = LoanApplication.objects.select_related('client__user', 'agent__user')
-        policies = Policy.objects.select_related('client__user', 'produit')
-        conversations = Conversation.objects.select_related('client', 'agent')
+        results = []
 
-        if user.role == 'CLIENT':
-            loans = loans.filter(client=user.client_profile)
-            policies = policies.filter(client=user.client_profile)
-            conversations = conversations.filter(client=user)
-        elif user.role == 'AGENT':
-            loans = loans.filter(agent=user.agent_profile)
-            conversations = conversations.filter(agent=user)
+        loans = LoanApplication.objects.filter(
+            Q(id__icontains=query) | Q(client__user__first_name__icontains=query) | Q(client__user__last_name__icontains=query)
+        )[:5]
+        for l in loans:
+            results.append({
+                'object_id': l.id,
+                'object_repr': f"Prêt #{l.id} - {l.client.user.get_full_name()} - {l.montant_demande} FCFA",
+                'model_name': 'LoanApplication',
+                'action': 'Crédit',
+                'user_details': {'username': l.client.user.username},
+            })
 
-        loans = loans.filter(motif__icontains=query)[:10]
-        policies = policies.filter(produit__nom__icontains=query)[:10]
-        conversations = conversations.filter(messages__message__icontains=query).distinct()[:10]
+        policies = Policy.objects.filter(
+            Q(client__user__first_name__icontains=query) | Q(client__user__last_name__icontains=query)
+        )[:5]
+        for p in policies:
+            results.append({
+                'object_id': p.id,
+                'object_repr': f"Police #{p.id} - {p.produit.nom} - {p.client.user.get_full_name()}",
+                'model_name': 'Policy',
+                'action': 'Assurance',
+                'user_details': {'username': p.client.user.username},
+            })
 
-        return Response({
-            'query': query,
-            'results': {
-                'loans': [{'id': loan.id, 'motif': loan.motif, 'statut': loan.statut} for loan in loans],
-                'policies': [{'id': policy.id, 'produit': policy.produit.nom, 'statut': policy.statut} for policy in policies],
-                'conversations': [{'id': conv.id, 'status': conv.status} for conv in conversations],
-            }
-        })
+        conversations = Conversation.objects.filter(
+            Q(client_name__icontains=query) | Q(id__icontains=query)
+        )[:5]
+        for c in conversations:
+            results.append({
+                'object_id': c.id,
+                'object_repr': f"Conversation #{c.id} - {c.client_name or 'Client'}",
+                'model_name': 'Conversation',
+                'action': 'Chat',
+                'user_details': {'username': c.client_name or 'Client'},
+            })
+
+        paginator = SearchPagination()
+        page = paginator.paginate_queryset(results, request)
+        if page is not None:
+            return paginator.get_paginated_response(page)
+
+        return Response({'results': results, 'query': query})

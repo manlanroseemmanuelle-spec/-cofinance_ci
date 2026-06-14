@@ -116,6 +116,23 @@ class AgentDashboardView(APIView):
         my_conversations = Conversation.objects.filter(agent=request.user)
         open_chats = my_conversations.filter(status='OUVERTE').count()
 
+        today = timezone.now()
+        dossiers_mois = my_loans.filter(
+            date_creation__year=today.year,
+            date_creation__month=today.month
+        ).count()
+
+        total_du = AmortizationSchedule.objects.filter(
+            loan__agent=agent, est_paye=False
+        ).aggregate(total=Sum('mensualite'))['total'] or 0
+        taux_recouvrement = (total_collected / total_du * 100) if total_du > 0 else 0
+
+        clients_relance = AmortizationSchedule.objects.filter(
+            loan__agent=agent,
+            est_paye=False,
+            date_echeance__lt=today.date()
+        ).values('loan__client').distinct().count()
+
         return Response({
             'credits': {
                 'total': total_loans,
@@ -130,6 +147,12 @@ class AgentDashboardView(APIView):
                 'conversations_ouvertes': open_chats,
                 'total_conversations': my_conversations.count(),
             },
+            'objectifs': {
+                'dossiers_traites_mois': dossiers_mois,
+                'objectif_mensuel': 20,
+            },
+            'taux_recouvrement': round(taux_recouvrement, 2),
+            'clients_relance': clients_relance,
         })
 
 

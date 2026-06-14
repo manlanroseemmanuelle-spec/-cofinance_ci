@@ -10,6 +10,7 @@ class LoanApplication(models.Model):
         APPROUVEE = 'APPROUVEE', 'Approuvée'
         REJETEE = 'REJETEE', 'Rejetée'
         DECAISSEE = 'DECAISSEE', 'Décaissée'
+        REMBOURSEE = 'REMBOURSEE', 'Remboursée'
 
     produit = models.ForeignKey(
         'LoanProduct', on_delete=models.SET_NULL,
@@ -37,6 +38,7 @@ class LoanApplication(models.Model):
         null=True, blank=True,
         related_name='analysed_loans'
     )
+    is_active = models.BooleanField(default=True)
     date_creation = models.DateTimeField(auto_now_add=True)
     date_mise_a_jour = models.DateTimeField(auto_now=True)
 
@@ -48,6 +50,7 @@ class LoanApplication(models.Model):
             models.Index(fields=['client', 'statut']),
             models.Index(fields=['agent', 'statut']),
             models.Index(fields=['date_creation']),
+            models.Index(fields=['is_active']),
         ]
 
     def __str__(self):
@@ -56,6 +59,10 @@ class LoanApplication(models.Model):
     @property
     def est_eligible(self):
         return self.score_eligibilite >= 50
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_active = False
+        self.save(using=using)
 
 
 class AmortizationSchedule(models.Model):
@@ -138,6 +145,8 @@ class LoanProduct(models.Model):
     frequence_remboursement = models.CharField(max_length=20, choices=FrequenceRemb.choices, default=FrequenceRemb.MENSUEL)
     taux_penalite_jour = models.DecimalField(max_digits=5, decimal_places=3, default=Decimal('1.000'))
     garantie_requise = models.BooleanField(default=False)
+    frais_dossier = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Pourcentage de frais de dossier')
+    commission_agent = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text='Commission agent en pourcentage')
     est_actif = models.BooleanField(default=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 
@@ -148,6 +157,12 @@ class LoanProduct(models.Model):
 
     def __str__(self):
         return f"{self.nom} ({self.code})"
+
+    @property
+    def frais_dossier_montant(self, montant):
+        """Calcule les frais de dossier en fonction du montant du prêt."""
+        from decimal import Decimal
+        return montant * (Decimal(str(self.frais_dossier)) / Decimal('100'))
 
 
 class Collateral(models.Model):

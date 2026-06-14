@@ -200,8 +200,11 @@
         .loading { text-align: center; padding: 60px 20px; }
         .spinner { width: 36px; height: 36px; border: 3px solid var(--border-color); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .skeleton { background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-secondary) 50%, var(--border-color) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+        .skeleton { background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-input) 50%, var(--border-color) 75%); background-size: 200% 100%; animation: skeleton-loading 1.5s infinite; border-radius: var(--radius); }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .skeleton-card { height: 80px; margin-bottom: 16px; }
+        .skeleton-row { height: 32px; margin-bottom: 8px; }
         .login-page { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px; position: relative; overflow: hidden; }
         .login-page::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(37,99,235,0.08) 0%, transparent 60%); }
         .login-card { background: var(--bg-card); border-radius: var(--radius-xl); padding: 40px; width: 100%; max-width: 400px; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color); position: relative; }
@@ -223,6 +226,7 @@
         .notification.error svg { color: var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .scroll-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .search-bar { display:flex; align-items:center; background:var(--bg-input); border:1px solid var(--border-color); border-radius:20px; padding:2px 12px; width:200px; transition:all .3s; }
@@ -283,8 +287,7 @@
         .confirm-modal h4 { font-size:16px; font-weight:700; margin-bottom:8px; }
         .confirm-modal p { font-size:13px; color:var(--text-secondary); margin-bottom:20px; }
         .confirm-modal .confirm-actions { display:flex; gap:8px; justify-content:center; }
-        .view-fade { animation:viewFade .2s ease-out; }
-        @keyframes viewFade { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        .view-fade { animation:fadeInUp .3s ease; }
         .skeleton-table { padding:0; }
         .skeleton-table .s-row { display:flex; padding:12px 16px; border-bottom:1px solid var(--border-color); gap:16px; }
         .skeleton-table .s-cell { height:14px; border-radius:4px; flex:1; }
@@ -308,6 +311,16 @@
         .btn-outline.active { background: var(--primary); color: white; border-color: var(--primary); }
         .badge { display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;font-size:11px;font-weight:600;border-radius:11px;background:var(--bg-secondary);color:var(--text-secondary); }
         .stat-card .sub { font-size:12px;color:var(--text-secondary); }
+        body.dark-mode {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #1e2745;
+            --bg-input: #2a2a4a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --border-color: #2a2a4a;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
         @media print { .sidebar, .header { display: none; } .main { margin-left: 0; } }
     </style>
 </head>
@@ -359,10 +372,6 @@
                     </template>
                     <div style="text-align:center;margin-top:12px"><a href="#" @click.prevent="showForgotPassword=false;resetStep='request'" style="font-size:13px;color:var(--accent);text-decoration:none">Retour à la connexion</a></div>
                 </div>
-                    <strong>Identifiants de démonstration :</strong><br>
-                    Admin: <strong>admin</strong> / <strong>admin123</strong><br>
-                    Agents: <strong>agent1</strong> à <strong>agent5</strong> / <strong>agent123</strong><br>
-                    Clients: <strong>client1</strong> à <strong>client20</strong> / <strong>client123</strong>
 </div>
                             </div>
 
@@ -483,6 +492,11 @@
                                             </select>
                                         </div>
                                         <button v-for="p in filterPeriods" :key="p.value" :class="['filter-btn', {active: dashboardPeriod === p.value}]" @click="dashboardPeriod=p.value;loadDashboard()">{{ p.label }}</button>
+                                        <button :class="['filter-btn', {active: dashboardPeriod === 'custom'}]" @click="dashboardPeriod='custom'">Personnalisé</button>
+                                        <template v-if="dashboardPeriod === 'custom'">
+                                            <input type="date" v-model="dashboardDateFrom" @change="loadDashboard()" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:12px;background:var(--bg-input);color:var(--text-primary)">
+                                            <input type="date" v-model="dashboardDateTo" @change="loadDashboard()" style="padding:4px 8px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:12px;background:var(--bg-input);color:var(--text-primary)">
+                                        </template>
                                     </div>
                                 </div>
                                 <div class="stats-grid">
@@ -878,7 +892,7 @@
                                         <table class="table" v-if="savingsAccounts.length">
                                             <thead><tr><th>N° Compte</th><th>Client</th><th>Produit</th><th>Solde</th><th>Statut</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="c in savingsAccounts" :key="c.id">
+                                                <tr v-for="c in paginate(savingsAccounts)" :key="c.id">
                                                     <td style="font-family:monospace;font-size:12px">{{ c.numero_compte }}</td>
                                                     <td v-if="c.client_details">{{ c.client_details.user?.first_name }} {{ c.client_details.user?.last_name }}</td><td v-else>{{ c.client }}</td>
                                                     <td>{{ productName(c.produit) }}</td>
@@ -888,6 +902,11 @@
                                             </tbody>
                                         </table>
                                         <div v-if="!savingsAccounts.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h5>Aucun compte d'épargne</h5></div>
+                                        <div class="pagination" v-if="savingsAccounts.length > pageSize">
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+                                            <span style="margin:0 12px;font-size:13px;color:var(--text-secondary)">Page {{ currentPage }} / {{ Math.ceil(savingsAccounts.length / pageSize) || 1 }}</span>
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.min(Math.ceil(savingsAccounts.length / pageSize), currentPage + 1)" :disabled="currentPage >= Math.ceil(savingsAccounts.length / pageSize)">Suivant</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card">
@@ -896,7 +915,7 @@
                                         <table class="table" v-if="savingsTransactions.length">
                                             <thead><tr><th>Référence</th><th>Type</th><th>Montant</th><th>Date</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="t in savingsTransactions.slice(0,20)" :key="t.id">
+                                                <tr v-for="t in paginate(savingsTransactions)" :key="t.id">
                                                     <td style="font-family:monospace;font-size:12px">{{ t.reference }}</td>
                                                     <td><span :class="['tag', t.type==='VERSEMENT'?'green':t.type==='RETRAIT'?'red':t.type==='INTERET_CREDITEUR'?'blue':'orange']">{{ t.type }}</span></td>
                                                     <td style="font-weight:600">{{ formatMoney(t.montant) }}</td>
@@ -905,6 +924,11 @@
                                             </tbody>
                                         </table>
                                         <div v-if="!savingsTransactions.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg></div><h5>Aucune transaction</h5></div>
+                                        <div class="pagination" v-if="savingsTransactions.length > pageSize">
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+                                            <span style="margin:0 12px;font-size:13px;color:var(--text-secondary)">Page {{ currentPage }} / {{ Math.ceil(savingsTransactions.length / pageSize) || 1 }}</span>
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.min(Math.ceil(savingsTransactions.length / pageSize), currentPage + 1)" :disabled="currentPage >= Math.ceil(savingsTransactions.length / pageSize)">Suivant</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -920,7 +944,7 @@
                                     </div>
                                 </div>
                                 <div class="grid-3" v-if="groups.length">
-                                    <div class="card" v-for="g in groups" :key="g.id">
+                                    <div class="card" v-for="g in paginate(groups)" :key="g.id">
                                         <div class="card-body">
                                             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
                                                 <div style="width:40px;height:40px;border-radius:8px;background:var(--accent)20;display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:800;font-size:16px">{{ g.nom?.[0] }}</div>
@@ -936,6 +960,11 @@
                                     </div>
                                 </div>
                                 <div v-if="!groups.length" class="empty-state" style="margin-top:40px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><h5>Aucun groupe</h5></div>
+                                <div class="pagination" v-if="groups.length > pageSize" style="justify-content:center;padding:16px 0">
+                                    <button class="btn btn-sm btn-outline" @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+                                    <span style="margin:0 12px;font-size:13px;color:var(--text-secondary)">Page {{ currentPage }} / {{ Math.ceil(groups.length / pageSize) || 1 }}</span>
+                                    <button class="btn btn-sm btn-outline" @click="currentPage = Math.min(Math.ceil(groups.length / pageSize), currentPage + 1)" :disabled="currentPage >= Math.ceil(groups.length / pageSize)">Suivant</button>
+                                </div>
                             </div>
 
                             <div v-if="currentView === 'accounting'" class="view-fade">
@@ -954,7 +983,7 @@
                                         <table class="table" v-if="accounts.length">
                                             <thead><tr><th>Code</th><th>Nom</th><th>Type</th><th>Solde</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="a in accounts" :key="a.id">
+                                                <tr v-for="a in paginate(accounts)" :key="a.id">
                                                     <td style="font-family:monospace;font-size:12px">{{ a.code }}</td>
                                                     <td>{{ a.nom }}</td>
                                                     <td><span :class="['tag', a.type==='ACTIF'||a.type==='CHARGE'?'red':'green']">{{ a.type }}</span></td>
@@ -963,6 +992,11 @@
                                             </tbody>
                                         </table>
                                         <div v-if="!accounts.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><h5>Aucun compte comptable</h5></div>
+                                        <div class="pagination" v-if="accounts.length > pageSize">
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+                                            <span style="margin:0 12px;font-size:13px;color:var(--text-secondary)">Page {{ currentPage }} / {{ Math.ceil(accounts.length / pageSize) || 1 }}</span>
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.min(Math.ceil(accounts.length / pageSize), currentPage + 1)" :disabled="currentPage >= Math.ceil(accounts.length / pageSize)">Suivant</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card">
@@ -971,7 +1005,7 @@
                                         <table class="table" v-if="journalEntries.length">
                                             <thead><tr><th>Référence</th><th>Journal</th><th>Date</th><th>Libellé</th><th>Validée</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="e in journalEntries" :key="e.id">
+                                                <tr v-for="e in paginate(journalEntries)" :key="e.id">
                                                     <td style="font-family:monospace;font-size:12px">{{ e.reference }}</td>
                                                     <td><span class="tag blue">{{ e.journal }}</span></td>
                                                     <td style="font-size:12px">{{ e.date_ecriture }}</td>
@@ -981,6 +1015,11 @@
                                             </tbody>
                                         </table>
                                         <div v-if="!journalEntries.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h5>Aucune écriture</h5></div>
+                                        <div class="pagination" v-if="journalEntries.length > pageSize">
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+                                            <span style="margin:0 12px;font-size:13px;color:var(--text-secondary)">Page {{ currentPage }} / {{ Math.ceil(journalEntries.length / pageSize) || 1 }}</span>
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.min(Math.ceil(journalEntries.length / pageSize), currentPage + 1)" :disabled="currentPage >= Math.ceil(journalEntries.length / pageSize)">Suivant</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1064,8 +1103,8 @@
                                             <tbody>
                                                 <tr v-for="e in filteredCalendarEvents" :key="e.id">
                                                     <td style="font-size:12px">{{ e.date }}</td>
-                                                    <td>{{ e.client_nom || '-' }}</td>
-                                                    <td>{{ e.libelle || '-' }}</td>
+                                                    <td>{{ e.client || '-' }}</td>
+                                                    <td>{{ e.title || '-' }}</td>
                                                     <td style="font-weight:600">{{ formatMoney(e.montant) }}</td>
                                                     <td><span :class="['tag', e.est_paye ? 'green' : 'red']">{{ e.est_paye ? 'Payée' : 'En attente' }}</span></td>
                                                 </tr>
@@ -1092,7 +1131,7 @@
                                         <table class="table" v-if="filteredClients.length">
                                             <thead><tr><th>Nom</th><th>Téléphone</th><th>Région</th><th>Revenu</th><th>Date inscription</th></tr></thead>
                                             <tbody>
-                                                <tr v-for="c in filteredClients" :key="c.id">
+                                                <tr v-for="c in paginate(filteredClients)" :key="c.id">
                                                     <td style="font-weight:600">{{ c.nom }}</td>
                                                     <td>{{ c.telephone }}</td>
                                                     <td>{{ c.region || '-' }}</td>
@@ -1102,6 +1141,11 @@
                                             </tbody>
                                         </table>
                                         <div v-if="!filteredClients.length" class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><h5>Aucun client</h5></div>
+                                        <div class="pagination" v-if="filteredClients.length > pageSize">
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+                                            <span style="margin:0 12px;font-size:13px;color:var(--text-secondary)">Page {{ currentPage }} / {{ Math.ceil(filteredClients.length / pageSize) || 1 }}</span>
+                                            <button class="btn btn-sm btn-outline" @click="currentPage = Math.min(Math.ceil(filteredClients.length / pageSize), currentPage + 1)" :disabled="currentPage >= Math.ceil(filteredClients.length / pageSize)">Suivant</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1157,15 +1201,14 @@
                         <button class="close" @click="showRepaymentForm = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-group"><label>Prêt (ID)</label><input type="number" v-model="repaymentForm.loan_id" placeholder="ID du prêt"></div>
+                        <div class="form-group"><label>Prêt (ID)</label><input type="number" v-model="repaymentForm.loan" placeholder="ID du prêt"></div>
                         <div class="form-group"><label>Montant (FCFA)</label><input type="number" v-model="repaymentForm.montant" placeholder="Ex: 50000"></div>
                         <div class="form-group"><label>Mode de paiement</label>
                             <select v-model="repaymentForm.mode_paiement">
                                 <option value="ORANGE_MONEY">Orange Money</option>
-                                <option value="MTN_MONEY">MTN Money</option>
+                                <option value="MTN_MOMO">MTN Money</option>
                                 <option value="WAVE">Wave</option>
                                 <option value="ESPECES">Espèces</option>
-                                <option value="VIREMENT">Virement</option>
                             </select>
                         </div>
                         <div class="form-group"><label>Notes</label><textarea v-model="repaymentForm.notes" rows="2" placeholder="Notes (optionnel)"></textarea></div>
@@ -1464,6 +1507,24 @@
                 </div>
             </div>
 
+            <div class="modal-overlay" v-if="showStatusCommentModal" @click.self="showStatusCommentModal = false">
+                <div class="modal" style="max-width:460px">
+                    <div class="modal-header">
+                        <h4>Commentaire sur le changement de statut</h4>
+                        <button class="close" @click="showStatusCommentModal = false"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Nouveau statut : <strong>{{ pendingStatusUpdate }}</strong></label>
+                            <textarea v-model="statusComment" rows="3" placeholder="Commentaire (optionnel)" style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:var(--radius);font-size:13px;background:var(--bg-input);color:var(--text-primary);margin-top:8px"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" @click="showStatusCommentModal = false">Annuler</button>
+                        <button class="btn btn-primary" @click="confirmStatusUpdate">Confirmer</button>
+                    </div>
+                </div>
+            </div>
             <div class="modal-overlay" v-if="confirm.show" @click.self="confirm.show=false">
                 <div class="modal" style="max-width:400px">
                     <div class="confirm-modal">
@@ -1528,7 +1589,7 @@
                 showLoanForm: false,
                 showInsuranceForm: false,
                 showRepaymentForm: false,
-                repaymentForm: { loan_id: '', montant: '', mode_paiement: 'ORANGE_MONEY', notes: '' },
+                repaymentForm: { loan: '', montant: '', mode_paiement: 'ORANGE_MONEY', notes: '' },
                 showSavingsAccountForm: false,
                 showSavingsTransactionForm: false,
                 savingsAccountForm: { client: '', produit: '' },
@@ -1563,7 +1624,7 @@
                 loanFilter: 'all',
                 dashboardPeriod: '30d',
                 filterPeriods: [{value:'7d',label:'7j'},{value:'30d',label:'30j'},{value:'90d',label:'90j'}],
-                loanFilters: [{value:'all',label:'Tous'},{value:'SOUMISE',label:'Soumises'},{value:'EN_ANALYSE',label:'En analyse'},{value:'APPROUVEE',label:'Approuvées'},{value:'REJETEE',label:'Rejetées'},{value:'DECAISSEE',label:'Décaissées'}],
+                loanFilters: [{value:'all',label:'Tous'},{value:'SOUMISE',label:'Soumises'},{value:'EN_ANALYSE',label:'En analyse'},{value:'APPROUVEE',label:'Approuvées'},{value:'REJETEE',label:'Rejetées'},{value:'DECAISSEE',label:'Décaissées'},{value:'REMBOURSEE',label:'Remboursées'}],
                 loadingViews: {dashboard:true,loans:true,repayments:true,insurance:true,chat:true,notifications:true,users:true,audit:true,savings:true,groups:true,accounting:true,compliance:true,payments:true,calendar:true,clients:true},
                 profileForm: { first_name:'', last_name:'' },
                 passwordForm: { old_password:'', new_password:'', confirm_password:'' },
@@ -1591,6 +1652,14 @@
                 resetConfirm: '',
                 resetStep: 'request',
                 forgotMsg: '',
+                statusComment: '',
+                showStatusCommentModal: false,
+                pendingStatusUpdate: null,
+                pendingLoanForStatus: null,
+                dashboardDateFrom: '',
+                dashboardDateTo: '',
+                darkMode: (() => { try { return localStorage.getItem('darkMode') === 'true'; } catch(e) { return false; } })(),
+                currentPage: 1,
             },
             computed: {
                 menuItems() {
@@ -1712,7 +1781,7 @@
                     finally { this.loading = false; }
                 },
                 logout() { this.token = ''; this.user = {}; this.refresh = ''; this.notificationsList = []; this.conversations = []; if (this._refreshTimer) { clearInterval(this._refreshTimer); this._refreshTimer = null; } if (this.notifSocket) { this.notifSocket.onclose = null; this.notifSocket.close(); this.notifSocket = null; } if (this.chatSocket) { this.chatSocket.onclose = null; this.chatSocket.close(); this.chatSocket = null; } localStorage.removeItem('token'); localStorage.removeItem('refresh'); },
-                toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', this.theme); localStorage.setItem('theme', this.theme); },
+                toggleTheme() { this.theme = this.theme === 'light' ? 'dark' : 'light'; this.darkMode = this.theme === 'dark'; document.documentElement.setAttribute('data-theme', this.theme); document.body.classList.toggle('dark-mode', this.darkMode); localStorage.setItem('theme', this.theme); localStorage.setItem('darkMode', this.darkMode); },
                 navigate(view) { this.currentView = view; this.sidebarOpen = false; this.searchQuery='';this.searchResults=[];this.searchIndex=-1; this.loadView(view); },
                 async loadAll() {
                     const loadedViews = ['dashboard','loans','repayments','insurance','chat','notifications'];
@@ -1732,7 +1801,9 @@
                         }
                     }
                 },
+                paginate(items) { const s = this.pageSize; return items ? items.slice((this.currentPage-1)*s, this.currentPage*s) : []; },
                 async loadView(view) {
+                    this.currentPage = 1;
                     this.$set(this.loadingViews, view, true);
                     try {
                         if (view === 'profile') { this.profileForm = { first_name:this.user.first_name||'', last_name:this.user.last_name||'' }; return; }
@@ -1760,7 +1831,12 @@
                 try {
                     const role = this.user.role.toLowerCase();
                     const params = new URLSearchParams();
-                    if (this.dashboardPeriod) params.set('period', this.dashboardPeriod);
+                    if (this.dashboardPeriod === 'custom') {
+                        if (this.dashboardDateFrom) params.set('date_from', this.dashboardDateFrom);
+                        if (this.dashboardDateTo) params.set('date_to', this.dashboardDateTo);
+                    } else if (this.dashboardPeriod) {
+                        params.set('period', this.dashboardPeriod);
+                    }
                     if (this.dashboardAgentId) params.set('agent_id', this.dashboardAgentId);
                     if (this.dashboardRegion) params.set('region', this.dashboardRegion);
                     const qs = params.toString();
@@ -1795,6 +1871,9 @@
                                 { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>', label:'Approuvés', value:data.credits?.approuvees||0, color:'#059669', link:'loans' },
                                 { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 1v22M17 5l-5-4-5 4"/></svg>', label:'Collecte', value:this.formatMoney(data.collecte?.total_rembourse||0), color:'#7c3aed', link:'repayments' },
                                 { iconSvg:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', label:'Chats ouverts', value:data.support?.conversations_ouvertes||0, color:'#0891b2', link:'chat' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', label:'Objectif mensuel', value:'15 dossiers', color:'#8b5cf6', sub:'Objectif', link:'loans' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>', label:'Taux recouvrement', value:(data.taux_recouvrement != null ? data.taux_recouvrement + '%' : '—'), color:'#059669', link:'repayments' },
+                                { iconSvg:'<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>', label:'Clients à relancer', value:data.clients_relance || 0, color:'#d97706', link:'calendar' },
                             ];
                         }
                         const loanUrl = this.user.role === 'ADMIN' ? '/api/loans/' : '/api/loans/mine/';
@@ -2220,14 +2299,15 @@
                     }, 300);
                 },
                 navigateToSearchResult(r) {
-                    if (r.model_name === 'LoanApplication' || r.model_name === 'credit') {
-                        this.navigate('loans');
-                    } else if (r.model_name === 'Policy' || r.model_name === 'assurance') {
-                        this.navigate('insurance');
-                    } else if (r.model_name === 'Conversation' || r.model_name === 'chat') {
-                        this.navigate('chat');
-                    }
-                    this.searchQuery = ''; this.searchResults = [];
+                    this.navigateToResult(r);
+                },
+                navigateToResult(r) {
+                    this.searchQuery = '';
+                    this.searchResults = [];
+                    if (r.model_name === 'LoanApplication' || r.model_name === 'credit') this.navigate('loans');
+                    else if (r.model_name === 'Policy' || r.model_name === 'assurance') this.navigate('insurance');
+                    else if (r.model_name === 'Conversation' || r.model_name === 'chat') this.navigate('chat');
+                    else if (r.model_name === 'Repayment' || r.model_name === 'remboursement') this.navigate('repayments');
                 },
                 async exportPDF() {
                     try {
@@ -2281,13 +2361,21 @@
                     this._doUpdateLoanStatus(loan, newStatus);
                 },
                 async _doUpdateLoanStatus(loan, newStatus) {
-                    const comment = prompt(`Commentaire pour le passage à ${newStatus} :`);
-                    if (comment === null) return;
+                    this.pendingLoanForStatus = loan;
+                    this.pendingStatusUpdate = newStatus;
+                    this.statusComment = '';
+                    this.showStatusCommentModal = true;
+                },
+                async confirmStatusUpdate() {
+                    const loan = this.pendingLoanForStatus;
+                    const newStatus = this.pendingStatusUpdate;
+                    if (!loan || !newStatus) return;
+                    this.showStatusCommentModal = false;
                     try {
                         const r = await fetch(`/api/loans/${loan.id}/status/`, {
                             method:'PATCH',
                             headers:{'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json'},
-                            body: JSON.stringify({ statut: newStatus, commentaire: comment || '' })
+                            body: JSON.stringify({ statut: newStatus, commentaire: this.statusComment || '' })
                         });
                         if (r.ok) {
                             this.notif = { show: true, message: `Statut mis à jour : ${newStatus}`, type: 'success' };
@@ -2372,7 +2460,7 @@
                     } catch(e) { this.passwordError = 'Erreur réseau'; }
                 },
                 statusClass(s) {
-                    const map = { 'SOUMISE':'pending','EN_ANALYSE':'pending','APPROUVEE':'approved','REJETEE':'rejected','DECAISSEE':'active','ACTIVE':'active','EXPIREE':'closed','OUVERTE':'active','FERMEE':'closed' };
+                    const map = { 'SOUMISE':'pending','EN_ANALYSE':'pending','APPROUVEE':'approved','REJETEE':'rejected','DECAISSEE':'active','REMBOURSEE':'green','ACTIVE':'active','EXPIREE':'closed','OUVERTE':'active','FERMEE':'closed' };
                     return map[s] || 'pending';
                 },
                 formatMoney(v) { return new Intl.NumberFormat('fr-FR').format(v || 0) + ' FCFA'; },
@@ -2419,6 +2507,7 @@
             mounted() {
                 console.log('Vue monté, token:', this.token ? 'présent' : 'absent');
                 document.documentElement.setAttribute('data-theme', this.theme);
+                if (this.darkMode) document.body.classList.add('dark-mode');
                 if (this.token) { this.initApp(); }
             },
         });

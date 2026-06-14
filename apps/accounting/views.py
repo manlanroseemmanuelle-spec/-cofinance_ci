@@ -14,13 +14,13 @@ from .serializers import (
     JournalEntrySerializer, JournalEntryCreateSerializer,
     JournalEntryValidationSerializer,
 )
-from apps.accounts.permissions import IsAdmin
+from apps.accounts.permissions import IsAdmin, IsAdminOrComptable
 
 
 @extend_schema(tags=['Comptabilité'])
 class AccountListCreateView(generics.ListCreateAPIView):
     queryset = Account.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrComptable]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -32,12 +32,12 @@ class AccountListCreateView(generics.ListCreateAPIView):
 class AccountDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrComptable]
 
 
 @extend_schema(tags=['Comptabilité'])
 class JournalEntryListCreateView(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrComptable]
 
     def get_queryset(self):
         qs = JournalEntry.objects.prefetch_related('lines__account')
@@ -55,7 +55,7 @@ class JournalEntryListCreateView(generics.ListCreateAPIView):
 @extend_schema(tags=['Comptabilité'])
 class JournalEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = JournalEntry.objects.prefetch_related('lines__account')
-    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrComptable]
 
     def get_serializer_class(self):
         if self.request.method in ('PUT', 'PATCH'):
@@ -65,7 +65,7 @@ class JournalEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 @extend_schema(tags=['Comptabilité'])
 class JournalEntryValidateView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrComptable]
 
     def post(self, request, pk):
         try:

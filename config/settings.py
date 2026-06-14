@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.accounts.middleware.LoginHistoryMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -146,11 +147,15 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': config('DRF_ANON_THROTTLE', default='100/day'),
         'user': config('DRF_USER_THROTTLE', default='1000/day'),
-        'login': config('DRF_LOGIN_THROTTLE', default='5/min'),
+        'login': config('DRF_LOGIN_THROTTLE', default='10/min'),
+        'register': '3/min',
+        'forgot_password': '3/min',
+        'reset_password': '5/min',
     },
 }
 
@@ -189,6 +194,14 @@ CELERY_BEAT_SCHEDULE = {
     },
     'alertes-assurance-j15': {
         'task': 'apps.notifications.tasks.envoyer_alertes_expiration_assurance',
+        'schedule': 60 * 60 * 24,
+    },
+    'calcul-interets-epargne': {
+        'task': 'apps.savings.tasks.calculer_interets_epargne',
+        'schedule': 60 * 60 * 24 * 30,
+    },
+    'relance-echeances-impayees': {
+        'task': 'apps.repayments.tasks.relance_echeances_impayees',
         'schedule': 60 * 60 * 24,
     },
 }
